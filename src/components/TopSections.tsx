@@ -193,6 +193,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
           </AnimatedSection>
 
           <AnimatedSection className="mb-6">
+            <a href="https://avangard-ai.ru" target="_blank" rel="noopener noreferrer" className="block">
             <div className="relative rounded-3xl overflow-hidden neon-border glass card-hover">
               <img src={PORTFOLIO_IMAGE} alt="portfolio" className="w-full h-64 md:h-80 object-cover opacity-40" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#080812] via-[#080812]/70 to-transparent flex items-center">
@@ -208,6 +209,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
                 </div>
               </div>
             </div>
+            </a>
           </AnimatedSection>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
