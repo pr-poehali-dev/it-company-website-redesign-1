@@ -52,7 +52,7 @@ def handler(event: dict, context) -> dict:
     path = event.get('path', '/')
 
     # POST /login
-    if method == 'POST' and path.endswith('/login'):
+    if method == 'POST' and (path.endswith('/login') or path == '/'):
         body = json.loads(event.get('body') or '{}')
         username = body.get('username', '').strip()
         password = body.get('password', '')
