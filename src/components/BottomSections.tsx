@@ -1,11 +1,15 @@
+import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { technologies, jobs, blogPosts, navLinks, AnimatedSection } from "@/components/shared";
+import BlogModal, { type BlogPost } from "@/components/BlogModal";
 
 interface BottomSectionsProps {
   scrollTo: (href: string) => void;
 }
 
 export default function BottomSections({ scrollTo }: BottomSectionsProps) {
+  const [activePost, setActivePost] = useState<BlogPost | null>(null);
+
   return (
     <>
       {/* TECHNOLOGIES */}
@@ -146,7 +150,10 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
           <div className="grid md:grid-cols-3 gap-6">
             {blogPosts.map((post, i) => (
               <AnimatedSection key={i}>
-                <div className="glass neon-border rounded-2xl overflow-hidden card-hover group cursor-pointer h-full flex flex-col">
+                <div
+                  className={`glass neon-border rounded-2xl overflow-hidden card-hover group h-full flex flex-col ${post.content ? "cursor-pointer" : "opacity-60"}`}
+                  onClick={() => post.content && setActivePost(post)}
+                >
                   <div className={`h-1.5 w-full bg-gradient-to-r ${post.color}`} />
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex items-center justify-between mb-4">
@@ -156,16 +163,22 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
                     <h3 className="font-oswald text-lg font-semibold mb-3 text-white leading-snug flex-1">{post.title}</h3>
                     <div className="flex items-center justify-between mt-4">
                       <span className="text-white/40 text-xs">{post.date}</span>
-                      <div className="flex items-center gap-1 text-violet-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span>Читать</span>
-                        <Icon name="ArrowRight" size={14} />
-                      </div>
+                      {post.content ? (
+                        <div className="flex items-center gap-1 text-violet-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span>Читать</span>
+                          <Icon name="ArrowRight" size={14} />
+                        </div>
+                      ) : (
+                        <span className="text-white/20 text-xs">Скоро</span>
+                      )}
                     </div>
                   </div>
                 </div>
               </AnimatedSection>
             ))}
           </div>
+
+          {activePost && <BlogModal post={activePost} onClose={() => setActivePost(null)} />}
 
           <AnimatedSection className="text-center mt-10">
             <button className="glass border border-white/20 px-8 py-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/5 transition-all duration-300 text-sm font-semibold">
