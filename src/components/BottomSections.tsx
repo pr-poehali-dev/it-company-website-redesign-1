@@ -277,8 +277,8 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
               <div className="space-y-6">
                 {[
                   { icon: "MapPin", title: "Офис", value: "Москва, Пресненская наб., 12, БЦ «Башня Федерация»", color: "text-violet-400", bg: "bg-violet-500/20" },
-                  { icon: "Phone", title: "Телефон", value: "+7 (800) 100-00-00", color: "text-cyan-400", bg: "bg-cyan-500/20" },
-                  { icon: "Mail", title: "Email", value: "hello@nexatech.ru", color: "text-pink-400", bg: "bg-pink-500/20" },
+                  { icon: "Phone", title: "Телефон", value: "+7 (927) 748-68-68", color: "text-cyan-400", bg: "bg-cyan-500/20" },
+                  { icon: "Mail", title: "Email", value: "maksT77@yandex.ru", color: "text-pink-400", bg: "bg-pink-500/20" },
                   { icon: "Clock", title: "Часы работы", value: "Пн–Пт: 9:00–19:00 МСК", color: "text-emerald-400", bg: "bg-emerald-500/20" },
                 ].map((item, i) => (
                   <div key={i} className="glass neon-border rounded-2xl p-5 flex items-start gap-4 card-hover">

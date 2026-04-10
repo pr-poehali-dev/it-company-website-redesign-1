@@ -25,12 +25,12 @@ export const services = [
 ];
 
 export const portfolio = [
-  { title: "FinTech Платформа", category: "Банкинг", desc: "Цифровой банк для 2М+ пользователей с AI-скорингом и real-time аналитикой", tech: ["React", "Python", "ML"], color: "from-violet-600 to-indigo-600" },
-  { title: "MedTech Система", category: "Медицина", desc: "Платформа телемедицины с распознаванием диагнозов по снимкам и ЭЭГ", tech: ["TensorFlow", "React Native", "AWS"], color: "from-cyan-600 to-blue-600" },
-  { title: "E-Commerce Hub", category: "Ритейл", desc: "Маркетплейс с ML-рекомендациями, обработкой 10K+ заказов в минуту", tech: ["Node.js", "Kafka", "PostgreSQL"], color: "from-pink-600 to-rose-600" },
-  { title: "SmartCity Dashboard", category: "ГосТех", desc: "Единая платформа управления городской инфраструктурой для 5 мегаполисов", tech: ["Vue.js", "IoT", "Kubernetes"], color: "from-emerald-600 to-teal-600" },
-  { title: "LogiTech Platform", category: "Логистика", desc: "Оптимизация маршрутов с ИИ, снижение затрат на 35% для топ-10 перевозчиков", tech: ["Python", "GraphQL", "Redis"], color: "from-orange-600 to-amber-600" },
-  { title: "EduTech Экосистема", category: "EdTech", desc: "Адаптивное обучение с персонализированными траекториями для 500K+ студентов", tech: ["React", "FastAPI", "NLP"], color: "from-purple-600 to-pink-600" },
+  { title: "МАТ-Банк Онлайн", category: "Банкинг", desc: "Цифровой банк для 2М+ пользователей с AI-скорингом и real-time аналитикой", tech: ["React", "Python", "ML"], color: "from-violet-600 to-indigo-600" },
+  { title: "МАТ-Мед", category: "Медицина", desc: "Платформа телемедицины с распознаванием диагнозов по снимкам и ЭЭГ", tech: ["TensorFlow", "React Native", "AWS"], color: "from-cyan-600 to-blue-600" },
+  { title: "МАТ-Маркет", category: "Ритейл", desc: "Маркетплейс с ML-рекомендациями, обработкой 10K+ заказов в минуту", tech: ["Node.js", "Kafka", "PostgreSQL"], color: "from-pink-600 to-rose-600" },
+  { title: "МАТ-Город", category: "ГосТех", desc: "Единая платформа управления городской инфраструктурой для 5 мегаполисов", tech: ["Vue.js", "IoT", "Kubernetes"], color: "from-emerald-600 to-teal-600" },
+  { title: "МАТ-Лог", category: "Логистика", desc: "Оптимизация маршрутов с ИИ, снижение затрат на 35% для топ-10 перевозчиков", tech: ["Python", "GraphQL", "Redis"], color: "from-orange-600 to-amber-600" },
+  { title: "МАТ-Обучение", category: "EdTech", desc: "Адаптивное обучение с персонализированными траекториями для 500K+ студентов", tech: ["React", "FastAPI", "NLP"], color: "from-purple-600 to-pink-600" },
 ];
 
 export const technologies = [
