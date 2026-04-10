@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Get public posts list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"posts": "array"},
+      "bodyMatcher": "keys_exist"
+    }
+  ]
+}
