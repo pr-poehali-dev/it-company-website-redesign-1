@@ -10,5 +10,11 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: YandexBot
+Allow: /
+
 User-agent: *
 Allow: /
+Disallow: /admin
+
+Sitemap: https://mat-labs.ru/sitemap.xml
