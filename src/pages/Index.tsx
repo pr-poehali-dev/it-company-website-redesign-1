@@ -32,7 +32,7 @@ export default function Index() {
 
   function animateCounters() {
     const duration = 2000;
-    const targets = { projects: 200, years: 12, clients: 98, team: 50 };
+    const targets = { projects: 200, years: 2026, clients: 98, team: 50 };
     const start = Date.now();
     const tick = () => {
       const elapsed = Date.now() - start;

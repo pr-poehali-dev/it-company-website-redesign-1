@@ -61,7 +61,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
             <div ref={statsRef} className="flex flex-wrap gap-10 mt-16 animate-fade-in-up delay-400">
               {[
                 { val: `${counter.projects}+`, label: "Проектов" },
-                { val: `${counter.years} лет`, label: "На рынке" },
+                { val: `${counter.years}`, label: "Год основания" },
                 { val: `${counter.clients}%`, label: "Довольных клиентов" },
                 { val: `${counter.team}+`, label: "Специалистов" },
               ].map((s, i) => (
@@ -90,8 +90,8 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
                 <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-cyan-600/20 rounded-3xl blur-xl" />
                 <img src={TEAM_IMAGE} alt="Команда NexaTech" className="relative rounded-3xl w-full object-cover aspect-[4/3] neon-border" />
                 <div className="absolute -bottom-6 -right-6 glass neon-border rounded-2xl p-5 animate-float">
-                  <div className="font-oswald text-3xl font-bold gradient-text">12+</div>
-                  <div className="text-white/60 text-sm">лет инноваций</div>
+                  <div className="font-oswald text-3xl font-bold gradient-text">2026</div>
+                  <div className="text-white/60 text-sm">год основания</div>
                 </div>
                 <div className="absolute -top-6 -left-6 glass neon-border rounded-2xl p-4 animate-float-reverse">
                   <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
                   которые превращают смелые бизнес-идеи в работающие цифровые продукты.
                 </p>
                 <p className="text-white/50 leading-relaxed mb-8">
-                  С 2014 года мы реализовали более 200 проектов в финтехе, медицине,
+                  С 2026 года мы реализуем проекты в финтехе, медицине,
                   ритейле и государственном секторе.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
