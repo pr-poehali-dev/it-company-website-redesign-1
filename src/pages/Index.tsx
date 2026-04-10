@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import NavBar from "@/components/NavBar";
 import TopSections from "@/components/TopSections";
 import BottomSections from "@/components/BottomSections";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -69,6 +70,7 @@ export default function Index() {
         statsRef={statsRef}
       />
       <BottomSections scrollTo={scrollTo} />
+      <Breadcrumbs />
     </div>
   );
 }
