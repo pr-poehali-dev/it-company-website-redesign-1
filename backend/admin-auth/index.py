@@ -16,9 +16,27 @@ CORS_HEADERS = {
 # Хранилище сессий (в памяти, для простоты)
 _sessions: dict = {}
 
+# Устанавливаем правильный хэш при холодном старте функции
+_bootstrapped = False
 
 def get_conn():
     return psycopg2.connect(os.environ['DATABASE_URL'], options=f"-c search_path={os.environ.get('MAIN_DB_SCHEMA', 'public')}")
+
+def bootstrap():
+    global _bootstrapped
+    if _bootstrapped:
+        return
+    _bootstrapped = True
+    target_user = 'admin63'
+    target_hash = hashlib.sha256('Cfvfhf63'.encode()).hexdigest()
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("UPDATE admin_users SET username=%s, password_hash=%s WHERE id=1", (target_user, target_hash))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 
 def hash_password(password: str) -> str:
@@ -26,6 +44,7 @@ def hash_password(password: str) -> str:
 
 
 def handler(event: dict, context) -> dict:
+    bootstrap()
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
 
@@ -78,6 +97,23 @@ def handler(event: dict, context) -> dict:
     if method == 'POST' and path.endswith('/logout'):
         token = event.get('headers', {}).get('X-Session-Token', '')
         _sessions.pop(token, None)
+        return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True})}
+
+    # POST /set-password — однократная установка логина/пароля (только с setup-токеном)
+    if method == 'POST' and path.endswith('/set-password'):
+        body = json.loads(event.get('body') or '{}')
+        setup_token = body.get('setup_token', '')
+        if setup_token != os.environ.get('ADMIN_SECRET_TOKEN', ''):
+            return {'statusCode': 403, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Нет доступа'})}
+        username = body.get('username', '').strip()
+        password = body.get('password', '')
+        if not username or not password:
+            return {'statusCode': 400, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Заполните все поля'})}
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("UPDATE admin_users SET username = %s, password_hash = %s WHERE id = 1", (username, hash_password(password)))
+        conn.commit()
+        conn.close()
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True})}
 
     return {'statusCode': 404, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Not found'})}
