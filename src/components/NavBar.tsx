@@ -14,9 +14,9 @@ export default function NavBar({ scrolled, menuOpen, setMenuOpen, scrollTo }: Na
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg btn-gradient flex items-center justify-center">
-            <span className="relative z-10 text-white font-oswald font-bold text-sm">NT</span>
+            <span className="relative z-10 text-white font-oswald font-bold text-sm">МЛ</span>
           </div>
-          <span className="font-oswald font-bold text-xl tracking-wider gradient-text">NexaTech</span>
+          <span className="font-oswald font-bold text-xl tracking-wider gradient-text">МАТ-Лабс</span>
         </div>
 
         <div className="hidden lg:flex items-center gap-1">

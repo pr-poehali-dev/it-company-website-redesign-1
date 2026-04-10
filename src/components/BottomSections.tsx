@@ -323,9 +323,9 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg btn-gradient flex items-center justify-center">
-                <span className="relative z-10 text-white font-oswald font-bold text-xs">NT</span>
+                <span className="relative z-10 text-white font-oswald font-bold text-xs">МЛ</span>
               </div>
-              <span className="font-oswald font-bold text-lg gradient-text">NexaTech</span>
+              <span className="font-oswald font-bold text-lg gradient-text">МАТ-Лабс</span>
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-white/40">
               {navLinks.map(link => (
@@ -335,7 +335,7 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
               ))}
             </div>
             <div className="text-white/30 text-sm text-center">
-              © 2026 NexaTech. Все права защищены
+              © 2026 ООО МАТ-Лабс. Все права защищены
             </div>
           </div>
         </div>
