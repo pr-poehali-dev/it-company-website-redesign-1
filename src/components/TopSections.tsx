@@ -198,10 +198,10 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
               <div className="absolute inset-0 bg-gradient-to-r from-[#080812] via-[#080812]/70 to-transparent flex items-center">
                 <div className="p-8 md:p-12 max-w-lg">
                   <span className="inline-block bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs px-3 py-1 rounded-full mb-4">Флагманский проект</span>
-                  <h3 className="font-oswald text-3xl md:text-4xl font-bold mb-3">NexaBank 3.0</h3>
-                  <p className="text-white/60 mb-4">Крупнейший цифровой банк СНГ — 8М+ пользователей, AI-рекомендации, zero-downtime деплой</p>
+                  <h3 className="font-oswald text-3xl md:text-4xl font-bold mb-3">АВАНГАРД</h3>
+                  <p className="text-white/60 mb-4">ИИ-эксперт по дизайну и ремонту: онлайн-консультации, создание дизайн-проектов интерьера и расчёт сметы</p>
                   <div className="flex gap-2 flex-wrap">
-                    {["React", "Kubernetes", "ML", "Real-time"].map(t => (
+                    {["AI", "React", "Python", "ML"].map(t => (
                       <span key={t} className="glass border border-white/10 text-white/70 text-xs px-3 py-1 rounded-full">{t}</span>
                     ))}
                   </div>
@@ -213,17 +213,25 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {portfolio.map((p, i) => (
               <AnimatedSection key={i}>
-                <div className="glass neon-border rounded-2xl p-6 card-hover group cursor-pointer h-full">
-                  <div className={`h-2 w-full rounded-full bg-gradient-to-r ${p.color} mb-5`} />
-                  <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${p.color} text-white font-medium`}>{p.category}</span>
-                  <h3 className="font-oswald text-lg font-semibold mt-3 mb-2 text-white">{p.title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed mb-4">{p.desc}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {p.tech.map(t => (
-                      <span key={t} className="glass border border-white/10 text-white/60 text-xs px-2 py-1 rounded-lg">{t}</span>
-                    ))}
+                <a href={p.url} target="_blank" rel="noopener noreferrer" className="block h-full">
+                  <div className="glass neon-border rounded-2xl p-6 card-hover group cursor-pointer h-full">
+                    <div className={`h-2 w-full rounded-full bg-gradient-to-r ${p.color} mb-5`} />
+                    <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${p.color} text-white font-medium`}>{p.category}</span>
+                    <h3 className="font-oswald text-lg font-semibold mt-3 mb-2 text-white">{p.title}</h3>
+                    <p className="text-white/50 text-sm leading-relaxed mb-4">{p.desc}</p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex gap-2 flex-wrap">
+                        {p.tech.map(t => (
+                          <span key={t} className="glass border border-white/10 text-white/60 text-xs px-2 py-1 rounded-lg">{t}</span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1 text-violet-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-3">
+                        <span>Открыть</span>
+                        <Icon name="ExternalLink" size={12} />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </a>
               </AnimatedSection>
             ))}
           </div>

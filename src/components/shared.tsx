@@ -25,12 +25,11 @@ export const services = [
 ];
 
 export const portfolio = [
-  { title: "МАТ-Банк Онлайн", category: "Банкинг", desc: "Цифровой банк для 2М+ пользователей с AI-скорингом и real-time аналитикой", tech: ["React", "Python", "ML"], color: "from-violet-600 to-indigo-600" },
-  { title: "МАТ-Мед", category: "Медицина", desc: "Платформа телемедицины с распознаванием диагнозов по снимкам и ЭЭГ", tech: ["TensorFlow", "React Native", "AWS"], color: "from-cyan-600 to-blue-600" },
-  { title: "МАТ-Маркет", category: "Ритейл", desc: "Маркетплейс с ML-рекомендациями, обработкой 10K+ заказов в минуту", tech: ["Node.js", "Kafka", "PostgreSQL"], color: "from-pink-600 to-rose-600" },
-  { title: "МАТ-Город", category: "ГосТех", desc: "Единая платформа управления городской инфраструктурой для 5 мегаполисов", tech: ["Vue.js", "IoT", "Kubernetes"], color: "from-emerald-600 to-teal-600" },
-  { title: "МАТ-Лог", category: "Логистика", desc: "Оптимизация маршрутов с ИИ, снижение затрат на 35% для топ-10 перевозчиков", tech: ["Python", "GraphQL", "Redis"], color: "from-orange-600 to-amber-600" },
-  { title: "МАТ-Обучение", category: "EdTech", desc: "Адаптивное обучение с персонализированными траекториями для 500K+ студентов", tech: ["React", "FastAPI", "NLP"], color: "from-purple-600 to-pink-600" },
+  { title: "АВАНГАРД", category: "ИИ / Дизайн", desc: "ИИ-эксперт по дизайну и ремонту: онлайн-консультации, создание дизайн-проектов интерьера и расчёт сметы", tech: ["AI", "React", "Python"], color: "from-violet-600 to-indigo-600", url: "https://avangard-ai.ru" },
+  { title: "Купец в плюсе", category: "Бизнес-сервисы", desc: "Агрегатор бизнес-услуг, собирающий лучшие предложения от проверенных партнёров для развития бизнеса", tech: ["React", "Node.js", "PostgreSQL"], color: "from-cyan-600 to-blue-600", url: "https://купецвплюсе.рф" },
+  { title: "AVT", category: "CRM / ИИ", desc: "Платформа автоматизации работы с клиентами: ИИ-звонки, email-рассылки и встроенная CRM-система", tech: ["AI", "Python", "FastAPI"], color: "from-pink-600 to-rose-600", url: "https://avt-63.ru" },
+  { title: "БухКонтроль", category: "Бухгалтерия", desc: "Профессиональный бухгалтерский аутсорсинг для агробизнеса: учёт, налоговая оптимизация и консультации", tech: ["React", "Python", "PostgreSQL"], color: "from-emerald-600 to-teal-600", url: "https://bk-63.ru" },
+  { title: "RoomScan AI", category: "ИИ / Недвижимость", desc: "ИИ-инструмент для сканирования и планировки помещений с автоматическим расчётом площади и материалов", tech: ["AI", "React", "ML"], color: "from-orange-600 to-amber-600", url: "https://roomscan-ai.ru" },
 ];
 
 export const technologies = [
