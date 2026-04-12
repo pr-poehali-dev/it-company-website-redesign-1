@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, TEAM_IMAGE, PORTFOLIO_IMAGE, services, portfolio, AnimatedSection } from "@/components/shared";
 
@@ -9,6 +10,7 @@ interface TopSectionsProps {
 }
 
 export default function TopSections({ scrollTo, counter, statsRef }: TopSectionsProps) {
+  const navigate = useNavigate();
   return (
     <>
       {/* HERO */}
@@ -160,19 +162,21 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((s, i) => (
               <AnimatedSection key={i}>
-                <div className="glass neon-border rounded-2xl p-6 card-hover group cursor-pointer h-full">
+                <div
+                  className="glass neon-border rounded-2xl p-6 card-hover group cursor-pointer h-full flex flex-col"
+                  onClick={() => navigate(`/services/${s.slug}`)}
+                >
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
                     <Icon name={s.icon} size={22} className="text-white" />
                   </div>
                   <h3 className="font-oswald text-xl font-semibold mb-3 text-white">{s.title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{s.desc}</p>
+                  <p className="text-white/50 text-sm leading-relaxed flex-1">{s.desc}</p>
                   <div className="mt-5 flex items-center justify-between">
                     <span className="text-sm font-semibold text-white/90">{s.price}</span>
-
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 text-violet-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span>Подробнее</span>
-                    <Icon name="ArrowRight" size={14} />
+                    <div className="flex items-center gap-1.5 text-violet-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span>Подробнее</span>
+                      <Icon name="ArrowRight" size={14} />
+                    </div>
                   </div>
                 </div>
               </AnimatedSection>
