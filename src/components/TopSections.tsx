@@ -16,7 +16,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
       {/* HERO */}
       <section id="hero" className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={HERO_IMAGE} alt="hero" className="w-full h-full object-cover opacity-20" />
+          <img src={HERO_IMAGE} alt="МАТ-Лабс — инновационные IT-решения для бизнеса" className="w-full h-full object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-b from-[#080812]/60 via-transparent to-[#080812]" />
           <div className="absolute inset-0 animated-gradient opacity-70" />
           <div className="absolute inset-0 grid-bg" />
@@ -90,7 +90,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
             <AnimatedSection>
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-cyan-600/20 rounded-3xl blur-xl" />
-                <img src={TEAM_IMAGE} alt="Команда NexaTech" className="relative rounded-3xl w-full object-cover aspect-[4/3] neon-border" />
+                <img src={TEAM_IMAGE} alt="Команда МАТ-Лабс — 50+ IT-специалистов и инженеров" className="relative rounded-3xl w-full object-cover aspect-[4/3] neon-border" />
                 <div className="absolute -bottom-6 -right-6 glass neon-border rounded-2xl p-5 animate-float">
                   <div className="font-oswald text-3xl font-bold gradient-text">2026</div>
                   <div className="text-white/60 text-sm">год основания</div>
@@ -203,7 +203,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
           <AnimatedSection className="mb-6">
             <a href="https://avangard-ai.ru" target="_blank" rel="noopener noreferrer" className="block">
             <div className="relative rounded-3xl overflow-hidden neon-border glass card-hover">
-              <img src={PORTFOLIO_IMAGE} alt="portfolio" className="w-full h-64 md:h-80 object-cover opacity-40" />
+              <img src={PORTFOLIO_IMAGE} alt="Проект АВАНГАРД — ИИ-эксперт по дизайну и ремонту интерьера" className="w-full h-64 md:h-80 object-cover opacity-40" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#080812] via-[#080812]/70 to-transparent flex items-center">
                 <div className="p-8 md:p-12 max-w-lg">
                   <span className="inline-block bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs px-3 py-1 rounded-full mb-4">Флагманский проект</span>

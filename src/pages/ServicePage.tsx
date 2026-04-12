@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { services } from "@/components/shared";
 import Icon from "@/components/ui/icon";
 
@@ -12,7 +13,46 @@ export default function ServicePage() {
     return null;
   }
 
+  const pageTitle = `${service.title} — ООО МАТ-Лабс`;
+  const pageUrl = `https://mat-labs.ru/services/${service.slug}`;
+  const ogImage = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/bucket/445e832b-e1ed-413e-a842-7a510d6d41f1.jpg";
+
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": service.title,
+    "description": service.fullDesc,
+    "provider": {
+      "@type": "Organization",
+      "name": "ООО МАТ-Лабс",
+      "url": "https://mat-labs.ru"
+    },
+    "priceRange": service.price,
+    "url": pageUrl,
+    "areaServed": "RU",
+    "availableLanguage": "Russian"
+  };
+
   return (
+    <>
+    <Helmet>
+      <title>{pageTitle}</title>
+      <meta name="description" content={service.fullDesc} />
+      <meta name="robots" content="index, follow" />
+      <link rel="canonical" href={pageUrl} />
+      <meta property="og:type" content="website" />
+      <meta property="og:title" content={pageTitle} />
+      <meta property="og:description" content={service.fullDesc} />
+      <meta property="og:url" content={pageUrl} />
+      <meta property="og:image" content={ogImage} />
+      <meta property="og:image:type" content="image/jpeg" />
+      <meta property="og:locale" content="ru_RU" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={pageTitle} />
+      <meta name="twitter:description" content={service.fullDesc} />
+      <meta name="twitter:image" content={ogImage} />
+      <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
+    </Helmet>
     <div className="min-h-screen bg-[#080812] text-white font-golos overflow-x-hidden">
       {/* Back button */}
       <div className="fixed top-6 left-6 z-50">
@@ -163,5 +203,6 @@ export default function ServicePage() {
         </div>
       </section>
     </div>
+    </>
   );
 }
