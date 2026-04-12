@@ -45,21 +45,21 @@ export default function NavBar({ scrolled, menuOpen, setMenuOpen, scrollTo }: Na
 
                   {servicesOpen && (
                     <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-72">
-                      <div className="glass border border-white/10 rounded-2xl p-2 shadow-xl shadow-black/40">
+                      <div className="bg-white rounded-2xl p-2 shadow-xl shadow-black/40">
                         {services.map((s, i) => (
                           <button
                             key={i}
                             onClick={() => { navigate(`/services/${s.slug}`); setServicesOpen(false); }}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all group text-left"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all group text-left"
                           >
                             <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${s.color} flex items-center justify-center shrink-0`}>
                               <Icon name={s.icon} size={14} className="text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm text-white/80 group-hover:text-white transition-colors">{s.title}</div>
-                              <div className="text-xs text-white/30">{s.price}</div>
+                              <div className="text-sm text-gray-800 group-hover:text-gray-900 transition-colors">{s.title}</div>
+                              <div className="text-xs text-gray-400">{s.price}</div>
                             </div>
-                            <Icon name="ArrowRight" size={12} className="text-white/20 group-hover:text-white/50 transition-colors shrink-0" />
+                            <Icon name="ArrowRight" size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
                           </button>
                         ))}
                       </div>
