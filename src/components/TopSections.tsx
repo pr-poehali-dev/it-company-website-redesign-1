@@ -166,7 +166,11 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
                   </div>
                   <h3 className="font-oswald text-xl font-semibold mb-3 text-white">{s.title}</h3>
                   <p className="text-white/50 text-sm leading-relaxed">{s.desc}</p>
-                  <div className="mt-4 flex items-center gap-2 text-violet-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="mt-5 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-white/90">{s.price}</span>
+                    <span className="text-[11px] text-white/30">среднерыночная цена</span>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 text-violet-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <span>Подробнее</span>
                     <Icon name="ArrowRight" size={14} />
                   </div>

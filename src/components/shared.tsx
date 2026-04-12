@@ -16,12 +16,12 @@ export const navLinks = [
 ];
 
 export const services = [
-  { icon: "Code2", title: "Разработка ПО", desc: "Создаём масштабируемые веб и мобильные приложения с нуля до запуска", color: "from-violet-500 to-purple-600" },
-  { icon: "Cloud", title: "Облачные решения", desc: "Миграция в облако, DevOps, Kubernetes, CI/CD и автоматизация инфраструктуры", color: "from-cyan-500 to-blue-600" },
-  { icon: "Brain", title: "ИИ и ML", desc: "Нейросети, компьютерное зрение, NLP и предиктивная аналитика для вашего бизнеса", color: "from-pink-500 to-rose-600" },
-  { icon: "Shield", title: "Кибербезопасность", desc: "Аудит, пентест, защита данных и соответствие требованиям GDPR и 152-ФЗ", color: "from-emerald-500 to-teal-600" },
-  { icon: "BarChart3", title: "Аналитика данных", desc: "BI-решения, дашборды, ETL-пайплайны и Data Warehouse под ваши KPI", color: "from-orange-500 to-amber-600" },
-  { icon: "Smartphone", title: "Мобильные приложения", desc: "iOS и Android нативные и кросс-платформенные решения на React Native и Flutter", color: "from-indigo-500 to-blue-600" },
+  { icon: "Code2", title: "Разработка ПО", desc: "Создаём масштабируемые веб и мобильные приложения с нуля до запуска", color: "from-violet-500 to-purple-600", price: "от 150 000 ₽" },
+  { icon: "Cloud", title: "Облачные решения", desc: "Миграция в облако, DevOps, Kubernetes, CI/CD и автоматизация инфраструктуры", color: "from-cyan-500 to-blue-600", price: "от 80 000 ₽" },
+  { icon: "Brain", title: "ИИ и ML", desc: "Нейросети, компьютерное зрение, NLP и предиктивная аналитика для вашего бизнеса", color: "from-pink-500 to-rose-600", price: "от 200 000 ₽" },
+  { icon: "Shield", title: "Кибербезопасность", desc: "Аудит, пентест, защита данных и соответствие требованиям GDPR и 152-ФЗ", color: "from-emerald-500 to-teal-600", price: "от 60 000 ₽" },
+  { icon: "BarChart3", title: "Аналитика данных", desc: "BI-решения, дашборды, ETL-пайплайны и Data Warehouse под ваши KPI", color: "from-orange-500 to-amber-600", price: "от 90 000 ₽" },
+  { icon: "Smartphone", title: "Мобильные приложения", desc: "iOS и Android нативные и кросс-платформенные решения на React Native и Flutter", color: "from-indigo-500 to-blue-600", price: "от 180 000 ₽" },
 ];
 
 export const portfolio = [
