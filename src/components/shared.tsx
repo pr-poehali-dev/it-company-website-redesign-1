@@ -205,6 +205,7 @@ export const portfolio = [
   { title: "БухКонтроль", category: "Бухгалтерия", desc: "Профессиональный бухгалтерский аутсорсинг для агробизнеса: учёт, налоговая оптимизация и консультации", tech: ["React", "Python", "PostgreSQL"], color: "from-emerald-600 to-teal-600", url: "https://bk-63.ru" },
   { title: "RoomScan AI", category: "ИИ / Недвижимость", desc: "ИИ-инструмент для сканирования и планировки помещений с автоматическим расчётом площади и материалов", tech: ["AI", "React", "ML"], color: "from-orange-600 to-amber-600", url: "https://roomscan-ai.ru" },
   { title: "SoloFly", category: "Авиация / Обучение", desc: "Платформа для пилотов-любителей и учлётов: маршруты, документация, обучение и сообщество частной авиации", tech: ["React", "Python", "PostgreSQL"], color: "from-sky-600 to-blue-700", url: "https://solofly.ru" },
+  { title: "СмартМаш", category: "ПО для станкостроения", desc: "Российская цифровая платформа для станкостроения: проектирование, управление программами ЧПУ, мониторинг оборудования и полный жизненный цикл изделий", tech: ["React", "Python", "PostgreSQL"], color: "from-slate-600 to-zinc-700", url: "https://smartmach.ru" },
 ];
 
 export const technologies = [
