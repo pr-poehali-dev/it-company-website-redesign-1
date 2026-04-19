@@ -616,6 +616,13 @@ def handler(event: dict, context) -> dict:
         sources = body.get('sources', ['eis', 'hh', 'habr', 'fl', 'kwork', 'upwork'])
         corp_keys = body.get('corp_keys', [c['key'] for c in CORPORATE_SOURCES])
 
+        # Фильтры
+        filters = body.get('filters', {})
+        min_price     = float(filters.get('min_price', 0) or 0)
+        min_days_left = int(filters.get('min_days_left', 0) or 0)
+        prefer_commercial = bool(filters.get('prefer_commercial', False))
+        prefer_advance    = bool(filters.get('prefer_advance', False))
+
         if not query:
             return {'statusCode': 400, 'headers': CORS_HEADERS,
                     'body': json.dumps({'error': 'Введите ключевые слова'})}
@@ -692,8 +699,79 @@ def handler(event: dict, context) -> dict:
         for t in all_tenders:
             t['saved'] = f"{t['id']}::{t['source']}" in saved_ids
 
-        # Сортируем по цене убыванием
-        all_tenders.sort(key=lambda x: x.get('price', 0), reverse=True)
+        # ── Применяем фильтры ────────────────────────────────────────────
+        from datetime import date, timedelta
+        today = date.today()
+
+        def passes_filters(t: dict) -> bool:
+            # 1. Минимальная сумма
+            if min_price > 0 and t.get('price', 0) < min_price:
+                return False
+
+            # 2. Срок подачи — не менее min_days_left дней от сегодня
+            if min_days_left > 0:
+                end_raw = t.get('end_date', '—')
+                if end_raw and end_raw != '—':
+                    try:
+                        end = date.fromisoformat(end_raw[:10])
+                        if (end - today).days < min_days_left:
+                            return False
+                    except Exception:
+                        pass  # дата не распознана — пропускаем фильтр
+
+            return True
+
+        filtered = [t for t in all_tenders if passes_filters(t)]
+
+        # 3. Предпочтение коммерческим заказам — поднимаем их в начало
+        COMMERCIAL_KEYWORDS = ['коммерческ', 'фриланс', 'проект', 'услуг', 'задани']
+        GOVT_KEYWORDS = ['44-ФЗ', '223-ФЗ', 'государствен', 'муниципальн']
+
+        def commercial_score(t: dict) -> int:
+            if not prefer_commercial:
+                return 0
+            law = t.get('law', '').lower()
+            name = t.get('name', '').lower()
+            # Понижаем госзакупки
+            for kw in GOVT_KEYWORDS:
+                if kw.lower() in law:
+                    return -1
+            # Повышаем коммерческие
+            for kw in COMMERCIAL_KEYWORDS:
+                if kw in law or kw in name:
+                    return 1
+            return 0
+
+        # 4. Предпочтение авансу — ищем в названии
+        ADVANCE_KEYWORDS = ['аванс', 'предоплат', 'prepay', 'advance', '50%', '30%', '100%']
+
+        def advance_score(t: dict) -> int:
+            if not prefer_advance:
+                return 0
+            name = t.get('name', '').lower()
+            customer = t.get('customer', '').lower()
+            for kw in ADVANCE_KEYWORDS:
+                if kw in name or kw in customer:
+                    return 1
+            return 0
+
+        # Сортировка: сначала по баллам предпочтений, затем по цене убыванием
+        filtered.sort(
+            key=lambda t: (
+                commercial_score(t) + advance_score(t),
+                t.get('price', 0),
+            ),
+            reverse=True,
+        )
+
+        # Статистика фильтрации
+        filter_stats = {
+            'total_before': len(all_tenders),
+            'total_after': len(filtered),
+            'filtered_out': len(all_tenders) - len(filtered),
+        }
+
+        all_tenders = filtered
 
         # Статус корпоративных источников
         corp_status = [{
@@ -712,6 +790,7 @@ def handler(event: dict, context) -> dict:
                 'warnings': warnings,
                 'links': links,
                 'corp_status': corp_status,
+                'filter_stats': filter_stats,
             }, ensure_ascii=False),
         }
 
