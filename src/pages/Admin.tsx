@@ -31,8 +31,22 @@ const emptyPost = (): Omit<Post, "id" | "date"> => ({
   read: "5 мин",
   color: TAG_COLORS["AI/ML"],
   content: "",
-  published: true,
+  published: false,
 });
+
+function renderMarkdown(text: string): string {
+  return text
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold text-white mt-6 mb-2">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-white mt-8 mb-3">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-white mt-8 mb-4">$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em class="text-white/80 italic">$1</em>')
+    .replace(/^- (.+)$/gm, '<li class="text-white/70 ml-4 list-disc">$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li class="text-white/70 ml-4 list-decimal">$2</li>')
+    .replace(/`(.+?)`/g, '<code class="bg-white/10 text-violet-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+    .replace(/\n\n/g, '</p><p class="text-white/60 leading-relaxed mb-4">')
+    .replace(/^(?!<[h|l|p])(.+)$/gm, '<p class="text-white/60 leading-relaxed mb-4">$1</p>');
+}
 
 export default function Admin() {
   const [token, setToken] = useState(() => sessionStorage.getItem("admin_token") || "");
@@ -48,6 +62,7 @@ export default function Admin() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [editorTab, setEditorTab] = useState<"write" | "preview">("write");
 
   const isAuth = Boolean(token);
 
@@ -94,6 +109,7 @@ export default function Admin() {
     setEditPost(null);
     setView("new");
     setSaveSuccess(false);
+    setEditorTab("write");
   }
 
   function startEdit(post: Post) {
@@ -101,17 +117,19 @@ export default function Admin() {
     setEditPost(post);
     setView("edit");
     setSaveSuccess(false);
+    setEditorTab("write");
   }
 
   function handleTagChange(tag: string) {
     setForm(f => ({ ...f, tag, color: TAG_COLORS[tag] || f.color }));
   }
 
-  async function savePost() {
+  async function savePost(publish?: boolean) {
     setSaving(true);
     setSaveSuccess(false);
+    const published = publish !== undefined ? publish : form.published;
     try {
-      const body = { ...form, read_time: form.read };
+      const body = { ...form, published, read_time: form.read };
       if (view === "edit" && editPost) {
         await fetch(`${BLOG_URL}/${editPost.id}`, {
           method: "PUT",
@@ -126,8 +144,9 @@ export default function Admin() {
         });
       }
       setSaveSuccess(true);
+      setForm(f => ({ ...f, published }));
       await loadPosts();
-      setTimeout(() => { setView("list"); setSaveSuccess(false); }, 800);
+      setTimeout(() => { setView("list"); setSaveSuccess(false); }, 900);
     } finally {
       setSaving(false);
     }
@@ -139,6 +158,20 @@ export default function Admin() {
     await loadPosts();
   }
 
+  function insertMarkdown(before: string, after = "") {
+    const textarea = document.getElementById("post-content") as HTMLTextAreaElement;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = form.content.substring(start, end);
+    const newText = form.content.substring(0, start) + before + selected + after + form.content.substring(end);
+    setForm(f => ({ ...f, content: newText }));
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, end + before.length);
+    }, 0);
+  }
+
   if (!isAuth) {
     return (
       <div className="min-h-screen bg-[#080812] text-white flex items-center justify-center p-4">
@@ -148,9 +181,8 @@ export default function Admin() {
               <span className="font-oswald font-bold text-xl text-white">МЛ</span>
             </div>
             <h1 className="font-oswald text-2xl font-bold gradient-text">Панель администратора</h1>
-            <p className="text-white/40 text-sm mt-1">ООО МАТ-Лабс</p>
+            <p className="text-white/40 text-sm mt-1">МАТ-Лабс</p>
           </div>
-
           <div className="glass neon-border rounded-3xl p-6 space-y-4">
             <div>
               <label className="block text-sm text-white/60 mb-2">Логин</label>
@@ -191,7 +223,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-[#080812] text-white">
       {/* Header */}
-      <div className="glass border-b border-white/10 px-6 py-4 flex items-center justify-between">
+      <div className="glass border-b border-white/10 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg btn-gradient flex items-center justify-center">
             <span className="font-oswald font-bold text-xs text-white">МЛ</span>
@@ -199,7 +231,7 @@ export default function Admin() {
           <span className="font-oswald font-bold text-lg gradient-text">Админ-панель</span>
         </div>
         <div className="flex items-center gap-3">
-          <a href="/" className="text-white/40 hover:text-white text-sm transition-colors flex items-center gap-1">
+          <a href="/" target="_blank" rel="noreferrer" className="text-white/40 hover:text-white text-sm transition-colors flex items-center gap-1">
             <Icon name="ExternalLink" size={14} />
             Сайт
           </a>
@@ -210,13 +242,16 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-8">
 
         {/* LIST VIEW */}
         {view === "list" && (
           <>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-oswald text-2xl font-bold text-white">Статьи блога</h2>
+              <div>
+                <h2 className="font-oswald text-2xl font-bold text-white">Статьи блога</h2>
+                <p className="text-white/40 text-sm mt-1">{posts.length} {posts.length === 1 ? "статья" : posts.length < 5 ? "статьи" : "статей"}</p>
+              </div>
               <button onClick={startNew} className="btn-gradient px-5 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center gap-2">
                 <Icon name="Plus" size={16} />
                 Новая статья
@@ -236,24 +271,34 @@ export default function Admin() {
             ) : (
               <div className="space-y-3">
                 {posts.map(post => (
-                  <div key={post.id} className="glass neon-border rounded-2xl p-5 flex items-center justify-between gap-4">
+                  <div key={post.id} className="glass neon-border rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-violet-500/30 transition-all">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className={`w-1 h-12 rounded-full bg-gradient-to-b ${post.color} flex-shrink-0`} />
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className={`text-xs px-2 py-0.5 rounded-full bg-gradient-to-r ${post.color} text-white`}>{post.tag}</span>
                           <span className="text-white/30 text-xs">{post.read} чтения</span>
-                          {!post.published && <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/40">Скрыта</span>}
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${post.published ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/40"}`}>
+                            {post.published ? "Опубликована" : "Черновик"}
+                          </span>
                         </div>
                         <p className="text-white font-medium text-sm truncate">{post.title}</p>
                         <p className="text-white/30 text-xs mt-0.5">{post.date}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <button onClick={() => startEdit(post)} className="w-9 h-9 glass border border-white/10 rounded-xl flex items-center justify-center hover:border-violet-500/40 hover:bg-violet-500/10 transition-all">
+                      <button
+                        onClick={() => startEdit(post)}
+                        className="w-9 h-9 glass border border-white/10 rounded-xl flex items-center justify-center hover:border-violet-500/40 hover:bg-violet-500/10 transition-all"
+                        title="Редактировать"
+                      >
                         <Icon name="Pencil" size={14} className="text-white/60" />
                       </button>
-                      <button onClick={() => setDeleteId(post.id)} className="w-9 h-9 glass border border-white/10 rounded-xl flex items-center justify-center hover:border-red-500/40 hover:bg-red-500/10 transition-all">
+                      <button
+                        onClick={() => setDeleteId(post.id)}
+                        className="w-9 h-9 glass border border-white/10 rounded-xl flex items-center justify-center hover:border-red-500/40 hover:bg-red-500/10 transition-all"
+                        title="Удалить"
+                      >
                         <Icon name="Trash2" size={14} className="text-white/60" />
                       </button>
                     </div>
@@ -277,36 +322,129 @@ export default function Admin() {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
+              {/* Main editor */}
               <div className="lg:col-span-2 space-y-4">
-                <div className="glass neon-border rounded-2xl p-6 space-y-4">
-                  <div>
-                    <label className="block text-sm text-white/60 mb-2">Заголовок *</label>
-                    <input
-                      type="text"
-                      value={form.title}
-                      onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                      placeholder="Введите заголовок статьи"
-                      className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
-                    />
+
+                {/* Title */}
+                <div className="glass neon-border rounded-2xl p-5">
+                  <label className="block text-xs text-white/50 mb-2 uppercase tracking-wider">Заголовок *</label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="Введите заголовок статьи..."
+                    className="w-full bg-transparent text-white text-xl font-semibold placeholder-white/20 outline-none"
+                  />
+                </div>
+
+                {/* Content editor */}
+                <div className="glass neon-border rounded-2xl overflow-hidden">
+                  {/* Tabs */}
+                  <div className="flex border-b border-white/10">
+                    <button
+                      onClick={() => setEditorTab("write")}
+                      className={`px-5 py-3 text-sm font-medium transition-all ${editorTab === "write" ? "text-white border-b-2 border-violet-500" : "text-white/40 hover:text-white"}`}
+                    >
+                      Редактор
+                    </button>
+                    <button
+                      onClick={() => setEditorTab("preview")}
+                      className={`px-5 py-3 text-sm font-medium transition-all ${editorTab === "preview" ? "text-white border-b-2 border-violet-500" : "text-white/40 hover:text-white"}`}
+                    >
+                      Превью
+                    </button>
+
+                    {/* Toolbar */}
+                    {editorTab === "write" && (
+                      <div className="ml-auto flex items-center gap-1 px-3">
+                        <button onClick={() => insertMarkdown("## ")} title="Заголовок" className="w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 text-white/40 hover:text-white text-sm font-bold transition-all">H</button>
+                        <button onClick={() => insertMarkdown("**", "**")} title="Жирный" className="w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 text-white/40 hover:text-white text-sm font-bold transition-all">B</button>
+                        <button onClick={() => insertMarkdown("*", "*")} title="Курсив" className="w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 text-white/40 hover:text-white text-sm italic transition-all">I</button>
+                        <button onClick={() => insertMarkdown("- ")} title="Список" className="w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 text-white/40 hover:text-white transition-all">
+                          <Icon name="List" size={13} />
+                        </button>
+                        <button onClick={() => insertMarkdown("`", "`")} title="Код" className="w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 text-white/40 hover:text-white text-xs font-mono transition-all">{"`"}</button>
+                      </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm text-white/60 mb-2">Текст статьи</label>
-                    <p className="text-white/30 text-xs mb-2">Поддерживается Markdown: ## Заголовок, **жирный**, * пункт списка</p>
+                  {editorTab === "write" ? (
                     <textarea
-                      rows={18}
+                      id="post-content"
+                      rows={22}
                       value={form.content}
                       onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-                      placeholder="Напишите текст статьи..."
-                      className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm resize-none font-mono"
+                      placeholder={"Напишите текст статьи...\n\nПоддерживается Markdown:\n## Заголовок\n**жирный текст**\n- пункт списка\n`код`"}
+                      className="w-full bg-transparent text-white/80 px-5 py-4 outline-none text-sm resize-none font-mono placeholder-white/20 leading-relaxed"
                     />
-                  </div>
+                  ) : (
+                    <div className="px-5 py-4 min-h-[300px]">
+                      {form.content ? (
+                        <div
+                          className="prose prose-invert max-w-none text-sm leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(form.content) }}
+                        />
+                      ) : (
+                        <p className="text-white/20 text-sm italic">Нет текста для превью</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
+              {/* Sidebar */}
               <div className="space-y-4">
+
+                {/* Publish panel */}
                 <div className="glass neon-border rounded-2xl p-5 space-y-4">
-                  <h3 className="font-semibold text-sm text-white/80">Настройки</h3>
+                  <h3 className="font-semibold text-sm text-white/80 flex items-center gap-2">
+                    <Icon name="Send" size={14} />
+                    Публикация
+                  </h3>
+
+                  <div className="flex items-center justify-between py-2 border-b border-white/5">
+                    <span className="text-xs text-white/50">Статус</span>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${form.published ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/50"}`}>
+                      {form.published ? "Опубликована" : "Черновик"}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    <button
+                      onClick={() => savePost(true)}
+                      disabled={saving || !form.title.trim()}
+                      className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${saveSuccess && form.published ? "bg-emerald-600 text-white" : "btn-gradient text-white"} disabled:opacity-50`}
+                    >
+                      {saving ? (
+                        <><Icon name="Loader2" size={15} className="animate-spin" /> Сохранение...</>
+                      ) : saveSuccess && form.published ? (
+                        <><Icon name="Check" size={15} /> Опубликовано!</>
+                      ) : (
+                        <><Icon name="Globe" size={15} /> Опубликовать</>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => savePost(false)}
+                      disabled={saving || !form.title.trim()}
+                      className="w-full py-2.5 rounded-xl text-sm text-white/60 hover:text-white glass border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Icon name="FileText" size={15} />
+                      Сохранить как черновик
+                    </button>
+
+                    <button onClick={() => setView("list")} className="w-full py-2 rounded-xl text-xs text-white/30 hover:text-white/60 transition-all">
+                      Отмена
+                    </button>
+                  </div>
+                </div>
+
+                {/* Settings */}
+                <div className="glass neon-border rounded-2xl p-5 space-y-4">
+                  <h3 className="font-semibold text-sm text-white/80 flex items-center gap-2">
+                    <Icon name="Settings2" size={14} />
+                    Настройки
+                  </h3>
 
                   <div>
                     <label className="block text-xs text-white/50 mb-2">Категория</label>
@@ -333,35 +471,24 @@ export default function Admin() {
                       className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-3 py-2 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
                     />
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-white/50">Опубликована</span>
-                    <button
-                      onClick={() => setForm(f => ({ ...f, published: !f.published }))}
-                      className={`w-11 h-6 rounded-full transition-all relative ${form.published ? "bg-violet-600" : "bg-white/10"}`}
-                    >
-                      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.published ? "left-5.5 translate-x-0.5" : "left-0.5"}`} />
-                    </button>
-                  </div>
                 </div>
 
-                <button
-                  onClick={savePost}
-                  disabled={saving || !form.title.trim()}
-                  className={`w-full py-3 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${saveSuccess ? "bg-emerald-600 text-white" : "btn-gradient text-white"} disabled:opacity-50`}
-                >
-                  {saving ? (
-                    <><Icon name="Loader2" size={16} className="animate-spin" /> Сохранение...</>
-                  ) : saveSuccess ? (
-                    <><Icon name="Check" size={16} /> Сохранено!</>
-                  ) : (
-                    <><Icon name="Save" size={16} /> Сохранить</>
-                  )}
-                </button>
-
-                <button onClick={() => setView("list")} className="w-full py-3 rounded-2xl text-sm text-white/50 hover:text-white glass border border-white/10 transition-all">
-                  Отмена
-                </button>
+                {/* Preview card */}
+                <div className="glass neon-border rounded-2xl p-5">
+                  <h3 className="font-semibold text-xs text-white/50 mb-3 uppercase tracking-wider">Как будет выглядеть</h3>
+                  <div className="glass rounded-xl overflow-hidden">
+                    <div className={`h-1 w-full bg-gradient-to-r ${form.color}`} />
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full bg-gradient-to-r ${form.color} text-white`}>{form.tag}</span>
+                        <span className="text-white/30 text-xs">{form.read} чтения</span>
+                      </div>
+                      <p className="font-oswald font-semibold text-white text-sm leading-snug">
+                        {form.title || <span className="text-white/20">Заголовок статьи</span>}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </>

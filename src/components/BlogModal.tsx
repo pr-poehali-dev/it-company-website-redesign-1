@@ -28,28 +28,34 @@ export default function BlogModal({ post, onClose }: BlogModalProps) {
 
   const lines = post.content?.split("\n") ?? [];
 
+  function renderLine(text: string) {
+    const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
+    return parts.map((part, j) => {
+      if (part.startsWith("**") && part.endsWith("**"))
+        return <strong key={j} className="text-white font-semibold">{part.slice(2, -2)}</strong>;
+      if (part.startsWith("*") && part.endsWith("*"))
+        return <em key={j} className="text-white/80 italic">{part.slice(1, -1)}</em>;
+      if (part.startsWith("`") && part.endsWith("`"))
+        return <code key={j} className="bg-white/10 text-violet-300 px-1.5 py-0.5 rounded text-xs font-mono">{part.slice(1, -1)}</code>;
+      return part;
+    });
+  }
+
   function renderContent() {
     return lines.map((line, i) => {
-      if (line.startsWith("## ")) {
-        return <h2 key={i} className="font-oswald text-xl font-bold text-white mt-8 mb-3">{line.replace("## ", "")}</h2>;
-      }
-      if (line.startsWith("* ")) {
-        return <li key={i} className="text-white/70 text-sm leading-relaxed ml-4 list-disc">{line.replace("* ", "")}</li>;
-      }
-      if (/^\d+\./.test(line)) {
-        return <li key={i} className="text-white/70 text-sm leading-relaxed ml-4 list-decimal">{line.replace(/^\d+\.\s/, "")}</li>;
-      }
-      if (line.trim() === "") {
+      if (line.startsWith("### "))
+        return <h3 key={i} className="font-oswald text-lg font-bold text-white mt-6 mb-2">{line.slice(4)}</h3>;
+      if (line.startsWith("## "))
+        return <h2 key={i} className="font-oswald text-xl font-bold text-white mt-8 mb-3">{line.slice(3)}</h2>;
+      if (line.startsWith("# "))
+        return <h1 key={i} className="font-oswald text-2xl font-bold text-white mt-8 mb-4">{line.slice(2)}</h1>;
+      if (line.startsWith("- ") || line.startsWith("* "))
+        return <li key={i} className="text-white/70 text-sm leading-relaxed ml-4 list-disc">{renderLine(line.slice(2))}</li>;
+      if (/^\d+\./.test(line))
+        return <li key={i} className="text-white/70 text-sm leading-relaxed ml-4 list-decimal">{renderLine(line.replace(/^\d+\.\s/, ""))}</li>;
+      if (line.trim() === "")
         return <div key={i} className="h-2" />;
-      }
-      const parts = line.split(/\*\*(.*?)\*\*/g);
-      return (
-        <p key={i} className="text-white/70 text-sm leading-relaxed">
-          {parts.map((part, j) =>
-            j % 2 === 1 ? <strong key={j} className="text-white font-semibold">{part}</strong> : part
-          )}
-        </p>
-      );
+      return <p key={i} className="text-white/70 text-sm leading-relaxed">{renderLine(line)}</p>;
     });
   }
 
