@@ -258,44 +258,18 @@ def search_eis(query: str, page: int = 0) -> dict:
 # ─── HH.ru ──────────────────────────────────────────────────────────────────
 
 def search_hh(query: str) -> dict:
+    # HH.ru API требует OAuth-токен (с 2024), прямые запросы возвращают 403.
+    # Возвращаем ссылку на поиск — пользователь открывает её вручную.
     encoded = urllib.parse.quote(query)
-    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=20&area=113&employment=project"
-    search_url = f"https://hh.ru/search/vacancy?text={encoded}&employment=project"
-    req = urllib.request.Request(url, headers={
-        'User-Agent': 'mat-labs-tender-search/1.0 (info@mat-labs.ru)',
-        'HH-User-Agent': 'mat-labs-tender-search/1.0 (info@mat-labs.ru)',
-        'Accept': 'application/json',
-    })
-    try:
-        import urllib.request as _ur
-        with _ur.urlopen(req, timeout=10) as resp:
-            raw = resp.read().decode('utf-8', errors='replace')
-            result = {'ok': True, 'data': json.loads(raw)}
-    except urllib.error.HTTPError as e:
-        result = {'ok': False, 'error': f'HTTP {e.code}', 'data': None}
-    except Exception as e:
-        result = {'ok': False, 'error': str(e)[:80], 'data': None}
-    tenders = []
-    total = 0
-    if result['ok'] and result['data']:
-        total = result['data'].get('found', 0)
-        for item in result['data'].get('items', []):
-            try:
-                sal = item.get('salary') or {}
-                price = sal.get('to') or sal.get('from') or 0
-                price_fmt = _fmt_salary(sal)
-                tenders.append({
-                    'id': f"hh_{item['id']}", 'name': item.get('name', ''),
-                    'price': float(price), 'price_fmt': price_fmt,
-                    'customer': (item.get('employer') or {}).get('name', '—'),
-                    'end_date': '—', 'law': 'Проект/Фриланс', 'status': 'Активный',
-                    'region': (item.get('area') or {}).get('name', '—'),
-                    'url': item.get('alternate_url', search_url),
-                    'source': 'HH.ru', 'source_key': 'hh',
-                })
-            except Exception:
-                continue
-    return {'tenders': tenders, 'total': total, 'search_url': search_url, 'ok': result['ok'], 'error': result.get('error', '')}
+    search_url = f"https://hh.ru/search/vacancy?text={encoded}&employment=project&area=113"
+    return {
+        'tenders': [],
+        'total': 0,
+        'search_url': search_url,
+        'ok': True,
+        'error': '',
+        'link_only': True,
+    }
 
 
 # ─── Habr Freelance ─────────────────────────────────────────────────────────
