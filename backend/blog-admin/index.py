@@ -43,6 +43,7 @@ def row_to_post(row) -> dict:
                .replace('November','ноября').replace('December','декабря'),
         'created_at': row[7].isoformat(),
         'updated_at': row[8].isoformat() if row[8] else row[7].isoformat(),
+        'cover_url': row[9],
     }
 
 
@@ -69,9 +70,9 @@ def handler(event: dict, context) -> dict:
         # GET /  — список опубликованных (публично) или всех (admin)
         if method == 'GET' and (path.endswith('/') or path.endswith('/blog-admin')):
             if is_admin():
-                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at FROM blog_posts ORDER BY created_at DESC")
+                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url FROM blog_posts ORDER BY created_at DESC")
             else:
-                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at FROM blog_posts WHERE published = true ORDER BY created_at DESC")
+                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url FROM blog_posts WHERE published = true ORDER BY created_at DESC")
             rows = cur.fetchall()
             posts = [row_to_post(r) for r in rows]
             return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'posts': posts}, ensure_ascii=False)}
@@ -79,7 +80,7 @@ def handler(event: dict, context) -> dict:
         # GET /{id}
         if method == 'GET':
             post_id = path.rstrip('/').split('/')[-1]
-            cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at FROM blog_posts WHERE id = %s", (post_id,))
+            cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url FROM blog_posts WHERE id = %s", (post_id,))
             row = cur.fetchone()
             if not row:
                 return {'statusCode': 404, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Не найдено'})}
@@ -99,13 +100,14 @@ def handler(event: dict, context) -> dict:
             color = body.get('color') or TAG_COLORS.get(tag, 'from-violet-500 to-purple-600')
             content = body.get('content', '')
             published = body.get('published', True)
+            cover_url = body.get('cover_url') or None
 
             if not title:
                 return {'statusCode': 400, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Заголовок обязателен'})}
 
             cur.execute(
-                "INSERT INTO blog_posts (title, tag, read_time, color, content, published) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                (title, tag, read_time, color, content, published)
+                "INSERT INTO blog_posts (title, tag, read_time, color, content, published, cover_url) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (title, tag, read_time, color, content, published, cover_url)
             )
             new_id = cur.fetchone()[0]
             conn.commit()
@@ -120,10 +122,11 @@ def handler(event: dict, context) -> dict:
             color = body.get('color') or TAG_COLORS.get(tag, 'from-violet-500 to-purple-600')
             content = body.get('content', '')
             published = body.get('published', True)
+            cover_url = body.get('cover_url') or None
 
             cur.execute(
-                "UPDATE blog_posts SET title=%s, tag=%s, read_time=%s, color=%s, content=%s, published=%s, updated_at=NOW() WHERE id=%s",
-                (title, tag, read_time, color, content, published, post_id)
+                "UPDATE blog_posts SET title=%s, tag=%s, read_time=%s, color=%s, content=%s, published=%s, cover_url=%s, updated_at=NOW() WHERE id=%s",
+                (title, tag, read_time, color, content, published, cover_url, post_id)
             )
             conn.commit()
             return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True})}

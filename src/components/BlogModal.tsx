@@ -8,6 +8,7 @@ export interface BlogPost {
   read: string;
   color: string;
   content?: string;
+  cover_url?: string | null;
 }
 
 interface BlogModalProps {
@@ -69,24 +70,46 @@ export default function BlogModal({ post, onClose }: BlogModalProps) {
         className="relative w-full max-w-2xl max-h-[90vh] glass neon-border rounded-3xl flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className={`h-1.5 w-full bg-gradient-to-r ${post.color} flex-shrink-0`} />
-
-        <div className="flex items-start justify-between gap-4 p-6 pb-4 flex-shrink-0">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${post.color} text-white`}>{post.tag}</span>
-              <span className="text-white/40 text-xs">{post.read} чтения</span>
+        {post.cover_url ? (
+          <div className="relative h-48 flex-shrink-0 overflow-hidden">
+            <img src={post.cover_url} alt={post.title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 w-9 h-9 bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl flex items-center justify-center hover:bg-black/60 transition-all"
+            >
+              <Icon name="X" size={16} className="text-white/80" />
+            </button>
+            <div className="absolute bottom-4 left-6 right-16">
+              <div className="flex items-center gap-3 mb-2">
+                <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${post.color} text-white`}>{post.tag}</span>
+                <span className="text-white/60 text-xs">{post.read} чтения</span>
+              </div>
+              <h2 className="font-oswald text-xl md:text-2xl font-bold text-white leading-snug">{post.title}</h2>
+              <div className="text-white/40 text-xs mt-1">{post.date}</div>
             </div>
-            <h2 className="font-oswald text-xl md:text-2xl font-bold text-white leading-snug">{post.title}</h2>
-            <div className="text-white/40 text-xs mt-2">{post.date}</div>
           </div>
-          <button
-            onClick={onClose}
-            className="flex-shrink-0 w-9 h-9 glass border border-white/10 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all"
-          >
-            <Icon name="X" size={16} className="text-white/60" />
-          </button>
-        </div>
+        ) : (
+          <>
+            <div className={`h-1.5 w-full bg-gradient-to-r ${post.color} flex-shrink-0`} />
+            <div className="flex items-start justify-between gap-4 p-6 pb-4 flex-shrink-0">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${post.color} text-white`}>{post.tag}</span>
+                  <span className="text-white/40 text-xs">{post.read} чтения</span>
+                </div>
+                <h2 className="font-oswald text-xl md:text-2xl font-bold text-white leading-snug">{post.title}</h2>
+                <div className="text-white/40 text-xs mt-2">{post.date}</div>
+              </div>
+              <button
+                onClick={onClose}
+                className="flex-shrink-0 w-9 h-9 glass border border-white/10 rounded-xl flex items-center justify-center hover:bg-white/10 transition-all"
+              >
+                <Icon name="X" size={16} className="text-white/60" />
+              </button>
+            </div>
+          </>
+        )}
 
         <div className="overflow-y-auto px-6 pb-6 flex-1">
           <div className="space-y-1">

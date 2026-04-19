@@ -68,7 +68,7 @@ export default function Admin() {
   }
 
   function startEdit(post: Post) {
-    setForm({ title: post.title, tag: post.tag, read: post.read, color: post.color, content: post.content, published: post.published });
+    setForm({ title: post.title, tag: post.tag, read: post.read, color: post.color, content: post.content, published: post.published, cover_url: post.cover_url ?? null });
     setEditPost(post);
     setView("edit");
     setSaveSuccess(false);

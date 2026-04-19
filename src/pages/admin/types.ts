@@ -1,5 +1,6 @@
 export const AUTH_URL = "https://functions.poehali.dev/6f798d48-8951-473b-bde6-f8121977ddf4";
 export const BLOG_URL = "https://functions.poehali.dev/f6938906-b3c4-4bf7-b1f9-96560e19ef1b";
+export const UPLOAD_URL = "https://functions.poehali.dev/7c0f1ee4-8a7f-469a-a176-8d7654e6031e";
 
 export const TAGS = ["AI/ML", "DevOps", "Frontend", "Backend", "Безопасность", "Аналитика"];
 export const TAG_COLORS: Record<string, string> = {
@@ -20,6 +21,7 @@ export interface Post {
   content: string;
   published: boolean;
   date: string;
+  cover_url?: string | null;
 }
 
 export type PostForm = Omit<Post, "id" | "date">;
@@ -31,6 +33,7 @@ export const emptyPost = (): PostForm => ({
   color: TAG_COLORS["AI/ML"],
   content: "",
   published: false,
+  cover_url: null,
 });
 
 export function renderMarkdown(text: string): string {

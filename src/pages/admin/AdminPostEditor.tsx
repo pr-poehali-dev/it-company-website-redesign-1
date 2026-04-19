@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
-import { PostForm, TAGS, TAG_COLORS, renderMarkdown } from "./types";
+import { PostForm, TAGS, TAG_COLORS, UPLOAD_URL, renderMarkdown } from "./types";
 
 interface AdminPostEditorProps {
   view: "new" | "edit";
@@ -22,6 +22,30 @@ export default function AdminPostEditor({
   onCancel,
 }: AdminPostEditorProps) {
   const [editorTab, setEditorTab] = useState<"write" | "preview">("write");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleCoverUpload(file: File) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = (e.target?.result as string).split(',')[1];
+        const res = await fetch(`${UPLOAD_URL}/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Session-Token': sessionStorage.getItem('admin_token') || '' },
+          body: JSON.stringify({ image: base64, content_type: file.type }),
+        });
+        const data = await res.json();
+        if (data.url) onChangeForm({ cover_url: data.url });
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploading(false);
+    }
+  }
 
   function insertMarkdown(before: string, after = "") {
     const textarea = document.getElementById("post-content") as HTMLTextAreaElement;
@@ -200,6 +224,56 @@ export default function AdminPostEditor({
                 className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-3 py-2 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
               />
             </div>
+          </div>
+
+          {/* Cover image */}
+          <div className="glass neon-border rounded-2xl p-5 space-y-3">
+            <h3 className="font-semibold text-sm text-white/80 flex items-center gap-2">
+              <Icon name="Image" size={14} />
+              Обложка
+            </h3>
+
+            {form.cover_url ? (
+              <div className="relative group rounded-xl overflow-hidden">
+                <img src={form.cover_url} alt="Обложка" className="w-full h-32 object-cover" />
+                <button
+                  onClick={() => onChangeForm({ cover_url: null })}
+                  className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-red-600 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <Icon name="X" size={13} className="text-white" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full h-24 glass border border-dashed border-white/20 hover:border-violet-500/50 rounded-xl flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-50"
+              >
+                {uploading ? (
+                  <><Icon name="Loader2" size={18} className="text-white/40 animate-spin" /><span className="text-white/30 text-xs">Загрузка...</span></>
+                ) : (
+                  <><Icon name="Upload" size={18} className="text-white/40" /><span className="text-white/30 text-xs">Нажмите для загрузки</span></>
+                )}
+              </button>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); e.target.value = ''; }}
+            />
+
+            {form.cover_url && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full py-1.5 text-xs text-white/40 hover:text-white/70 transition-all"
+              >
+                Заменить
+              </button>
+            )}
           </div>
 
           {/* Preview card */}
