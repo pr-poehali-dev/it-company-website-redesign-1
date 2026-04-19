@@ -13,10 +13,6 @@ CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token',
 }
 
-# Хранилище сессий (в памяти, для простоты)
-_sessions: dict = {}
-
-# Устанавливаем правильный хэш при холодном старте функции
 _bootstrapped = False
 
 def get_conn():
@@ -64,21 +60,25 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor()
         cur.execute("SELECT id, password_hash FROM admin_users WHERE username = %s", (username,))
         row = cur.fetchone()
-        conn.close()
 
         if not row:
+            conn.close()
             return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Неверный логин или пароль'})}
 
         user_id, stored_hash = row
-
-        # Поддержка как SHA256, так и bcrypt-хэшей (legacy)
         password_ok = (hash_password(password) == stored_hash) or (stored_hash == password)
 
         if not password_ok:
+            conn.close()
             return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Неверный логин или пароль'})}
 
         token = secrets.token_hex(32)
-        _sessions[token] = {'user_id': user_id, 'username': username}
+        cur.execute(
+            "INSERT INTO admin_sessions (token, user_id, username) VALUES (%s, %s, %s)",
+            (token, user_id, username)
+        )
+        conn.commit()
+        conn.close()
 
         return {
             'statusCode': 200,
@@ -89,17 +89,26 @@ def handler(event: dict, context) -> dict:
     # GET /check — проверка токена
     if method == 'GET' and path.endswith('/check'):
         token = event.get('headers', {}).get('X-Session-Token', '')
-        if token in _sessions:
-            return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True, 'username': _sessions[token]['username']})}
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT username FROM admin_sessions WHERE token = %s", (token,))
+        row = cur.fetchone()
+        conn.close()
+        if row:
+            return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True, 'username': row[0]})}
         return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': False})}
 
     # POST /logout
     if method == 'POST' and path.endswith('/logout'):
         token = event.get('headers', {}).get('X-Session-Token', '')
-        _sessions.pop(token, None)
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM admin_sessions WHERE token = %s", (token,))
+        conn.commit()
+        conn.close()
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True})}
 
-    # POST /set-password — однократная установка логина/пароля (только с setup-токеном)
+    # POST /set-password
     if method == 'POST' and path.endswith('/set-password'):
         body = json.loads(event.get('body') or '{}')
         setup_token = body.get('setup_token', '')

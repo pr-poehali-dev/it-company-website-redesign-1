@@ -5,8 +5,8 @@
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {"posts": "array"},
-      "bodyMatcher": "keys_exist"
+      "expectedBody": {"posts": []},
+      "bodyMatcher": "partial"
     }
   ]
 }
