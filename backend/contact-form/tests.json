@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Validation - missing fields",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "", "email": "", "message": ""},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "Заполните обязательные поля: Имя, Email, Сообщение"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Validation - invalid email",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Тест", "email": "not-email", "message": "Проверка"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "Некорректный email"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

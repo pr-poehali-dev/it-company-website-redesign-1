@@ -259,9 +259,22 @@ def search_eis(query: str, page: int = 0) -> dict:
 
 def search_hh(query: str) -> dict:
     encoded = urllib.parse.quote(query)
-    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=20&area=113&search_field=name&employment=project"
+    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=20&area=113&employment=project"
     search_url = f"https://hh.ru/search/vacancy?text={encoded}&employment=project"
-    result = http_get(url)
+    req = urllib.request.Request(url, headers={
+        'User-Agent': 'mat-labs-tender-search/1.0 (info@mat-labs.ru)',
+        'HH-User-Agent': 'mat-labs-tender-search/1.0 (info@mat-labs.ru)',
+        'Accept': 'application/json',
+    })
+    try:
+        import urllib.request as _ur
+        with _ur.urlopen(req, timeout=10) as resp:
+            raw = resp.read().decode('utf-8', errors='replace')
+            result = {'ok': True, 'data': json.loads(raw)}
+    except urllib.error.HTTPError as e:
+        result = {'ok': False, 'error': f'HTTP {e.code}', 'data': None}
+    except Exception as e:
+        result = {'ok': False, 'error': str(e)[:80], 'data': None}
     tenders = []
     total = 0
     if result['ok'] and result['data']:

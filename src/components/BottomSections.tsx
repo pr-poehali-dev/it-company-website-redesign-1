@@ -4,6 +4,7 @@ import { technologies, jobs, navLinks, AnimatedSection } from "@/components/shar
 import BlogModal, { type BlogPost } from "@/components/BlogModal";
 
 const BLOG_URL = "https://functions.poehali.dev/f6938906-b3c4-4bf7-b1f9-96560e19ef1b";
+const CONTACT_URL = "https://functions.poehali.dev/0c33a6f9-4b7e-4dc3-8c2e-6db6eadb5f1d";
 
 interface BottomSectionsProps {
   scrollTo: (href: string) => void;
@@ -13,6 +14,41 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
   const [activePost, setActivePost] = useState<BlogPost | null>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
+
+  const [form, setForm] = useState({ name: "", company: "", email: "", phone: "", message: "" });
+  const [formStatus, setFormStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [formError, setFormError] = useState("");
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async () => {
+    setFormError("");
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setFormError("Заполните обязательные поля: Имя, Email, Сообщение");
+      return;
+    }
+    setFormStatus("sending");
+    try {
+      const res = await fetch(CONTACT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFormStatus("success");
+        setForm({ name: "", company: "", email: "", phone: "", message: "" });
+      } else {
+        setFormError(data.error || "Ошибка отправки");
+        setFormStatus("error");
+      }
+    } catch {
+      setFormError("Ошибка соединения. Попробуйте ещё раз.");
+      setFormStatus("error");
+    }
+  };
 
   useEffect(() => {
     fetch(`${BLOG_URL}/`)
@@ -264,57 +300,97 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
             <AnimatedSection>
               <div className="glass neon-border rounded-3xl p-8">
                 <div className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm text-white/60 mb-2">Имя *</label>
-                      <input
-                        type="text"
-                        placeholder="Иван Иванов"
-                        className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
-                      />
+                  {formStatus === "success" ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+                      <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                        <Icon name="CheckCircle" size={32} className="text-emerald-400" />
+                      </div>
+                      <h3 className="font-oswald text-2xl font-bold text-white">Заявка отправлена!</h3>
+                      <p className="text-white/50 text-sm">Наш менеджер свяжется с вами в течение 2 часов</p>
+                      <button
+                        onClick={() => setFormStatus("idle")}
+                        className="glass border border-white/20 px-6 py-2 rounded-xl text-sm text-white/70 hover:text-white transition-all"
+                      >
+                        Отправить ещё
+                      </button>
                     </div>
-                    <div>
-                      <label className="block text-sm text-white/60 mb-2">Компания</label>
-                      <input
-                        type="text"
-                        placeholder="ООО «Рога и Копыта»"
-                        className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-white/60 mb-2">Email *</label>
-                    <input
-                      type="email"
-                      placeholder="ivan@company.ru"
-                      className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-white/60 mb-2">Телефон</label>
-                    <input
-                      type="tel"
-                      placeholder="+7 (999) 000-00-00"
-                      className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-white/60 mb-2">Расскажите о проекте *</label>
-                    <textarea
-                      rows={4}
-                      placeholder="Опишите задачу, бюджет, сроки..."
-                      className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm resize-none"
-                    />
-                  </div>
-                  <button className="btn-gradient w-full py-4 rounded-2xl font-semibold text-white text-base glow-purple">
-                    <span className="flex items-center justify-center gap-2">
-                      Отправить заявку
-                      <Icon name="Send" size={18} />
-                    </span>
-                  </button>
-                  <p className="text-center text-white/30 text-xs">
-                    Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
-                  </p>
+                  ) : (
+                    <>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-white/60 mb-2">Имя *</label>
+                          <input
+                            type="text"
+                            name="name"
+                            value={form.name}
+                            onChange={handleFormChange}
+                            placeholder="Иван Иванов"
+                            className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-white/60 mb-2">Компания</label>
+                          <input
+                            type="text"
+                            name="company"
+                            value={form.company}
+                            onChange={handleFormChange}
+                            placeholder="ООО «Рога и Копыта»"
+                            className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-white/60 mb-2">Email *</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={form.email}
+                          onChange={handleFormChange}
+                          placeholder="ivan@company.ru"
+                          className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-white/60 mb-2">Телефон</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={form.phone}
+                          onChange={handleFormChange}
+                          placeholder="+7 (999) 000-00-00"
+                          className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-white/60 mb-2">Расскажите о проекте *</label>
+                        <textarea
+                          rows={4}
+                          name="message"
+                          value={form.message}
+                          onChange={handleFormChange}
+                          placeholder="Опишите задачу, бюджет, сроки..."
+                          className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm resize-none"
+                        />
+                      </div>
+                      {formError && (
+                        <p className="text-red-400 text-sm">{formError}</p>
+                      )}
+                      <button
+                        onClick={handleSubmit}
+                        disabled={formStatus === "sending"}
+                        className="btn-gradient w-full py-4 rounded-2xl font-semibold text-white text-base glow-purple disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <span className="flex items-center justify-center gap-2">
+                          {formStatus === "sending" ? "Отправляем..." : "Отправить заявку"}
+                          <Icon name={formStatus === "sending" ? "Loader" : "Send"} size={18} />
+                        </span>
+                      </button>
+                      <p className="text-center text-white/30 text-xs">
+                        Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </AnimatedSection>
