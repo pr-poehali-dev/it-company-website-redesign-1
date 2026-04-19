@@ -116,7 +116,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
                   вместе с вами
                 </h2>
                 <p className="text-white/60 text-lg leading-relaxed mb-6">
-                  NexaTech — это команда из 50+ инженеров, дизайнеров и аналитиков,
+                  МАТ-Лабс — это команда из 50+ инженеров, дизайнеров и аналитиков,
                   которые превращают смелые бизнес-идеи в работающие цифровые продукты.
                 </p>
                 <p className="text-white/50 leading-relaxed mb-8">
