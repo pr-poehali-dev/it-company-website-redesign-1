@@ -9,12 +9,14 @@ export const QUICK_QUERIES = [
 ];
 
 export const MARKET_SOURCES = [
-  { key: "eis",    label: "ЕИС zakupki.gov.ru", icon: "Landmark",  color: "text-blue-400",    bg: "bg-blue-500/20 text-blue-300",       desc: "44-ФЗ / 223-ФЗ" },
-  { key: "hh",     label: "HH.ru",              icon: "Briefcase", color: "text-red-400",     bg: "bg-red-500/20 text-red-300",         desc: "Проекты" },
-  { key: "habr",   label: "Habr Freelance",      icon: "Code2",     color: "text-emerald-400", bg: "bg-emerald-500/20 text-emerald-300", desc: "IT-задания" },
-  { key: "fl",     label: "FL.ru",               icon: "Layers",    color: "text-amber-400",   bg: "bg-amber-500/20 text-amber-300",     desc: "Фриланс" },
-  { key: "kwork",  label: "Kwork",               icon: "Zap",       color: "text-violet-400",  bg: "bg-violet-500/20 text-violet-300",   desc: "Биржа задач" },
-  { key: "upwork", label: "Upwork",              icon: "Globe2",    color: "text-cyan-400",    bg: "bg-cyan-500/20 text-cyan-300",       desc: "Международные" },
+  { key: "eis",       label: "ЕИС zakupki.gov.ru", icon: "Landmark",    color: "text-blue-400",    bg: "bg-blue-500/20 text-blue-300",       desc: "44-ФЗ / 223-ФЗ" },
+  { key: "hh",        label: "HH.ru",              icon: "Briefcase",   color: "text-red-400",     bg: "bg-red-500/20 text-red-300",         desc: "Проекты" },
+  { key: "habr",      label: "Habr Freelance",      icon: "Code2",       color: "text-emerald-400", bg: "bg-emerald-500/20 text-emerald-300", desc: "IT-задания ↗" },
+  { key: "fl",        label: "FL.ru",               icon: "Layers",      color: "text-amber-400",   bg: "bg-amber-500/20 text-amber-300",     desc: "Фриланс ↗" },
+  { key: "kwork",     label: "Kwork",               icon: "Zap",         color: "text-violet-400",  bg: "bg-violet-500/20 text-violet-300",   desc: "Задачи ↗" },
+  { key: "youdo",     label: "YouDo",               icon: "CheckSquare", color: "text-orange-400",  bg: "bg-orange-500/20 text-orange-300",   desc: "Услуги" },
+  { key: "weblancer", label: "Weblancer",           icon: "Globe",       color: "text-teal-400",    bg: "bg-teal-500/20 text-teal-300",       desc: "Фриланс ↗" },
+  { key: "upwork",    label: "Upwork",              icon: "Globe2",      color: "text-cyan-400",    bg: "bg-cyan-500/20 text-cyan-300",       desc: "Международные ↗" },
 ];
 
 export const CORP_LIST = [
