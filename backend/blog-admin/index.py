@@ -56,15 +56,15 @@ def handler(event: dict, context) -> dict:
     headers = event.get('headers') or {}
     token = headers.get('X-Session-Token', '')
 
+    conn = get_conn()
+    cur = conn.cursor()
+
     def is_admin():
         if not token:
             return False
         cur2 = conn.cursor()
         cur2.execute("SELECT 1 FROM admin_sessions WHERE token = %s", (token,))
         return cur2.fetchone() is not None
-
-    conn = get_conn()
-    cur = conn.cursor()
 
     try:
         # GET /  — список опубликованных (публично) или всех (admin)
