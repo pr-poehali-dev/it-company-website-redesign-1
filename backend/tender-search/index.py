@@ -1,9 +1,11 @@
 """
-Поиск тендеров и заданий по ключевым словам: ЕИС (zakupki.gov.ru), фриланс-биржи (HH.ru, FL.ru, Habr Freelance, Upwork, Kwork).
-Сохранение в избранное. ИИ-анализ тендера с генерацией КП.
+Агрегатор тендеров: ЕИС (zakupki.gov.ru), фриланс-биржи (HH, FL, Habr, Kwork, Upwork),
+корпоративные закупки крупных компаний (Сбер, Газпром, РЖД, Ростелеком, Лукойл и др.).
+Сохранение в избранное, ИИ-анализ, генерация КП.
 """
 import json
 import os
+import re
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -27,9 +29,113 @@ COMPANY_PROFILE = """
 Опыт: более 50 реализованных проектов, команда 50+ инженеров, дизайнеров и аналитиков.
 """
 
+# ─── Корпоративные площадки ─────────────────────────────────────────────────
+# Формат: {key, name, search_url_template, api_url_template, parser_fn_name}
+CORPORATE_SOURCES = [
+    {
+        'key': 'sber',
+        'name': 'Сбербанк',
+        'icon': '🟢',
+        'search_url': 'https://zakupki.sberbank.ru/223/purchaseList/page/1',
+        'api_url': 'https://zakupki.sberbank.ru/api/search?text={query}&size=10&from=0&status=ACTIVE',
+        'type': 'corporate',
+    },
+    {
+        'key': 'gazprom',
+        'name': 'Газпром',
+        'icon': '🔵',
+        'search_url': 'https://zakupki.gazprom.ru/lots/?search={query}',
+        'api_url': 'https://zakupki.gazprom.ru/api/lots/?search={query}&limit=10&offset=0&status=active',
+        'type': 'corporate',
+    },
+    {
+        'key': 'rzd',
+        'name': 'РЖД',
+        'icon': '🚂',
+        'search_url': 'https://zakupki.rzd.ru/item/index?searchString={query}',
+        'api_url': 'https://zakupki.rzd.ru/api/v1/items?q={query}&limit=10&page=0',
+        'type': 'corporate',
+    },
+    {
+        'key': 'rostelecom',
+        'name': 'Ростелеком',
+        'icon': '📡',
+        'search_url': 'https://zakupki.rostelecom.ru/purchases/?query={query}',
+        'api_url': 'https://zakupki.rostelecom.ru/api/purchases?query={query}&size=10&page=0&status=ACTIVE',
+        'type': 'corporate',
+    },
+    {
+        'key': 'lukoil',
+        'name': 'Лукойл',
+        'icon': '🛢️',
+        'search_url': 'https://lukoil.ru/Business/Tenders',
+        'api_url': None,
+        'type': 'corporate',
+    },
+    {
+        'key': 'rosneft',
+        'name': 'Роснефть',
+        'icon': '⚡',
+        'search_url': 'https://www.rosneft.ru/purchase/',
+        'api_url': 'https://purchase.rosneft.ru/api/lots?keyword={query}&status=published&limit=10',
+        'type': 'corporate',
+    },
+    {
+        'key': 'vtb',
+        'name': 'ВТБ',
+        'icon': '🏦',
+        'search_url': 'https://www.vtb.ru/o-banke/zakupki/',
+        'api_url': None,
+        'type': 'corporate',
+    },
+    {
+        'key': 'magnit',
+        'name': 'Магнит',
+        'icon': '🛒',
+        'search_url': 'https://magnit.ru/vendors/tenders/',
+        'api_url': None,
+        'type': 'corporate',
+    },
+    {
+        'key': 'rosatom',
+        'name': 'Росатом',
+        'icon': '⚛️',
+        'search_url': 'https://www.rosatom.ru/supplier-relations/tenders/',
+        'api_url': 'https://zakupki.rosatom.ru/api/v1/tenders?search={query}&status=ACTIVE&limit=10',
+        'type': 'corporate',
+    },
+    {
+        'key': 'yandex',
+        'name': 'Яндекс',
+        'icon': '🔴',
+        'search_url': 'https://yandex.ru/company/purchases',
+        'api_url': None,
+        'type': 'corporate',
+    },
+    {
+        'key': 'mail',
+        'name': 'VK / Mail.ru',
+        'icon': '💙',
+        'search_url': 'https://vk.company/ru/about/tenders/',
+        'api_url': None,
+        'type': 'corporate',
+    },
+    {
+        'key': 'sbertech',
+        'name': 'СберТех',
+        'icon': '💻',
+        'search_url': 'https://sbertech.ru/tenders',
+        'api_url': None,
+        'type': 'corporate',
+    },
+]
+
 
 def get_conn():
-    return psycopg2.connect(os.environ['DATABASE_URL'], options=f"-c search_path={os.environ.get('MAIN_DB_SCHEMA', 'public')}")
+    return psycopg2.connect(
+        os.environ['DATABASE_URL'],
+        options=f"-c search_path={os.environ.get('MAIN_DB_SCHEMA', 'public')}"
+    )
 
 
 def is_admin(token: str) -> bool:
@@ -44,26 +150,28 @@ def is_admin(token: str) -> bool:
         conn.close()
 
 
-def http_get(url: str, headers: dict = None, timeout: int = 12) -> dict:
-    req = urllib.request.Request(url, headers=headers or {
-        'User-Agent': 'Mozilla/5.0 (compatible; TenderBot/1.0)',
+def http_get(url: str, timeout: int = 10) -> dict:
+    req = urllib.request.Request(url, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'application/json, text/html, */*',
+        'Accept-Language': 'ru-RU,ru;q=0.9',
     })
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = resp.read().decode('utf-8', errors='replace')
             try:
-                return {'ok': True, 'data': json.loads(raw), 'text': raw}
+                return {'ok': True, 'data': json.loads(raw), 'text': raw, 'status': resp.status}
             except Exception:
-                return {'ok': True, 'data': None, 'text': raw}
+                return {'ok': True, 'data': None, 'text': raw, 'status': resp.status}
+    except urllib.error.HTTPError as e:
+        return {'ok': False, 'error': f'HTTP {e.code}', 'status': e.code}
     except Exception as e:
-        return {'ok': False, 'error': str(e)}
+        return {'ok': False, 'error': str(e)[:80], 'status': 0}
 
 
-# ─── ИСТОЧНИКИ ПОИСКА ────────────────────────────────────────────────────────
+# ─── ЕИС ────────────────────────────────────────────────────────────────────
 
 def search_eis(query: str, page: int = 0) -> dict:
-    """ЕИС zakupki.gov.ru — 44-ФЗ, 223-ФЗ, коммерческие"""
     encoded = urllib.parse.quote(query)
     api_url = (
         f"https://zakupki.gov.ru/epz/order/extendedsearch/results.json"
@@ -77,8 +185,11 @@ def search_eis(query: str, page: int = 0) -> dict:
     )
     result = http_get(api_url)
     tenders = []
+    total = 0
     if result['ok'] and result['data']:
-        items = (result['data'].get('data', {}) or {}).get('list', []) or []
+        data = result['data']
+        items = (data.get('data') or {}).get('list', []) or []
+        total = (data.get('data') or {}).get('totalCount', 0) or 0
         for item in items:
             try:
                 number = item.get('regNum') or item.get('purchaseNumber', '—')
@@ -86,103 +197,88 @@ def search_eis(query: str, page: int = 0) -> dict:
                 if not name:
                     continue
                 price = float(item.get('nmck') or 0)
-                customer = (item.get('customer', {}) or {}).get('mainInfo', {}).get('fullName', '—')
+                customer = ((item.get('customer') or {}).get('mainInfo') or {}).get('fullName', '—')
                 end_date = (item.get('endDT') or '—')[:10]
                 law = item.get('fzType', '44-ФЗ')
-                status = (item.get('purchaseState', {}) or {}).get('name', 'Активный')
+                status = ((item.get('purchaseState') or {}).get('name') or 'Активный')
                 tenders.append({
                     'id': number, 'name': name,
-                    'price': price, 'price_fmt': f"{price:,.0f} ₽".replace(',', ' ') if price > 0 else 'Не указана',
+                    'price': price, 'price_fmt': _fmt_price(price, 'RUB'),
                     'customer': customer, 'end_date': end_date, 'law': law,
                     'status': status, 'region': '—',
                     'url': f"https://zakupki.gov.ru/epz/order/notice/ea44/view/common-info.html?regNum={number}",
-                    'source': 'ЕИС zakupki.gov.ru',
+                    'source': 'ЕИС zakupki.gov.ru', 'source_key': 'eis',
                 })
             except Exception:
                 continue
-    total = 0
-    if result['ok'] and result['data']:
-        total = (result['data'].get('data', {}) or {}).get('totalCount', 0) or 0
-    return {'tenders': tenders, 'total': total, 'search_url': search_url,
-            'ok': result['ok'], 'error': result.get('error', '')}
+    return {
+        'tenders': tenders, 'total': total, 'search_url': search_url,
+        'ok': result['ok'], 'error': result.get('error', ''),
+    }
 
+
+# ─── HH.ru ──────────────────────────────────────────────────────────────────
 
 def search_hh(query: str) -> dict:
-    """HH.ru — вакансии и проекты для IT-компаний"""
     encoded = urllib.parse.quote(query)
     url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=20&area=113&search_field=name&employment=project"
     search_url = f"https://hh.ru/search/vacancy?text={encoded}&employment=project"
-    result = http_get(url, headers={'User-Agent': 'TenderBot/1.0 (mat-labs.ru)'})
+    result = http_get(url)
     tenders = []
+    total = 0
     if result['ok'] and result['data']:
-        items = result['data'].get('items', [])
-        for item in items:
+        total = result['data'].get('found', 0)
+        for item in result['data'].get('items', []):
             try:
                 sal = item.get('salary') or {}
                 price = sal.get('to') or sal.get('from') or 0
-                price_fmt = '—'
-                if sal.get('from') and sal.get('to'):
-                    price_fmt = f"{sal['from']:,}–{sal['to']:,} {sal.get('currency','RUR')}".replace(',', ' ')
-                elif sal.get('from'):
-                    price_fmt = f"от {sal['from']:,} {sal.get('currency','RUR')}".replace(',', ' ')
-                elif sal.get('to'):
-                    price_fmt = f"до {sal['to']:,} {sal.get('currency','RUR')}".replace(',', ' ')
+                price_fmt = _fmt_salary(sal)
                 tenders.append({
                     'id': f"hh_{item['id']}", 'name': item.get('name', ''),
                     'price': float(price), 'price_fmt': price_fmt,
                     'customer': (item.get('employer') or {}).get('name', '—'),
-                    'end_date': '—', 'law': 'Проект/Фриланс',
-                    'status': 'Активный',
+                    'end_date': '—', 'law': 'Проект/Фриланс', 'status': 'Активный',
                     'region': (item.get('area') or {}).get('name', '—'),
                     'url': item.get('alternate_url', search_url),
-                    'source': 'HH.ru',
+                    'source': 'HH.ru', 'source_key': 'hh',
                 })
             except Exception:
                 continue
-    return {'tenders': tenders, 'total': result['data'].get('found', len(tenders)) if result['ok'] and result['data'] else 0,
-            'search_url': search_url, 'ok': result['ok'], 'error': result.get('error', '')}
+    return {'tenders': tenders, 'total': total, 'search_url': search_url, 'ok': result['ok'], 'error': result.get('error', '')}
 
+
+# ─── Habr Freelance ──────────────────────────────────────────────────────────
 
 def search_habr(query: str) -> dict:
-    """Habr Freelance — IT-проекты"""
     encoded = urllib.parse.quote(query)
     url = f"https://freelance.habr.com/tasks?q={encoded}&page=1"
     search_url = f"https://freelance.habr.com/tasks?q={encoded}"
     result = http_get(url)
     tenders = []
-    # Habr отдаёт HTML — парсим базово
     if result['ok'] and result['text']:
-        import re
         text = result['text']
-        # Ищем блоки задач
         task_blocks = re.findall(r'class="task__title"[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>([^<]+)</a>', text)
         price_blocks = re.findall(r'class="task__cost"[^>]*>([^<]+)</[^>]+>', text)
-        customer_blocks = re.findall(r'class="task__author"[^>]*>.*?<a[^>]*>([^<]+)</a>', text, re.DOTALL)
         for i, (link, name) in enumerate(task_blocks[:20]):
-            price_raw = price_blocks[i] if i < len(price_blocks) else '—'
-            price_str = price_raw.strip()
+            price_raw = price_blocks[i].strip() if i < len(price_blocks) else '—'
             try:
-                price = float(''.join(filter(str.isdigit, price_str)) or '0')
+                price = float(''.join(filter(str.isdigit, price_raw)) or '0')
             except Exception:
                 price = 0
             tenders.append({
-                'id': f"habr_{abs(hash(link))}",
-                'name': name.strip(),
-                'price': price,
-                'price_fmt': price_str if price_str else 'Договорная',
-                'customer': customer_blocks[i].strip() if i < len(customer_blocks) else '—',
-                'end_date': '—', 'law': 'Фриланс',
-                'status': 'Активный',
+                'id': f"habr_{abs(hash(link))}", 'name': name.strip(),
+                'price': price, 'price_fmt': price_raw if price_raw else 'Договорная',
+                'customer': '—', 'end_date': '—', 'law': 'Фриланс', 'status': 'Активный',
                 'region': 'Удалённо',
                 'url': f"https://freelance.habr.com{link}" if link.startswith('/') else link,
-                'source': 'Habr Freelance',
+                'source': 'Habr Freelance', 'source_key': 'habr',
             })
-    return {'tenders': tenders, 'total': len(tenders), 'search_url': search_url,
-            'ok': result['ok'], 'error': result.get('error', '')}
+    return {'tenders': tenders, 'total': len(tenders), 'search_url': search_url, 'ok': result['ok'], 'error': result.get('error', '')}
 
+
+# ─── FL.ru ───────────────────────────────────────────────────────────────────
 
 def search_fl(query: str) -> dict:
-    """FL.ru — фриланс-проекты"""
     encoded = urllib.parse.quote(query)
     search_url = f"https://www.fl.ru/projects/?kind=1&search={encoded}"
     url = f"https://www.fl.ru/api/projects/?kind=1&search={encoded}&page=1&count=20"
@@ -194,24 +290,22 @@ def search_fl(query: str) -> dict:
             try:
                 price = float(item.get('price') or item.get('budget_max') or 0)
                 tenders.append({
-                    'id': f"fl_{item.get('id', abs(hash(item.get('name',''))))}",
+                    'id': f"fl_{item.get('id', abs(hash(str(item))))}",
                     'name': item.get('name', '') or item.get('title', ''),
-                    'price': price,
-                    'price_fmt': f"{price:,.0f} ₽".replace(',', ' ') if price > 0 else 'Договорная',
+                    'price': price, 'price_fmt': _fmt_price(price, 'RUB') if price > 0 else 'Договорная',
                     'customer': item.get('employer_name', '—') or '—',
-                    'end_date': '—', 'law': 'Фриланс',
-                    'status': 'Активный', 'region': 'Удалённо',
+                    'end_date': '—', 'law': 'Фриланс', 'status': 'Активный', 'region': 'Удалённо',
                     'url': f"https://www.fl.ru/projects/{item.get('id', '')}/",
-                    'source': 'FL.ru',
+                    'source': 'FL.ru', 'source_key': 'fl',
                 })
             except Exception:
                 continue
-    return {'tenders': tenders, 'total': len(tenders), 'search_url': search_url,
-            'ok': result['ok'], 'error': result.get('error', '')}
+    return {'tenders': tenders, 'total': len(tenders), 'search_url': search_url, 'ok': result['ok'], 'error': result.get('error', '')}
 
+
+# ─── Kwork ───────────────────────────────────────────────────────────────────
 
 def search_kwork(query: str) -> dict:
-    """Kwork — биржа задач"""
     encoded = urllib.parse.quote(query)
     search_url = f"https://kwork.ru/projects?c=41&query={encoded}"
     url = f"https://kwork.ru/api/projects/list?c=41&query={encoded}&page=1"
@@ -223,36 +317,141 @@ def search_kwork(query: str) -> dict:
             try:
                 price = float(item.get('price') or 0)
                 tenders.append({
-                    'id': f"kwork_{item.get('id', abs(hash(item.get('name',''))))}",
+                    'id': f"kwork_{item.get('id', abs(hash(str(item))))}",
                     'name': item.get('name', '') or item.get('title', ''),
-                    'price': price,
-                    'price_fmt': f"{price:,.0f} ₽".replace(',', ' ') if price > 0 else 'Договорная',
+                    'price': price, 'price_fmt': _fmt_price(price, 'RUB') if price > 0 else 'Договорная',
                     'customer': item.get('user_name', '—') or '—',
-                    'end_date': '—', 'law': 'Фриланс',
-                    'status': 'Активный', 'region': 'Удалённо',
+                    'end_date': '—', 'law': 'Фриланс', 'status': 'Активный', 'region': 'Удалённо',
                     'url': f"https://kwork.ru/projects/{item.get('id', '')}/view",
-                    'source': 'Kwork',
+                    'source': 'Kwork', 'source_key': 'kwork',
                 })
             except Exception:
                 continue
-    return {'tenders': tenders, 'total': len(tenders), 'search_url': search_url,
-            'ok': result['ok'], 'error': result.get('error', '')}
+    return {'tenders': tenders, 'total': len(tenders), 'search_url': search_url, 'ok': result['ok'], 'error': result.get('error', '')}
 
 
-def search_upwork(query: str) -> dict:
-    """Upwork — международные IT-проекты (прямые ссылки)"""
+# ─── Корпоративные закупки ───────────────────────────────────────────────────
+
+def search_corporate(query: str, corp_keys: list) -> list:
+    """
+    Для каждой корпорации возвращаем либо результаты API (если доступен),
+    либо прямую ссылку на их страницу закупок с query.
+    """
+    results = []
     encoded = urllib.parse.quote(query)
-    search_url = f"https://www.upwork.com/nx/jobs/search/?q={encoded}&sort=recency"
-    # Upwork требует авторизацию для API, возвращаем ссылку
-    return {
-        'tenders': [], 'total': 0, 'search_url': search_url,
-        'ok': True, 'error': '',
-        'link_only': True,
-        'source': 'Upwork',
-    }
+
+    for corp in CORPORATE_SOURCES:
+        if corp['key'] not in corp_keys:
+            continue
+
+        search_url = corp['search_url'].replace('{query}', encoded)
+        entry = {
+            'key': corp['key'],
+            'name': corp['name'],
+            'icon': corp['icon'],
+            'search_url': search_url,
+            'tenders': [],
+            'ok': False,
+            'error': '',
+            'link_only': True,
+        }
+
+        # Пробуем API если он задан
+        if corp.get('api_url'):
+            api_url = corp['api_url'].replace('{query}', encoded)
+            r = http_get(api_url, timeout=8)
+            entry['ok'] = r['ok']
+            entry['error'] = r.get('error', '')
+
+            if r['ok'] and r['data']:
+                parsed = _parse_corporate_response(r['data'], corp['key'], corp['name'], search_url)
+                if parsed:
+                    entry['tenders'] = parsed
+                    entry['link_only'] = False
+        else:
+            # Пробуем открыть главную страницу закупок для проверки доступности
+            r = http_get(search_url, timeout=6)
+            entry['ok'] = r['ok']
+            entry['error'] = r.get('error', '')
+
+        results.append(entry)
+
+    return results
 
 
-# ─── ИИ-АНАЛИЗ ───────────────────────────────────────────────────────────────
+def _parse_corporate_response(data: dict, key: str, name: str, search_url: str) -> list:
+    """Универсальный парсер ответов корпоративных API"""
+    tenders = []
+    # Пробуем разные форматы ответов
+    items = (
+        data.get('items') or data.get('lots') or data.get('tenders') or
+        data.get('results') or data.get('purchases') or data.get('data', {}).get('items', []) or
+        (data.get('data') if isinstance(data.get('data'), list) else []) or []
+    )
+    for item in items[:10]:
+        if not isinstance(item, dict):
+            continue
+        try:
+            name_val = (
+                item.get('name') or item.get('title') or item.get('subject') or
+                item.get('purchaseName') or item.get('lotName') or ''
+            ).strip()
+            if not name_val:
+                continue
+            price_raw = (
+                item.get('price') or item.get('budget') or item.get('nmck') or
+                item.get('initialPrice') or item.get('startPrice') or 0
+            )
+            try:
+                price = float(price_raw)
+            except Exception:
+                price = 0
+            item_id = str(item.get('id') or item.get('lotId') or item.get('purchaseId') or abs(hash(name_val)))
+            url = (
+                item.get('url') or item.get('href') or item.get('link') or
+                item.get('detailUrl') or search_url
+            )
+            end_date = str(item.get('endDate') or item.get('deadline') or item.get('submissionDeadline') or '—')[:10]
+            tenders.append({
+                'id': f"{key}_{item_id}",
+                'name': name_val,
+                'price': price, 'price_fmt': _fmt_price(price, 'RUB') if price > 0 else 'Не указана',
+                'customer': name,
+                'end_date': end_date, 'law': '223-ФЗ / Корпоративные',
+                'status': 'Активный', 'region': 'Россия',
+                'url': url if url.startswith('http') else f"https://{url}",
+                'source': name, 'source_key': key,
+            })
+        except Exception:
+            continue
+    return tenders
+
+
+# ─── Вспомогательные ─────────────────────────────────────────────────────────
+
+def _fmt_price(price: float, currency: str = 'RUB') -> str:
+    if price <= 0:
+        return 'Не указана'
+    sym = '₽' if currency in ('RUB', 'RUR') else currency
+    return f"{price:,.0f} {sym}".replace(',', ' ')
+
+
+def _fmt_salary(sal: dict) -> str:
+    if not sal:
+        return '—'
+    cur = sal.get('currency', 'RUR')
+    sym = '₽' if cur in ('RUB', 'RUR') else cur
+    lo, hi = sal.get('from'), sal.get('to')
+    if lo and hi:
+        return f"{lo:,}–{hi:,} {sym}".replace(',', ' ')
+    if lo:
+        return f"от {lo:,} {sym}".replace(',', ' ')
+    if hi:
+        return f"до {hi:,} {sym}".replace(',', ' ')
+    return '—'
+
+
+# ─── ИИ-анализ ───────────────────────────────────────────────────────────────
 
 def ai_analyze(tender: dict, api_key: str) -> dict:
     prompt = f"""Ты эксперт по тендерам и коммерческим предложениям для IT-компании.
@@ -323,7 +522,7 @@ def ai_analyze(tender: dict, api_key: str) -> dict:
 # ─── HANDLER ─────────────────────────────────────────────────────────────────
 
 def handler(event: dict, context) -> dict:
-    """Поиск тендеров, фриланс-заданий, избранное и ИИ-анализ"""
+    """Агрегатор тендеров: ЕИС, биржи, корпорации + ИИ-анализ + избранное"""
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
 
@@ -341,23 +540,32 @@ def handler(event: dict, context) -> dict:
     if method == 'POST' and (path == '/' or path.endswith('/tender-search')):
         query = body.get('query', '').strip()
         sources = body.get('sources', ['eis', 'hh', 'habr', 'fl', 'kwork', 'upwork'])
-        if not query:
-            return {'statusCode': 400, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Введите ключевые слова'})}
+        corp_keys = body.get('corp_keys', [c['key'] for c in CORPORATE_SOURCES])
 
-        print(f"[tender-search] query={query} sources={sources}")
+        if not query:
+            return {'statusCode': 400, 'headers': CORS_HEADERS,
+                    'body': json.dumps({'error': 'Введите ключевые слова'})}
+
+        print(f"[tender-search] query={query!r} sources={sources} corps={corp_keys}")
 
         all_tenders = []
         meta = []
         warnings = []
         links = []
+        corp_results = []
 
+        # Обычные источники
         searchers = {
-            'eis': ('ЕИС zakupki.gov.ru', search_eis),
-            'hh': ('HH.ru', search_hh),
-            'habr': ('Habr Freelance', search_habr),
-            'fl': ('FL.ru', search_fl),
+            'eis':   ('ЕИС zakupki.gov.ru', search_eis),
+            'hh':    ('HH.ru', search_hh),
+            'habr':  ('Habr Freelance', search_habr),
+            'fl':    ('FL.ru', search_fl),
             'kwork': ('Kwork', search_kwork),
-            'upwork': ('Upwork', search_upwork),
+            'upwork': ('Upwork', lambda q: {
+                'tenders': [], 'total': 0,
+                'search_url': f"https://www.upwork.com/nx/jobs/search/?q={urllib.parse.quote(q)}&sort=recency",
+                'ok': True, 'error': '', 'link_only': True,
+            }),
         }
 
         for src_key in sources:
@@ -368,16 +576,31 @@ def handler(event: dict, context) -> dict:
                 r = fn(query)
                 if r.get('link_only'):
                     links.append({'source': src_name, 'url': r['search_url']})
-                    continue
-                if not r['ok']:
+                elif not r['ok']:
                     warnings.append(f"{src_name}: {r.get('error', 'недоступен')}")
                     if r.get('search_url'):
                         links.append({'source': src_name, 'url': r['search_url']})
                 else:
                     all_tenders.extend(r['tenders'])
-                    meta.append({'source': src_name, 'count': len(r['tenders']), 'total': r.get('total', 0), 'search_url': r.get('search_url', '')})
+                    meta.append({
+                        'source': src_name, 'count': len(r['tenders']),
+                        'total': r.get('total', 0), 'search_url': r.get('search_url', ''),
+                    })
             except Exception as e:
-                warnings.append(f"{src_name}: ошибка ({str(e)[:60]})")
+                warnings.append(f"{src_name}: ошибка ({str(e)[:50]})")
+
+        # Корпоративные источники
+        if corp_keys:
+            corp_results = search_corporate(query, corp_keys)
+            for cr in corp_results:
+                if cr.get('link_only') or not cr['tenders']:
+                    links.append({'source': f"{cr['icon']} {cr['name']}", 'url': cr['search_url']})
+                else:
+                    all_tenders.extend(cr['tenders'])
+                    meta.append({
+                        'source': cr['name'], 'count': len(cr['tenders']),
+                        'total': len(cr['tenders']), 'search_url': cr['search_url'],
+                    })
 
         # Помечаем сохранённые
         saved_ids = set()
@@ -393,6 +616,17 @@ def handler(event: dict, context) -> dict:
         for t in all_tenders:
             t['saved'] = f"{t['id']}::{t['source']}" in saved_ids
 
+        # Сортируем по цене убыванием
+        all_tenders.sort(key=lambda x: x.get('price', 0), reverse=True)
+
+        # Статус корпоративных источников
+        corp_status = [{
+            'key': cr['key'], 'name': cr['name'], 'icon': cr['icon'],
+            'ok': cr['ok'], 'error': cr.get('error', ''),
+            'count': len(cr['tenders']), 'link_only': cr.get('link_only', True),
+            'search_url': cr['search_url'],
+        } for cr in corp_results]
+
         return {
             'statusCode': 200, 'headers': CORS_HEADERS,
             'body': json.dumps({
@@ -401,21 +635,35 @@ def handler(event: dict, context) -> dict:
                 'meta': meta,
                 'warnings': warnings,
                 'links': links,
-            }, ensure_ascii=False)
+                'corp_status': corp_status,
+            }, ensure_ascii=False),
         }
 
     # ── POST /analyze ────────────────────────────────────────────────────────
     if method == 'POST' and path.endswith('/analyze'):
         tender = body.get('tender')
         if not tender:
-            return {'statusCode': 400, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Нет данных тендера'})}
+            return {'statusCode': 400, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Нет данных'})}
         api_key = os.environ.get('POLZA_AI_API_KEY', '')
         if not api_key:
             return {'statusCode': 500, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'AI API ключ не настроен'})}
         result = ai_analyze(tender, api_key)
         if not result['ok']:
             return {'statusCode': 500, 'headers': CORS_HEADERS, 'body': json.dumps({'error': result['error']})}
-        return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'analysis': result['analysis']}, ensure_ascii=False)}
+        return {'statusCode': 200, 'headers': CORS_HEADERS,
+                'body': json.dumps({'analysis': result['analysis']}, ensure_ascii=False)}
+
+    # ── GET /corporate-sources ───────────────────────────────────────────────
+    if method == 'GET' and path.endswith('/corporate-sources'):
+        return {
+            'statusCode': 200, 'headers': CORS_HEADERS,
+            'body': json.dumps({'sources': [
+                {'key': c['key'], 'name': c['name'], 'icon': c['icon'],
+                 'has_api': bool(c.get('api_url')),
+                 'search_url': c['search_url']}
+                for c in CORPORATE_SOURCES
+            ]}, ensure_ascii=False),
+        }
 
     # ── POST /save ───────────────────────────────────────────────────────────
     if method == 'POST' and path.endswith('/save'):
@@ -428,12 +676,13 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor()
         try:
             cur.execute("""
-                INSERT INTO saved_tenders (external_id, source, name, price, price_fmt, customer, end_date, law, status, region, url, note, analysis)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO saved_tenders
+                  (external_id, source, name, price, price_fmt, customer, end_date, law, status, region, url, note, analysis)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT (external_id, source) DO UPDATE SET
-                    note = EXCLUDED.note,
-                    analysis = COALESCE(EXCLUDED.analysis, saved_tenders.analysis),
-                    name = EXCLUDED.name
+                  note = EXCLUDED.note,
+                  analysis = COALESCE(EXCLUDED.analysis, saved_tenders.analysis),
+                  name = EXCLUDED.name
                 RETURNING id
             """, (
                 tender.get('id'), tender.get('source', '—'),
@@ -448,18 +697,17 @@ def handler(event: dict, context) -> dict:
             conn.commit()
         finally:
             conn.close()
-        return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True, 'saved_id': saved_id})}
+        return {'statusCode': 200, 'headers': CORS_HEADERS,
+                'body': json.dumps({'ok': True, 'saved_id': saved_id})}
 
     # ── DELETE /save ─────────────────────────────────────────────────────────
     if method == 'DELETE' and path.endswith('/save'):
         external_id = body.get('external_id')
         source = body.get('source')
-        if not external_id:
-            return {'statusCode': 400, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Нет ID'})}
         conn = get_conn()
         cur = conn.cursor()
         try:
-            cur.execute("DELETE FROM saved_tenders WHERE external_id = %s AND source = %s", (external_id, source))
+            cur.execute("DELETE FROM saved_tenders WHERE external_id=%s AND source=%s", (external_id, source))
             conn.commit()
         finally:
             conn.close()
@@ -479,22 +727,23 @@ def handler(event: dict, context) -> dict:
             r = dict(row)
             r['created_at'] = r['created_at'].isoformat() if r.get('created_at') else ''
             r['price'] = float(r['price']) if r.get('price') else 0
-            if r.get('analysis') and isinstance(r['analysis'], str):
+            if isinstance(r.get('analysis'), str):
                 try:
                     r['analysis'] = json.loads(r['analysis'])
                 except Exception:
                     r['analysis'] = None
             result.append(r)
-        return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'saved': result}, ensure_ascii=False)}
+        return {'statusCode': 200, 'headers': CORS_HEADERS,
+                'body': json.dumps({'saved': result}, ensure_ascii=False)}
 
-    # ── POST /save/note ──────────────────────────────────────────────────────
+    # ── POST /note ───────────────────────────────────────────────────────────
     if method == 'POST' and path.endswith('/note'):
         saved_id = body.get('id')
         note = body.get('note', '')
         conn = get_conn()
         cur = conn.cursor()
         try:
-            cur.execute("UPDATE saved_tenders SET note = %s WHERE id = %s", (note, saved_id))
+            cur.execute("UPDATE saved_tenders SET note=%s WHERE id=%s", (note, saved_id))
             conn.commit()
         finally:
             conn.close()
