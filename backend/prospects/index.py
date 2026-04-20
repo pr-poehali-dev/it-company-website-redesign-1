@@ -49,10 +49,7 @@ PRIORITY_LABELS = {
 
 def get_db():
     schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    conn.cursor().execute(f'SET search_path TO "{schema}"')
-    conn.commit()
-    return conn
+    return psycopg2.connect(os.environ['DATABASE_URL'], options=f"-c search_path={schema}")
 
 
 def auth_check(event):
