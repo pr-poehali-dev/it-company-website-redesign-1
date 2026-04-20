@@ -36,39 +36,44 @@ CORPORATE_SOURCES = [
         'key': 'sber',
         'name': 'Сбербанк',
         'icon': '🟢',
-        'search_url': 'https://zakupki.sberbank.ru/223/purchaseList/page/1',
-        'api_url': 'https://zakupki.sberbank.ru/api/search?text={query}&size=10&from=0&status=ACTIVE',
+        # Портал закупок Сбербанка по 223-ФЗ — реальный URL с поиском
+        'search_url': 'https://zakupki.sberbank.ru/223/purchaseList/page/1?searchText={query}',
+        'api_url': None,
         'type': 'corporate',
     },
     {
         'key': 'gazprom',
         'name': 'Газпром',
         'icon': '🔵',
-        'search_url': 'https://zakupki.gazprom.ru/lots/?search={query}',
-        'api_url': 'https://zakupki.gazprom.ru/api/lots/?search={query}&limit=10&offset=0&status=active',
+        # Официальный портал закупок Газпрома
+        'search_url': 'https://pgz.gazprom.ru/purchase/?search={query}',
+        'api_url': None,
         'type': 'corporate',
     },
     {
         'key': 'rzd',
         'name': 'РЖД',
         'icon': '🚂',
+        # Официальный портал закупок РЖД
         'search_url': 'https://zakupki.rzd.ru/item/index?searchString={query}',
-        'api_url': 'https://zakupki.rzd.ru/api/v1/items?q={query}&limit=10&page=0',
+        'api_url': None,
         'type': 'corporate',
     },
     {
         'key': 'rostelecom',
         'name': 'Ростелеком',
         'icon': '📡',
+        # Официальный портал закупок Ростелекома
         'search_url': 'https://zakupki.rostelecom.ru/purchases/?query={query}',
-        'api_url': 'https://zakupki.rostelecom.ru/api/purchases?query={query}&size=10&page=0&status=ACTIVE',
+        'api_url': None,
         'type': 'corporate',
     },
     {
         'key': 'lukoil',
         'name': 'Лукойл',
         'icon': '🛢️',
-        'search_url': 'https://lukoil.ru/Business/Tenders',
+        # Тендеры Лукойла через ЕИС (госзакупки)
+        'search_url': 'https://www.zakupki.gov.ru/epz/order/extendedsearch/results.html?searchString={query}&organizationName=%D0%9B%D1%83%D0%BA%D0%BE%D0%B9%D0%BB',
         'api_url': None,
         'type': 'corporate',
     },
@@ -76,14 +81,16 @@ CORPORATE_SOURCES = [
         'key': 'rosneft',
         'name': 'Роснефть',
         'icon': '⚡',
-        'search_url': 'https://www.rosneft.ru/purchase/',
-        'api_url': 'https://purchase.rosneft.ru/api/lots?keyword={query}&status=published&limit=10',
+        # Официальный портал закупок Роснефти
+        'search_url': 'https://purchase.rosneft.ru/lots?keyword={query}',
+        'api_url': None,
         'type': 'corporate',
     },
     {
         'key': 'vtb',
         'name': 'ВТБ',
         'icon': '🏦',
+        # Закупки ВТБ через их портал
         'search_url': 'https://www.vtb.ru/o-banke/zakupki/',
         'api_url': None,
         'type': 'corporate',
@@ -92,6 +99,7 @@ CORPORATE_SOURCES = [
         'key': 'magnit',
         'name': 'Магнит',
         'icon': '🛒',
+        # Портал поставщиков Магнита
         'search_url': 'https://magnit.ru/vendors/tenders/',
         'api_url': None,
         'type': 'corporate',
@@ -100,14 +108,16 @@ CORPORATE_SOURCES = [
         'key': 'rosatom',
         'name': 'Росатом',
         'icon': '⚛️',
-        'search_url': 'https://www.rosatom.ru/supplier-relations/tenders/',
-        'api_url': 'https://zakupki.rosatom.ru/api/v1/tenders?search={query}&status=ACTIVE&limit=10',
+        # Официальный портал закупок Росатома
+        'search_url': 'https://zakupki.rosatom.ru/purchase/list?search={query}',
+        'api_url': None,
         'type': 'corporate',
     },
     {
         'key': 'yandex',
         'name': 'Яндекс',
         'icon': '🔴',
+        # Закупки Яндекса — публичная страница
         'search_url': 'https://yandex.ru/company/purchases',
         'api_url': None,
         'type': 'corporate',
@@ -116,6 +126,7 @@ CORPORATE_SOURCES = [
         'key': 'mail',
         'name': 'VK / Mail.ru',
         'icon': '💙',
+        # Тендеры VK Company
         'search_url': 'https://vk.company/ru/about/tenders/',
         'api_url': None,
         'type': 'corporate',
@@ -124,7 +135,8 @@ CORPORATE_SOURCES = [
         'key': 'sbertech',
         'name': 'СберТех',
         'icon': '💻',
-        'search_url': 'https://sbertech.ru/tenders',
+        # Закупки СберТех через ЕИС
+        'search_url': 'https://www.zakupki.gov.ru/epz/order/extendedsearch/results.html?searchString={query}&organizationName=%D0%A1%D0%B1%D0%B5%D1%80%D0%A2%D0%B5%D1%85',
         'api_url': None,
         'type': 'corporate',
     },
@@ -430,10 +442,9 @@ def search_corporate(query: str, corp_keys: list) -> list:
                     entry['tenders'] = parsed
                     entry['link_only'] = False
         else:
-            # Пробуем открыть главную страницу закупок для проверки доступности
-            r = http_get(search_url, timeout=6)
-            entry['ok'] = r['ok']
-            entry['error'] = r.get('error', '')
+            # API не задан — сразу возвращаем ссылку без HTTP-запроса
+            entry['ok'] = True
+            entry['error'] = ''
 
         results.append(entry)
 
