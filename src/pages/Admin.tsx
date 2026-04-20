@@ -4,9 +4,10 @@ import AdminLogin from "./admin/AdminLogin";
 import AdminPostList from "./admin/AdminPostList";
 import AdminPostEditor from "./admin/AdminPostEditor";
 import TenderSearch from "./admin/TenderSearch";
+import ProspectModule from "./admin/ProspectModule";
 import { AUTH_URL, BLOG_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "blog" | "tenders";
+type Section = "blog" | "tenders" | "prospects";
 
 export default function Admin() {
   const [token, setToken] = useState(() => sessionStorage.getItem("admin_token") || "");
@@ -127,6 +128,7 @@ export default function Admin() {
   const NAV: { id: Section; label: string; icon: string; badge?: number }[] = [
     { id: "blog", label: "Статьи блога", icon: "FileText", badge: posts.length || undefined },
     { id: "tenders", label: "Тендеры", icon: "Search" },
+    { id: "prospects", label: "Клиенты", icon: "Users" },
   ];
 
   return (
@@ -208,6 +210,11 @@ export default function Admin() {
         {/* TENDERS SECTION */}
         {section === "tenders" && (
           <TenderSearch token={token} />
+        )}
+
+        {/* PROSPECTS SECTION */}
+        {section === "prospects" && (
+          <ProspectModule token={token} />
         )}
       </div>
 
