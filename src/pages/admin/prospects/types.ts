@@ -5,6 +5,7 @@ export const SOURCES = [
   { key: "eis",    label: "ЕИС Гос. закупки",   icon: "Building2",  color: "text-emerald-400", desc: "Закупщики" },
   { key: "kontur", label: "Контур.Фокус",        icon: "Focus",      color: "text-violet-400",  desc: "Финансы / ОКВЭД" },
   { key: "2gis",   label: "2ГИС",               icon: "MapPin",     color: "text-orange-400",  desc: "Бизнес-каталог" },
+  { key: "msp",    label: "Реестр МСП",          icon: "Store",      color: "text-pink-400",    desc: "Малый и средний бизнес" },
 ];
 
 export const STATUSES: { key: string; label: string; color: string; bg: string }[] = [

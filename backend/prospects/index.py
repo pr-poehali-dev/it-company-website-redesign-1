@@ -252,6 +252,50 @@ def search_2gis(query: str, region: str = '') -> list:
     return results
 
 
+def search_msp(query: str) -> list:
+    """Поиск компаний в реестре МСП (малого и среднего предпринимательства) ФНС"""
+    results = []
+    encoded = urllib.parse.quote(query)
+    url = f"https://rmsp.nalog.ru/api/v1/search?query={encoded}&pageNumber=1&pageSize=20"
+    r = http_get(url, timeout=8)
+    if r['ok'] and r['data']:
+        items = r['data'].get('data', []) or r['data'].get('list', []) or []
+        if not items and isinstance(r['data'], list):
+            items = r['data']
+        for item in items[:15]:
+            if not isinstance(item, dict):
+                continue
+            name = (item.get('shortName') or item.get('fullName') or
+                    item.get('name') or item.get('companyName') or '')
+            inn = str(item.get('inn') or item.get('INN') or '')
+            ogrn = str(item.get('ogrn') or item.get('OGRN') or '')
+            region = (item.get('regionName') or item.get('region') or
+                      item.get('address', {}).get('region', '') if isinstance(item.get('address'), dict) else '')
+            category = item.get('categoryMSP') or item.get('category') or ''
+            category_map = {'MICRO': 'Микропредприятие', 'SMALL': 'Малое', 'MEDIUM': 'Среднее'}
+            category_label = category_map.get(category, category)
+            okved = item.get('okvedName') or item.get('mainActivity') or ''
+            if name:
+                results.append({
+                    'company_name': name,
+                    'inn': inn,
+                    'ogrn': ogrn,
+                    'region': str(region) if region else '',
+                    'source': 'Реестр МСП',
+                    'source_url': f"https://rmsp.nalog.ru/search.html?mode=full&query={encoded}",
+                    'industry': okved,
+                    'description': category_label,
+                    'website': '',
+                    'email': '',
+                    'phone': '',
+                    'address': item.get('address', {}).get('value', '') if isinstance(item.get('address'), dict) else '',
+                    'revenue_range': '',
+                    'employee_count': '',
+                    'founded_year': None,
+                })
+    return results
+
+
 def search_all_sources(query: str, region: str = '', sources: list = None) -> dict:
     """Агрегирует результаты по всем источникам"""
     all_results = []
@@ -263,6 +307,7 @@ def search_all_sources(query: str, region: str = '', sources: list = None) -> di
         'eis': ('ЕИС (Гос. закупки)', lambda q: search_zakupki_orgs(q)),
         'kontur': ('Контур.Фокус', search_kontur),
         '2gis': ('2ГИС', lambda q: search_2gis(q, region)),
+        'msp': ('Реестр МСП', search_msp),
     }
     if sources is None:
         sources = list(src_map.keys())
