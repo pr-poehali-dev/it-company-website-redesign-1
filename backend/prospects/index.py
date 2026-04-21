@@ -112,35 +112,17 @@ def http_get(url, timeout=10, headers=None):
 
 
 def search_egrul(query: str) -> list:
-    """Поиск по ЕГРЮЛ через официальный API ФНС"""
-    results = []
+    """Поиск по ЕГРЮЛ через DaData (юридические лица)"""
     encoded = urllib.parse.quote(query)
-    # Новый API ФНС
-    url = f"https://egrul.nalog.ru/search-result?query={encoded}&region=0&okved=&_={int(datetime.now().timestamp()*1000)}"
-    r = http_get(url, timeout=10, headers={'Referer': 'https://egrul.nalog.ru/', 'Accept': 'application/json'})
-    data = r.get('data') or {}
-    rows = []
-    if isinstance(data, list):
-        rows = data
-    elif isinstance(data, dict):
-        rows = data.get('rows', []) or data.get('data', []) or []
-    for item in rows[:15]:
-        if not isinstance(item, dict):
-            continue
-        name = item.get('n') or item.get('name') or item.get('shortName') or ''
-        inn = item.get('i') or item.get('inn') or ''
-        ogrn = item.get('o') or item.get('ogrn') or ''
-        region = item.get('r') or ''
-        if name:
-            results.append({
-                'company_name': name, 'inn': str(inn), 'ogrn': str(ogrn),
-                'region': str(region), 'source': 'ЕГРЮЛ / ФНС',
-                'source_url': f"https://egrul.nalog.ru/?query={encoded}",
-                'industry': '', 'description': '', 'website': '', 'email': '',
-                'phone': '', 'address': item.get('a') or '',
-                'revenue_range': '', 'employee_count': '', 'founded_year': None,
-            })
-    return results
+    try:
+        suggestions = _dadata_suggest(query, count=15, extra={"type": ["LEGAL"]})
+        return [
+            _dadata_item_to_prospect(s, 'ЕГРЮЛ / ФНС', f"https://egrul.nalog.ru/?query={encoded}")
+            for s in suggestions if s.get('value')
+        ]
+    except Exception as e:
+        print(f"[search_egrul] {e}")
+    return []
 
 
 def search_zakupki_orgs(query: str) -> list:
@@ -178,43 +160,60 @@ def search_zakupki_orgs(query: str) -> list:
     return results
 
 
-def search_kontur(query: str) -> list:
-    """Поиск через DaData suggestions (бесплатный публичный endpoint)"""
-    results = []
-    body = json.dumps({"query": query, "count": 10}).encode()
+def _dadata_suggest(query: str, count: int = 10, extra: dict = None) -> list:
+    """Общий вызов DaData Suggestions API для поиска компаний"""
+    api_key = os.environ.get('DADATA_API_KEY', '')
+    if not api_key:
+        print("[dadata] DADATA_API_KEY не задан")
+        return []
+    payload = {"query": query, "count": count}
+    if extra:
+        payload.update(extra)
     req = urllib.request.Request(
         "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party",
-        data=body,
+        data=json.dumps(payload).encode(),
         headers={
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': 'Token d4a8ed1bad94d5609e2ac26bc3e3ca6afb32e4a9',
+            'Authorization': f'Token {api_key}',
         },
         method='POST'
     )
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return json.loads(resp.read()).get('suggestions') or []
+
+
+def _dadata_item_to_prospect(item: dict, source: str, source_url: str) -> dict:
+    d = item.get('data') or {}
+    name = item.get('value') or ''
+    inn = d.get('inn') or ''
+    addr = d.get('address') or {}
+    addr_data = addr.get('data') or {}
+    return {
+        'company_name': name, 'inn': str(inn), 'ogrn': d.get('ogrn') or '',
+        'region': addr_data.get('region') or addr_data.get('city') or '',
+        'source': source, 'source_url': source_url,
+        'industry': d.get('okved') or d.get('okved_type') or '',
+        'description': d.get('type') or '',
+        'website': '', 'email': '', 'phone': '',
+        'address': addr.get('unrestricted_value') or '',
+        'revenue_range': '', 'employee_count': str(d.get('employee_count') or ''),
+        'founded_year': None,
+    }
+
+
+def search_kontur(query: str) -> list:
+    """Поиск компаний через DaData (подсказки по названию/ИНН)"""
+    encoded = urllib.parse.quote(query)
     try:
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read())
-            for item in (data.get('suggestions') or [])[:10]:
-                d = item.get('data') or {}
-                name = item.get('value') or d.get('name', {}).get('short_with_opf') or ''
-                inn = d.get('inn') or ''
-                if name:
-                    addr = d.get('address') or {}
-                    results.append({
-                        'company_name': name, 'inn': str(inn),
-                        'ogrn': d.get('ogrn') or '',
-                        'region': addr.get('data', {}).get('region') or '' if isinstance(addr.get('data'), dict) else '',
-                        'source': 'DaData', 'source_url': f"https://dadata.ru/find-by-id/party/{inn}/",
-                        'industry': d.get('okved_type') or '', 'description': d.get('type') or '',
-                        'website': '', 'email': '', 'phone': '',
-                        'address': addr.get('unrestricted_value') or '',
-                        'revenue_range': '', 'employee_count': str(d.get('employee_count') or ''),
-                        'founded_year': None,
-                    })
+        suggestions = _dadata_suggest(query, count=15)
+        return [
+            _dadata_item_to_prospect(s, 'DaData / ЕГРЮЛ', f"https://dadata.ru/find-by-id/party/{(s.get('data') or {}).get('inn', '')}/")
+            for s in suggestions if s.get('value')
+        ]
     except Exception as e:
         print(f"[search_kontur] {e}")
-    return results
+    return []
 
 
 def search_2gis(query: str, region: str = '') -> list:
@@ -267,44 +266,18 @@ def search_2gis(query: str, region: str = '') -> list:
 
 
 def search_msp(query: str) -> list:
-    """Поиск компаний в реестре МСП через DaData (фильтр по типу)"""
-    results = []
-    # МСП ищем через DaData с фильтром по статусу
-    body = json.dumps({"query": query, "count": 10, "status": ["ACTIVE"]}).encode()
-    req = urllib.request.Request(
-        "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party",
-        data=body,
-        headers={
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': 'Token d4a8ed1bad94d5609e2ac26bc3e3ca6afb32e4a9',
-        },
-        method='POST'
-    )
+    """Поиск ИП и малых компаний через DaData (тип INDIVIDUAL + LEGAL)"""
     encoded = urllib.parse.quote(query)
     try:
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read())
-            for item in (data.get('suggestions') or [])[:10]:
-                d = item.get('data') or {}
-                name = item.get('value') or ''
-                inn = d.get('inn') or ''
-                if not name:
-                    continue
-                addr = d.get('address') or {}
-                results.append({
-                    'company_name': name, 'inn': str(inn), 'ogrn': d.get('ogrn') or '',
-                    'region': addr.get('data', {}).get('region') or '' if isinstance(addr.get('data'), dict) else '',
-                    'source': 'Реестр МСП',
-                    'source_url': f"https://rmsp.nalog.ru/search.html?mode=full&query={encoded}",
-                    'industry': d.get('okved_type') or '', 'description': d.get('type') or '',
-                    'website': '', 'email': '', 'phone': '',
-                    'address': addr.get('unrestricted_value') or '',
-                    'revenue_range': '', 'employee_count': '', 'founded_year': None,
-                })
+        suggestions = _dadata_suggest(query, count=10, extra={"type": ["INDIVIDUAL"]})
+        results = [
+            _dadata_item_to_prospect(s, 'Реестр МСП', f"https://rmsp.nalog.ru/search.html?mode=full&query={encoded}")
+            for s in suggestions if s.get('value')
+        ]
+        return results
     except Exception as e:
         print(f"[search_msp] {e}")
-    return results
+    return []
 
 
 def search_hh(query: str, region: str = '') -> list:
