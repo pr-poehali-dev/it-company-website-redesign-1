@@ -451,21 +451,25 @@ def find_company_email(company_name: str, website: str = '') -> dict:
         hits = EMAIL_RE.findall(text)
         return [e.lower() for e in hits if not e.endswith(('.png', '.jpg', '.gif', '.svg'))]
 
-    # ── 2. Яндекс XML API ──────────────────────────────────────────────────
+    # ── 2. Яндекс XML API (новый формат — только apikey) ─────────────────
     yx_user = os.environ.get('YANDEX_XML_USER', '')
     yx_key  = os.environ.get('YANDEX_XML_KEY', '')
 
     search_queries = [
         f'{company_name} email контакты',
-        f'{company_name} почта сайт',
+        f'{company_name} почта официальный сайт',
     ]
     if website:
         search_queries.insert(0, f'site:{website} email контакты')
 
-    if yx_user and yx_key:
+    if yx_key:
         for q in search_queries[:2]:
             enc = urllib.parse.quote(q)
-            url = f"https://xmlsearch.yandex.ru/xmlsearch?user={yx_user}&key={yx_key}&query={enc}&lr=213&within=0&groupby=attr%3D%22%22.mode%3Dflat.groups-on-page%3D10"
+            # Новый Яндекс XML 2.0 — только apikey, без user
+            if yx_user:
+                url = f"https://xmlsearch.yandex.ru/xmlsearch?user={yx_user}&key={yx_key}&query={enc}&lr=213&groupby=attr%3D%22%22.mode%3Dflat.groups-on-page%3D10"
+            else:
+                url = f"https://xmlsearch.yandex.ru/xmlsearch?key={yx_key}&query={enc}&lr=213&groupby=attr%3D%22%22.mode%3Dflat.groups-on-page%3D10"
             r = http_get(url, timeout=10, headers={'Accept': 'application/xml, text/xml'})
             if r['ok'] and r['text']:
                 sources_checked.append(f"Яндекс XML: {q[:40]}")
@@ -474,8 +478,10 @@ def find_company_email(company_name: str, website: str = '') -> dict:
                 print(f"[find_email] yandex xml q={q!r} → {emails}")
                 if found_emails:
                     break
+            else:
+                print(f"[find_email] yandex xml failed: {r.get('error','')}")
     else:
-        print("[find_email] YANDEX_XML_USER/KEY не заданы, пропускаем Яндекс XML")
+        print("[find_email] YANDEX_XML_KEY не задан, пропускаем Яндекс XML")
 
     # ── 3. Парсинг сайта компании (если известен) ─────────────────────────
     if website and not found_emails:
