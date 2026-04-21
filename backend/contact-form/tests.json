@@ -4,16 +4,16 @@
       "name": "Validation - missing fields",
       "method": "POST",
       "path": "/",
-      "body": {"name": "", "email": "", "message": ""},
+      "body": {"name": "", "email": "", "phone": "", "message": ""},
       "expectedStatus": 400,
-      "expectedBody": {"error": "Заполните обязательные поля: Имя, Email, Сообщение"},
+      "expectedBody": {"error": "Заполните обязательные поля: Имя, Email, Телефон, Сообщение"},
       "bodyMatcher": "partial"
     },
     {
       "name": "Validation - invalid email",
       "method": "POST",
       "path": "/",
-      "body": {"name": "Тест", "email": "not-email", "message": "Проверка"},
+      "body": {"name": "Тест", "email": "not-email", "phone": "+79990000000", "message": "Проверка"},
       "expectedStatus": 400,
       "expectedBody": {"error": "Некорректный email"},
       "bodyMatcher": "partial"

@@ -38,8 +38,8 @@ def handler(event: dict, context) -> dict:
     company = body.get("company", "").strip()
     message = body.get("message", "").strip()
 
-    if not name or not email or not message:
-        return response(400, {"error": "Заполните обязательные поля: Имя, Email, Сообщение"})
+    if not name or not email or not phone or not message:
+        return response(400, {"error": "Заполните обязательные поля: Имя, Email, Телефон, Сообщение"})
 
     if "@" not in email:
         return response(400, {"error": "Некорректный email"})

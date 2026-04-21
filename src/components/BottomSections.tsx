@@ -25,8 +25,8 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
 
   const handleSubmit = async () => {
     setFormError("");
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      setFormError("Заполните обязательные поля: Имя, Email, Сообщение");
+    if (!form.name.trim() || !form.email.trim() || !form.phone.trim() || !form.message.trim()) {
+      setFormError("Заполните обязательные поля: Имя, Email, Телефон, Сообщение");
       return;
     }
     setFormStatus("sending");
@@ -352,7 +352,7 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-white/60 mb-2">Телефон</label>
+                        <label className="block text-sm text-white/60 mb-2">Телефон *</label>
                         <input
                           type="tel"
                           name="phone"
