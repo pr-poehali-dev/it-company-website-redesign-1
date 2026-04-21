@@ -300,7 +300,13 @@ def search_hh(query: str, region: str = '') -> list:
         region_param = '&area=113'
 
     url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=50&page=0{region_param}&only_with_salary=false"
-    r = http_get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+    r = http_get(url, timeout=10, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'ru-RU,ru;q=0.9',
+        'Referer': 'https://hh.ru/',
+        'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
+    })
     if not r['ok'] or not r['data']:
         return results
 
@@ -353,10 +359,23 @@ def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: st
 
     encoded = urllib.parse.quote(vacancy_query)
     url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=100&page=0&area={area_id}&only_with_salary=false"
-    r = http_get(url, timeout=12, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+    hh_headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Referer': 'https://hh.ru/',
+        'Origin': 'https://hh.ru',
+        'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
+    }
+    r = http_get(url, timeout=12, headers=hh_headers)
 
     if not r['ok'] or not r['data']:
-        return {'companies': [], 'total_vacancies': 0, 'error': r.get('error', 'HH недоступен')}
+        # Fallback: пробуем без area фильтра
+        url2 = f"https://api.hh.ru/vacancies?text={encoded}&per_page=50&page=0&only_with_salary=false"
+        r = http_get(url2, timeout=12, headers=hh_headers)
+
+    if not r['ok'] or not r['data']:
+        return {'companies': [], 'total_vacancies': 0, 'error': f"HH.ru недоступен ({r.get('error', '403')}). Попробуйте позже."}
 
     items = r['data'].get('items') or []
     found = r['data'].get('found', len(items))
@@ -425,8 +444,15 @@ def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
 
     # Ищем вакансии компании на HH
     encoded = urllib.parse.quote(company_name)
+    _hh_h = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'ru-RU,ru;q=0.9',
+        'Referer': 'https://hh.ru/',
+        'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
+    }
     url = f"https://api.hh.ru/vacancies?text={encoded}&employer_name={encoded}&per_page=20&page=0&area=113&only_with_salary=false"
-    r = http_get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+    r = http_get(url, timeout=10, headers=_hh_h)
 
     vacancies = []
     employer_info = {}
@@ -453,7 +479,7 @@ def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
     if not vacancies:
         # Попробуем более широкий поиск
         url2 = f"https://api.hh.ru/vacancies?text={encoded}&per_page=10&page=0&area=113"
-        r2 = http_get(url2, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+        r2 = http_get(url2, timeout=10, headers=_hh_h)
         if r2['ok'] and r2['data']:
             for item in (r2['data'].get('items') or [])[:10]:
                 emp = item.get('employer') or {}
