@@ -115,7 +115,7 @@ def search_egrul(query: str) -> list:
     """Поиск по ЕГРЮЛ через DaData (юридические лица)"""
     encoded = urllib.parse.quote(query)
     try:
-        suggestions = _dadata_suggest(query, count=15, extra={"type": ["LEGAL"]})
+        suggestions = _dadata_suggest(query, count=20, extra={"type": ["LEGAL"]})
         return [
             _dadata_item_to_prospect(s, 'ЕГРЮЛ / ФНС', f"https://egrul.nalog.ru/?query={encoded}")
             for s in suggestions if s.get('value')
@@ -206,7 +206,7 @@ def search_kontur(query: str) -> list:
     """Поиск компаний через DaData (подсказки по названию/ИНН)"""
     encoded = urllib.parse.quote(query)
     try:
-        suggestions = _dadata_suggest(query, count=15)
+        suggestions = _dadata_suggest(query, count=20)
         return [
             _dadata_item_to_prospect(s, 'DaData / ЕГРЮЛ', f"https://dadata.ru/find-by-id/party/{(s.get('data') or {}).get('inn', '')}/")
             for s in suggestions if s.get('value')
@@ -269,7 +269,7 @@ def search_msp(query: str) -> list:
     """Поиск ИП и малых компаний через DaData (тип INDIVIDUAL + LEGAL)"""
     encoded = urllib.parse.quote(query)
     try:
-        suggestions = _dadata_suggest(query, count=10, extra={"type": ["INDIVIDUAL"]})
+        suggestions = _dadata_suggest(query, count=20, extra={"type": ["INDIVIDUAL"]})
         results = [
             _dadata_item_to_prospect(s, 'Реестр МСП', f"https://rmsp.nalog.ru/search.html?mode=full&query={encoded}")
             for s in suggestions if s.get('value')
@@ -296,7 +296,7 @@ def search_hh(query: str, region: str = '') -> list:
     else:
         region_param = '&area=113'
 
-    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=20&page=0{region_param}&only_with_salary=false"
+    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=50&page=0{region_param}&only_with_salary=false"
     r = http_get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
     if not r['ok'] or not r['data']:
         return results
