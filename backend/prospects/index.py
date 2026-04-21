@@ -296,6 +296,57 @@ def search_msp(query: str) -> list:
     return results
 
 
+def search_hh(query: str, region: str = '') -> list:
+    """Поиск компаний на HH.ru — нанимают IT, значит потенциальный клиент для аутсорса"""
+    results = []
+    encoded = urllib.parse.quote(query)
+    region_param = ''
+    if region:
+        region_map = {
+            'москва': '1', 'московская': '1', 'spb': '2', 'питер': '2',
+            'санкт-петербург': '2', 'екатеринбург': '3', 'новосибирск': '4',
+        }
+        reg_key = region.lower().strip()
+        area = next((v for k, v in region_map.items() if k in reg_key), '113')
+        region_param = f"&area={area}"
+    else:
+        region_param = '&area=113'
+
+    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=20&page=0{region_param}&only_with_salary=false"
+    r = http_get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+    if not r['ok'] or not r['data']:
+        return results
+
+    seen = set()
+    for item in (r['data'].get('items') or []):
+        employer = item.get('employer') or {}
+        name = employer.get('name', '')
+        emp_id = str(employer.get('id', ''))
+        if not name or emp_id in seen:
+            continue
+        seen.add(emp_id)
+        area = item.get('area') or {}
+        vacancy_name = item.get('name', '')
+        results.append({
+            'company_name': name,
+            'inn': '',
+            'ogrn': '',
+            'region': area.get('name', ''),
+            'source': 'HH.ru',
+            'source_url': employer.get('alternate_url') or f"https://hh.ru/employer/{emp_id}",
+            'industry': vacancy_name,
+            'description': 'Нанимает IT-специалистов',
+            'website': employer.get('site_url') or '',
+            'email': '',
+            'phone': '',
+            'address': '',
+            'revenue_range': '',
+            'employee_count': '',
+            'founded_year': None,
+        })
+    return results
+
+
 def search_all_sources(query: str, region: str = '', sources: list = None) -> dict:
     """Агрегирует результаты по всем источникам"""
     all_results = []
@@ -308,6 +359,7 @@ def search_all_sources(query: str, region: str = '', sources: list = None) -> di
         'kontur': ('Контур.Фокус', search_kontur),
         '2gis': ('2ГИС', lambda q: search_2gis(q, region)),
         'msp': ('Реестр МСП', search_msp),
+        'hh': ('HH.ru', lambda q: search_hh(q, region)),
     }
     if sources is None:
         sources = list(src_map.keys())
