@@ -450,6 +450,7 @@ export default function ProspectModule({ token }: { token: string }) {
         <ProspectCard
           prospect={selected}
           activities={activities}
+          token={token}
           onEdit={() => { setEditProspect(selected); setIsNewEdit(false); }}
           onClose={() => { setSelected(null); setGenMsgText(""); }}
           onAnalyze={() => analyze(selected)}
@@ -458,6 +459,13 @@ export default function ProspectModule({ token }: { token: string }) {
           generatingMsg={generatingMsg}
           generatedMsg={generatedMsg}
           onAddActivity={addActivity}
+          onEmailFound={async (email) => {
+            if (selected?.id) {
+              await api("update", "PUT", { id: selected.id, email });
+              await loadActivities(selected.id);
+              await loadProspects();
+            }
+          }}
         />
       )}
 

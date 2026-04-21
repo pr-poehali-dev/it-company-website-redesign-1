@@ -439,6 +439,131 @@ def ai_analyze_prospect(company: dict, project_description: str = '') -> dict:
         return {'error': str(e)[:120]}
 
 
+def find_company_email(company_name: str, website: str = '') -> dict:
+    """Поиск email компании: Яндекс XML → парсинг сайта → GPT-извлечение"""
+    found_emails = set()
+    sources_checked = []
+
+    # ── 1. Regex для извлечения email из произвольного текста ──────────────
+    EMAIL_RE = re.compile(r'[\w.+\-]+@[\w\-]+\.[\w.\-]{2,}')
+
+    def extract_emails(text: str) -> list:
+        hits = EMAIL_RE.findall(text)
+        return [e.lower() for e in hits if not e.endswith(('.png', '.jpg', '.gif', '.svg'))]
+
+    # ── 2. Яндекс XML API ──────────────────────────────────────────────────
+    yx_user = os.environ.get('YANDEX_XML_USER', '')
+    yx_key  = os.environ.get('YANDEX_XML_KEY', '')
+
+    search_queries = [
+        f'{company_name} email контакты',
+        f'{company_name} почта сайт',
+    ]
+    if website:
+        search_queries.insert(0, f'site:{website} email контакты')
+
+    if yx_user and yx_key:
+        for q in search_queries[:2]:
+            enc = urllib.parse.quote(q)
+            url = f"https://xmlsearch.yandex.ru/xmlsearch?user={yx_user}&key={yx_key}&query={enc}&lr=213&within=0&groupby=attr%3D%22%22.mode%3Dflat.groups-on-page%3D10"
+            r = http_get(url, timeout=10, headers={'Accept': 'application/xml, text/xml'})
+            if r['ok'] and r['text']:
+                sources_checked.append(f"Яндекс XML: {q[:40]}")
+                emails = extract_emails(r['text'])
+                found_emails.update(emails)
+                print(f"[find_email] yandex xml q={q!r} → {emails}")
+                if found_emails:
+                    break
+    else:
+        print("[find_email] YANDEX_XML_USER/KEY не заданы, пропускаем Яндекс XML")
+
+    # ── 3. Парсинг сайта компании (если известен) ─────────────────────────
+    if website and not found_emails:
+        site = website if website.startswith('http') else f'https://{website}'
+        for path_suffix in ['', '/contacts', '/kontakty', '/about', '/o-kompanii']:
+            r = http_get(site + path_suffix, timeout=8, headers={'Accept': 'text/html'})
+            if r['ok'] and r['text']:
+                sources_checked.append(f"Сайт: {site}{path_suffix}")
+                emails = extract_emails(r['text'])
+                found_emails.update(emails)
+                print(f"[find_email] site {path_suffix!r} → {emails}")
+            if found_emails:
+                break
+
+    # ── 4. GPT-помощник: если ничего не нашли regex → просим GPT предположить
+    if not found_emails:
+        api_key = os.environ.get('POLZA_AI_API_KEY', '')
+        if api_key:
+            site_hint = f"\nСайт компании: {website}" if website else ""
+            prompt = f"""Ты — эксперт по поиску контактов B2B-компаний в России.
+
+Компания: {company_name}{site_hint}
+
+Задача: найти или предположить возможный email этой компании.
+Используй паттерны: info@домен, mail@домен, contact@домен, отдел@домен.
+
+Если сайт указан — предложи наиболее вероятный email на основе домена.
+Если сайта нет — напиши "не найден".
+
+Верни ТОЛЬКО JSON без markdown:
+{{"email": "<email или пустая строка>", "confidence": "<high|medium|low>", "note": "<пояснение>"}}"""
+            try:
+                body_data = json.dumps({
+                    'model': 'gpt-4o-mini',
+                    'messages': [{'role': 'user', 'content': prompt}],
+                    'temperature': 0.2, 'max_tokens': 150,
+                }).encode()
+                req = urllib.request.Request(
+                    AI_URL, data=body_data,
+                    headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'},
+                    method='POST'
+                )
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    data = json.loads(resp.read().decode())
+                text = data['choices'][0]['message']['content'].strip()
+                text = re.sub(r'^```(?:json)?\s*', '', text)
+                text = re.sub(r'\s*```$', '', text)
+                ai_result = json.loads(text)
+                if ai_result.get('email'):
+                    return {
+                        'emails': [ai_result['email']],
+                        'primary': ai_result['email'],
+                        'confidence': ai_result.get('confidence', 'low'),
+                        'note': ai_result.get('note', ''),
+                        'sources': ['ИИ-предположение'],
+                        'method': 'ai_guess',
+                    }
+            except Exception as e:
+                print(f"[find_email] GPT error: {e}")
+
+    # ── 5. Фильтрация мусора и возврат ────────────────────────────────────
+    # Убираем технические и noreply адреса
+    SKIP = {'noreply', 'no-reply', 'support@yandex', 'postmaster', 'mailer-daemon',
+            'robot', 'bounce', 'notifications', 'newsletter'}
+    clean = [e for e in found_emails if not any(s in e for s in SKIP)]
+
+    # Предпочитаем info@, mail@, contact@
+    def email_priority(e):
+        local = e.split('@')[0]
+        if local in ('info', 'mail', 'contact', 'email', 'hello', 'office'):
+            return 0
+        if local in ('sales', 'marketing', 'pr', 'media'):
+            return 1
+        return 2
+
+    clean.sort(key=email_priority)
+    primary = clean[0] if clean else ''
+
+    return {
+        'emails': clean[:5],
+        'primary': primary,
+        'confidence': 'high' if primary else 'none',
+        'note': f"Найдено через: {', '.join(sources_checked)}" if sources_checked else 'Источники недоступны',
+        'sources': sources_checked,
+        'method': 'regex_search' if clean else 'not_found',
+    }
+
+
 def ai_tech_radar(region: str, industry: str = '') -> dict:
     """ИИ-анализ: выявление компаний, внедряющих технологии, через новости и открытые данные"""
     api_key = os.environ.get('POLZA_AI_API_KEY', '')
@@ -805,6 +930,7 @@ def handler(event: dict, context) -> dict:
         'analyze': '/analyze',
         'message': '/message',
         'radar': '/radar',
+        'find_email': '/find_email',
         'projects': '/projects',
         'projects_create': '/projects',
         'list': '/',
@@ -826,6 +952,17 @@ def handler(event: dict, context) -> dict:
         region = body.get('region', '')
         sources = body.get('sources', None)
         result = search_all_sources(query, region, sources)
+        return json_resp(result)
+
+    # /prospects/find_email — поиск email компании через Яндекс
+    if path.endswith('/find_email'):
+        if method != 'POST':
+            return err('Только POST')
+        company_name = (body.get('company_name') or '').strip()
+        website = (body.get('website') or '').strip()
+        if not company_name:
+            return err('Не указано название компании')
+        result = find_company_email(company_name, website)
         return json_resp(result)
 
     # /prospects/radar — технологический радар регионов

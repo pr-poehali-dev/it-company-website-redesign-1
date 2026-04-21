@@ -1,10 +1,11 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { Prospect, ACTIVITY_ICONS, statusInfo, priorityInfo, scoreColor, scoreBg, Activity } from "./types";
+import { Prospect, ACTIVITY_ICONS, statusInfo, priorityInfo, scoreColor, scoreBg, Activity, PROSPECTS_URL } from "./types";
 
 interface Props {
   prospect: Prospect;
   activities: Activity[];
+  token: string;
   onEdit: () => void;
   onClose: () => void;
   onAnalyze: () => void;
@@ -13,14 +14,39 @@ interface Props {
   generatingMsg: boolean;
   generatedMsg: string;
   onAddActivity: (type: string, content: string) => void;
+  onEmailFound?: (email: string) => void;
 }
 
 export default function ProspectCard({
-  prospect, activities, onEdit, onClose, onAnalyze, analyzing,
-  onMessage, generatingMsg, generatedMsg, onAddActivity,
+  prospect, activities, token, onEdit, onClose, onAnalyze, analyzing,
+  onMessage, generatingMsg, generatedMsg, onAddActivity, onEmailFound,
 }: Props) {
   const st = statusInfo(prospect.status);
   const pr = priorityInfo(prospect.priority);
+
+  const [findingEmail, setFindingEmail] = useState(false);
+  const [emailResult, setEmailResult] = useState<{ emails: string[]; primary: string; confidence: string; note: string; method: string } | null>(null);
+
+  async function handleFindEmail() {
+    setFindingEmail(true);
+    setEmailResult(null);
+    try {
+      const res = await fetch(PROSPECTS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
+        body: JSON.stringify({
+          action: "find_email",
+          company_name: prospect.company_name,
+          website: prospect.website || "",
+        }),
+      });
+      const data = await res.json();
+      setEmailResult(data);
+      if (data.primary && onEmailFound) onEmailFound(data.primary);
+    } finally {
+      setFindingEmail(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end p-4">
@@ -86,6 +112,51 @@ export default function ProspectCard({
               </div>
             )}
           </div>
+
+          {/* Поиск email */}
+          {!prospect.email && (
+            <div className="space-y-2">
+              <button
+                onClick={handleFindEmail}
+                disabled={findingEmail}
+                className="w-full flex items-center justify-center gap-2 text-xs px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 transition-all disabled:opacity-40"
+              >
+                {findingEmail
+                  ? <><Icon name="Loader2" size={12} className="animate-spin" />Ищу email в Яндексе...</>
+                  : <><Icon name="SearchCheck" size={12} />Найти email автоматически</>
+                }
+              </button>
+              {emailResult && (
+                <div className={`rounded-xl p-3 space-y-1.5 text-xs border ${emailResult.primary ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/10"}`}>
+                  {emailResult.primary ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Icon name="Mail" size={12} className="text-emerald-400" />
+                        <span className="font-medium text-emerald-300">{emailResult.primary}</span>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(emailResult.primary)}
+                          className="ml-auto text-white/30 hover:text-white/60"
+                        >
+                          <Icon name="Copy" size={11} />
+                        </button>
+                      </div>
+                      {emailResult.emails.length > 1 && (
+                        <div className="text-white/40">
+                          Ещё: {emailResult.emails.slice(1).join(", ")}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2 text-white/40">
+                      <Icon name="MailX" size={12} />
+                      Email не найден
+                    </div>
+                  )}
+                  <div className="text-white/30 pt-0.5 border-t border-white/5">{emailResult.note}</div>
+                </div>
+              )}
+            </div>
+          )}
 
           {prospect.description && (
             <div className="text-xs text-white/50 leading-relaxed">{prospect.description}</div>
@@ -238,4 +309,3 @@ function QuickActivity({ onAdd }: { onAdd: (type: string, content: string) => vo
     </div>
   );
 }
-
