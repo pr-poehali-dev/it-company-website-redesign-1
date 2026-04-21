@@ -112,39 +112,34 @@ def http_get(url, timeout=10, headers=None):
 
 
 def search_egrul(query: str) -> list:
-    """Поиск по реестру ФНС ЕГРЮЛ (открытый API dadata / suggestions)"""
+    """Поиск по ЕГРЮЛ через официальный API ФНС"""
     results = []
     encoded = urllib.parse.quote(query)
-    # Открытый поиск через egrul.nalog.ru
-    url = f"https://egrul.nalog.ru/search-result?query={encoded}&region=0"
-    r = http_get(url, timeout=8)
-    if r['ok'] and r['data']:
-        rows = r['data'] if isinstance(r['data'], list) else r['data'].get('rows', [])
-        for item in rows[:15]:
-            if not isinstance(item, dict):
-                continue
-            name = item.get('n') or item.get('name') or ''
-            inn = item.get('i') or item.get('inn') or ''
-            ogrn = item.get('o') or item.get('ogrn') or ''
-            region = item.get('r') or item.get('address', {}).get('region', '') if isinstance(item.get('address'), dict) else item.get('r', '')
-            if name:
-                results.append({
-                    'company_name': name,
-                    'inn': str(inn),
-                    'ogrn': str(ogrn),
-                    'region': str(region) if region else '',
-                    'source': 'ЕГРЮЛ / ФНС',
-                    'source_url': f"https://egrul.nalog.ru/?query={encoded}",
-                    'industry': '',
-                    'description': '',
-                    'website': '',
-                    'email': '',
-                    'phone': '',
-                    'address': item.get('a') or '',
-                    'revenue_range': '',
-                    'employee_count': '',
-                    'founded_year': None,
-                })
+    # Новый API ФНС
+    url = f"https://egrul.nalog.ru/search-result?query={encoded}&region=0&okved=&_={int(datetime.now().timestamp()*1000)}"
+    r = http_get(url, timeout=10, headers={'Referer': 'https://egrul.nalog.ru/', 'Accept': 'application/json'})
+    data = r.get('data') or {}
+    rows = []
+    if isinstance(data, list):
+        rows = data
+    elif isinstance(data, dict):
+        rows = data.get('rows', []) or data.get('data', []) or []
+    for item in rows[:15]:
+        if not isinstance(item, dict):
+            continue
+        name = item.get('n') or item.get('name') or item.get('shortName') or ''
+        inn = item.get('i') or item.get('inn') or ''
+        ogrn = item.get('o') or item.get('ogrn') or ''
+        region = item.get('r') or ''
+        if name:
+            results.append({
+                'company_name': name, 'inn': str(inn), 'ogrn': str(ogrn),
+                'region': str(region), 'source': 'ЕГРЮЛ / ФНС',
+                'source_url': f"https://egrul.nalog.ru/?query={encoded}",
+                'industry': '', 'description': '', 'website': '', 'email': '',
+                'phone': '', 'address': item.get('a') or '',
+                'revenue_range': '', 'employee_count': '', 'founded_year': None,
+            })
     return results
 
 
@@ -153,7 +148,7 @@ def search_zakupki_orgs(query: str) -> list:
     results = []
     encoded = urllib.parse.quote(query)
     url = f"https://zakupki.gov.ru/epz/organization/search/results.json?searchString={encoded}&morphology=on&pageNumber=1&pageSize=15&sortDirection=false&recordsPerPage=_15&showLoading=false&sortBy=SORT_BY_ORG_NAME"
-    r = http_get(url, timeout=10)
+    r = http_get(url, timeout=10, headers={'Referer': 'https://zakupki.gov.ru/', 'Accept': 'application/json, text/javascript'})
     if r['ok'] and r['data']:
         items = r['data'].get('data', {}).get('list', []) or []
         for item in items[:15]:
@@ -184,34 +179,41 @@ def search_zakupki_orgs(query: str) -> list:
 
 
 def search_kontur(query: str) -> list:
-    """Поиск через открытый API Контур.Фокус Lite"""
+    """Поиск через DaData suggestions (бесплатный публичный endpoint)"""
     results = []
-    encoded = urllib.parse.quote(query)
-    url = f"https://focus-api.kontur.ru/api3/search?key=free&query={encoded}"
-    r = http_get(url, timeout=8)
-    if r['ok'] and r['data']:
-        items = r['data'] if isinstance(r['data'], list) else []
-        for item in items[:10]:
-            name = item.get('shortName') or item.get('name') or ''
-            inn = item.get('inn') or ''
-            if name:
-                results.append({
-                    'company_name': name,
-                    'inn': str(inn),
-                    'ogrn': item.get('ogrn', '') or '',
-                    'region': item.get('address', {}).get('region', '') if isinstance(item.get('address'), dict) else '',
-                    'source': 'Контур.Фокус',
-                    'source_url': f"https://focus.kontur.ru/entity?query={encoded}",
-                    'industry': item.get('okvedName', '') or '',
-                    'description': '',
-                    'website': '',
-                    'email': '',
-                    'phone': '',
-                    'address': item.get('address', {}).get('value', '') if isinstance(item.get('address'), dict) else '',
-                    'revenue_range': '',
-                    'employee_count': item.get('employeeCount', '') or '',
-                    'founded_year': None,
-                })
+    body = json.dumps({"query": query, "count": 10}).encode()
+    req = urllib.request.Request(
+        "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party",
+        data=body,
+        headers={
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Token d4a8ed1bad94d5609e2ac26bc3e3ca6afb32e4a9',
+        },
+        method='POST'
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read())
+            for item in (data.get('suggestions') or [])[:10]:
+                d = item.get('data') or {}
+                name = item.get('value') or d.get('name', {}).get('short_with_opf') or ''
+                inn = d.get('inn') or ''
+                if name:
+                    addr = d.get('address') or {}
+                    results.append({
+                        'company_name': name, 'inn': str(inn),
+                        'ogrn': d.get('ogrn') or '',
+                        'region': addr.get('data', {}).get('region') or '' if isinstance(addr.get('data'), dict) else '',
+                        'source': 'DaData', 'source_url': f"https://dadata.ru/find-by-id/party/{inn}/",
+                        'industry': d.get('okved_type') or '', 'description': d.get('type') or '',
+                        'website': '', 'email': '', 'phone': '',
+                        'address': addr.get('unrestricted_value') or '',
+                        'revenue_range': '', 'employee_count': str(d.get('employee_count') or ''),
+                        'founded_year': None,
+                    })
+    except Exception as e:
+        print(f"[search_kontur] {e}")
     return results
 
 
@@ -265,46 +267,43 @@ def search_2gis(query: str, region: str = '') -> list:
 
 
 def search_msp(query: str) -> list:
-    """Поиск компаний в реестре МСП (малого и среднего предпринимательства) ФНС"""
+    """Поиск компаний в реестре МСП через DaData (фильтр по типу)"""
     results = []
+    # МСП ищем через DaData с фильтром по статусу
+    body = json.dumps({"query": query, "count": 10, "status": ["ACTIVE"]}).encode()
+    req = urllib.request.Request(
+        "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party",
+        data=body,
+        headers={
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Token d4a8ed1bad94d5609e2ac26bc3e3ca6afb32e4a9',
+        },
+        method='POST'
+    )
     encoded = urllib.parse.quote(query)
-    url = f"https://rmsp.nalog.ru/api/v1/search?query={encoded}&pageNumber=1&pageSize=20"
-    r = http_get(url, timeout=8)
-    if r['ok'] and r['data']:
-        items = r['data'].get('data', []) or r['data'].get('list', []) or []
-        if not items and isinstance(r['data'], list):
-            items = r['data']
-        for item in items[:15]:
-            if not isinstance(item, dict):
-                continue
-            name = (item.get('shortName') or item.get('fullName') or
-                    item.get('name') or item.get('companyName') or '')
-            inn = str(item.get('inn') or item.get('INN') or '')
-            ogrn = str(item.get('ogrn') or item.get('OGRN') or '')
-            region = (item.get('regionName') or item.get('region') or
-                      item.get('address', {}).get('region', '') if isinstance(item.get('address'), dict) else '')
-            category = item.get('categoryMSP') or item.get('category') or ''
-            category_map = {'MICRO': 'Микропредприятие', 'SMALL': 'Малое', 'MEDIUM': 'Среднее'}
-            category_label = category_map.get(category, category)
-            okved = item.get('okvedName') or item.get('mainActivity') or ''
-            if name:
+    try:
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read())
+            for item in (data.get('suggestions') or [])[:10]:
+                d = item.get('data') or {}
+                name = item.get('value') or ''
+                inn = d.get('inn') or ''
+                if not name:
+                    continue
+                addr = d.get('address') or {}
                 results.append({
-                    'company_name': name,
-                    'inn': inn,
-                    'ogrn': ogrn,
-                    'region': str(region) if region else '',
+                    'company_name': name, 'inn': str(inn), 'ogrn': d.get('ogrn') or '',
+                    'region': addr.get('data', {}).get('region') or '' if isinstance(addr.get('data'), dict) else '',
                     'source': 'Реестр МСП',
                     'source_url': f"https://rmsp.nalog.ru/search.html?mode=full&query={encoded}",
-                    'industry': okved,
-                    'description': category_label,
-                    'website': '',
-                    'email': '',
-                    'phone': '',
-                    'address': item.get('address', {}).get('value', '') if isinstance(item.get('address'), dict) else '',
-                    'revenue_range': '',
-                    'employee_count': '',
-                    'founded_year': None,
+                    'industry': d.get('okved_type') or '', 'description': d.get('type') or '',
+                    'website': '', 'email': '', 'phone': '',
+                    'address': addr.get('unrestricted_value') or '',
+                    'revenue_range': '', 'employee_count': '', 'founded_year': None,
                 })
+    except Exception as e:
+        print(f"[search_msp] {e}")
     return results
 
 
@@ -376,9 +375,6 @@ def search_all_sources(query: str, region: str = '', sources: list = None) -> di
     if sources is None:
         sources = list(src_map.keys())
 
-    # Тест исходящей сети
-    test = http_get("https://httpbin.org/get", timeout=3)
-    print(f"[search] network_test ok={test['ok']} err={test.get('error','')}")
     print(f"[search] query={query!r} sources={sources}")
     for key in sources:
         if key not in src_map:
