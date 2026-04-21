@@ -29,6 +29,7 @@ export default function ProspectCard({
 
   const [kpRecipient, setKpRecipient] = useState(prospect.email || "");
   const [showKPForm, setShowKPForm] = useState(false);
+  const [hhKpBlock, setHhKpBlock] = useState(""); // блок из HH-анализа для подстановки в КП
 
   const emailToUse = prospect.email || kpRecipient;
 
@@ -95,7 +96,7 @@ export default function ProspectCard({
           <ProspectCardKP
             prospect={prospect}
             token={token}
-            generatedMsg={generatedMsg}
+            generatedMsg={hhKpBlock || generatedMsg}
             emailToUse={emailToUse}
             kpRecipient={kpRecipient}
             onKpRecipientChange={setKpRecipient}
@@ -114,7 +115,10 @@ export default function ProspectCard({
             generatingMsg={generatingMsg}
             generatedMsg={generatedMsg}
             onMessage={onMessage}
-            onOpenKPForm={() => { setShowKPForm(true); }}
+            onOpenKPForm={(kpBlock?: string) => {
+              if (kpBlock) setHhKpBlock(kpBlock);
+              setShowKPForm(true);
+            }}
           />
 
           {/* Следующее действие */}

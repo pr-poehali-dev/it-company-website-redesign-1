@@ -334,6 +334,89 @@ def search_hh(query: str, region: str = '') -> list:
     return results
 
 
+def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: str = '') -> dict:
+    """Поиск потенциальных клиентов через вакансии HH.ru с группировкой по компаниям"""
+    region_map = {
+        'москва': '1', 'московская область': '1', 'санкт-петербург': '2', 'спб': '2',
+        'питер': '2', 'екатеринбург': '3', 'новосибирск': '4', 'нижний новгород': '66',
+        'казань': '88', 'самара': '78', 'омск': '68', 'челябинск': '104',
+        'ростов': '76', 'уфа': '99', 'красноярск': '62', 'пермь': '72',
+        'воронеж': '26', 'волгоград': '24', 'краснодар': '53',
+    }
+    area_id = '113'  # Россия по умолчанию
+    if region:
+        reg_key = region.lower().strip()
+        for k, v in region_map.items():
+            if k in reg_key:
+                area_id = v
+                break
+
+    encoded = urllib.parse.quote(vacancy_query)
+    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=100&page=0&area={area_id}&only_with_salary=false"
+    r = http_get(url, timeout=12, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+
+    if not r['ok'] or not r['data']:
+        return {'companies': [], 'total_vacancies': 0, 'error': r.get('error', 'HH недоступен')}
+
+    items = r['data'].get('items') or []
+    found = r['data'].get('found', len(items))
+
+    # Группируем вакансии по работодателю
+    employers: dict = {}
+    for item in items:
+        emp = item.get('employer') or {}
+        emp_id = str(emp.get('id', ''))
+        if not emp_id or not emp.get('name'):
+            continue
+        if emp_id not in employers:
+            employers[emp_id] = {
+                'company_name': emp.get('name', ''),
+                'region': (item.get('area') or {}).get('name', ''),
+                'website': emp.get('site_url') or '',
+                'hh_url': emp.get('alternate_url') or f"https://hh.ru/employer/{emp_id}",
+                'logo': (emp.get('logo_urls') or {}).get('90') or '',
+                'vacancies': [],
+            }
+        vac = {
+            'title': item.get('name', ''),
+            'url': item.get('alternate_url', ''),
+            'salary': item.get('salary'),
+            'snippet': (item.get('snippet') or {}).get('requirement', '') or '',
+        }
+        employers[emp_id]['vacancies'].append(vac)
+
+    # Формируем список компаний, сортируем по числу вакансий
+    companies = []
+    for emp_id, emp_data in employers.items():
+        vac_count = len(emp_data['vacancies'])
+        vacancy_titles = [v['title'] for v in emp_data['vacancies'][:5]]
+        companies.append({
+            'company_name': emp_data['company_name'],
+            'region': emp_data['region'],
+            'website': emp_data['website'],
+            'hh_url': emp_data['hh_url'],
+            'vacancy_count': vac_count,
+            'vacancy_titles': vacancy_titles,
+            'source': 'HH.ru',
+            'source_url': emp_data['hh_url'],
+            'inn': '', 'ogrn': '', 'email': '', 'phone': '', 'address': '',
+            'industry': industry_filter or vacancy_query,
+            'description': f"Ищут: {', '.join(vacancy_titles[:3])}",
+            'revenue_range': '', 'employee_count': '', 'founded_year': None,
+        })
+
+    companies.sort(key=lambda x: x['vacancy_count'], reverse=True)
+
+    print(f"[hh_search] query={vacancy_query!r} area={area_id} found={found} companies={len(companies)}")
+    return {
+        'companies': companies[:50],
+        'total_vacancies': found,
+        'total_companies': len(companies),
+        'query': vacancy_query,
+        'region': region,
+    }
+
+
 def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
     """Анализирует вакансии компании на HH.ru: находит IT-боли и формирует блок для КП"""
     api_key = os.environ.get('POLZA_AI_API_KEY', '')
@@ -1082,6 +1165,7 @@ def handler(event: dict, context) -> dict:
         'find_email': '/find_email',
         'upload_kp': '/upload_kp',
         'analyze_hh': '/analyze_hh',
+        'hh_search': '/hh_search',
         'projects': '/projects',
         'projects_create': '/projects',
         'list': '/',
@@ -1103,6 +1187,18 @@ def handler(event: dict, context) -> dict:
         region = body.get('region', '')
         sources = body.get('sources', None)
         result = search_all_sources(query, region, sources)
+        return json_resp(result)
+
+    # /prospects/hh_search — поиск клиентов по вакансиям HH.ru
+    if path.endswith('/hh_search'):
+        if method != 'POST':
+            return err('Только POST')
+        vacancy_query = (body.get('vacancy_query') or body.get('query') or '').strip()
+        region = (body.get('region') or '').strip()
+        industry_filter = (body.get('industry') or '').strip()
+        if not vacancy_query:
+            return err('Не указан запрос')
+        result = hh_prospect_search(vacancy_query, region, industry_filter)
         return json_resp(result)
 
     # /prospects/analyze_hh — анализ вакансий HH.ru компании

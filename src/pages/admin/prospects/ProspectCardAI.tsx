@@ -29,7 +29,7 @@ interface Props {
   generatingMsg: boolean;
   generatedMsg: string;
   onMessage: (type: string) => void;
-  onOpenKPForm: () => void;
+  onOpenKPForm: (kpBlock?: string) => void;
 }
 
 export default function ProspectCardAI({
@@ -205,7 +205,7 @@ export default function ProspectCardAI({
                       <Icon name={hhCopied ? "Check" : "Copy"} size={12} />
                       {hhCopied ? "Скопировано!" : "Копировать"}
                     </button>
-                    <button onClick={onOpenKPForm}
+                    <button onClick={() => onOpenKPForm(hhResult.kp_block)}
                       className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-700 font-medium">
                       <Icon name="Send" size={12} />Использовать в КП
                     </button>
@@ -259,7 +259,7 @@ export default function ProspectCardAI({
                 <Icon name="Copy" size={12} />Копировать
               </button>
               <button
-                onClick={onOpenKPForm}
+                onClick={() => onOpenKPForm()}
                 className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-700 font-medium"
               >
                 <Icon name="Send" size={12} />Отправить как КП
