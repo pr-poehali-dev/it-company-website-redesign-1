@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Prospect, PROSPECTS_URL } from "./types";
 
 const UNISENDER_URL = "https://functions.poehali.dev/ab7e3cca-4d86-41fc-80d4-255065a92d33";
+const KP_TEMPLATE_KEY = "kp_template_pdf"; // localStorage key
 
 interface Props {
   prospect: Prospect;
@@ -22,10 +23,10 @@ export function buildKpHtml(prospect: Prospect, customText: string, pdfUrl?: str
     ? customText.replace(/\n/g, "<br>")
     : `
       <p>Добрый день!</p>
-      <p>Меня зовут Александр Тюрин, я представляю IT-компанию <strong>МАТ-Лабс</strong>.</p>
+      <p>Меня зовут Александр, я представляю IT-компанию <strong>МАТ-Лабс</strong>.</p>
       <p>Мы специализируемся на разработке цифровых продуктов: искусственный интеллект, автоматизация бизнес-процессов, CRM/ERP системы, облачные решения.</p>
       <p>Хотели бы предложить нашу экспертизу для <strong>${prospect.company_name}</strong>${prospect.industry ? ` в сфере ${prospect.industry}` : ''}.</p>
-      <p>Готовы организовать короткую встречу (15-20 минут) для обсуждения возможностей сотрудничества.</p>
+      <p>Готовы организовать короткую встречу (15–20 минут) для обсуждения возможностей сотрудничества.</p>
     `;
 
   const pdfBlock = pdfUrl ? `
@@ -52,10 +53,14 @@ export function buildKpHtml(prospect: Prospect, customText: string, pdfUrl?: str
       ${pdfBlock}
     </div>
     <div style="padding:20px 36px 32px;border-top:1px solid #f0f0f0;">
-      <div style="font-size:13px;color:#888;">
+      <div style="font-size:13px;color:#555;line-height:1.8;">
         С уважением,<br>
-        <strong style="color:#555;">Команда МАТ-Лабс</strong><br>
-        <a href="https://mat-labs.ru" style="color:#7c3aed;">mat-labs.ru</a> · info@mat-labs.ru
+        <strong style="color:#222;font-size:14px;">Александр</strong><br>
+        <span style="color:#888;">Руководитель проекта · МАТ-Лабс</span><br>
+        <a href="tel:+79277486868" style="color:#7c3aed;text-decoration:none;">+7 927 748 68 68</a><br>
+        <a href="mailto:maksT77@yandex.ru" style="color:#7c3aed;text-decoration:none;">maksT77@yandex.ru</a>
+        &nbsp;·&nbsp;
+        <a href="https://mat-labs.ru" style="color:#7c3aed;text-decoration:none;">mat-labs.ru</a>
       </div>
     </div>
   </div>
@@ -72,6 +77,23 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+function loadTemplate(): { url: string; name: string } | null {
+  try {
+    const raw = localStorage.getItem(KP_TEMPLATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveTemplate(url: string, name: string) {
+  localStorage.setItem(KP_TEMPLATE_KEY, JSON.stringify({ url, name }));
+}
+
+function clearTemplate() {
+  localStorage.removeItem(KP_TEMPLATE_KEY);
+}
+
 export default function ProspectCardKP({
   prospect, token, generatedMsg, emailToUse,
   kpRecipient, onKpRecipientChange, onAddActivity,
@@ -85,6 +107,19 @@ export default function ProspectCardKP({
   const [kpFileUrl, setKpFileUrl] = useState<string>("");
   const [kpFileName, setKpFileName] = useState<string>("");
   const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [hasTemplate, setHasTemplate] = useState(false);
+
+  // При открытии формы — подгружаем сохранённый шаблон из localStorage
+  useEffect(() => {
+    if (showKPForm && !kpFileUrl) {
+      const tpl = loadTemplate();
+      if (tpl) {
+        setKpFileUrl(tpl.url);
+        setKpFileName(tpl.name);
+        setHasTemplate(true);
+      }
+    }
+  }, [showKPForm]);
 
   async function handlePdfSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -94,6 +129,7 @@ export default function ProspectCardKP({
     setKpFile(file);
     setKpFileName(file.name);
     setKpFileUrl("");
+    setHasTemplate(false);
     setUploadingPdf(true);
     try {
       const b64 = await fileToBase64(file);
@@ -103,11 +139,28 @@ export default function ProspectCardKP({
         body: JSON.stringify({ action: "upload_kp", file: b64, filename: file.name }),
       });
       const data = await res.json();
-      if (data.ok) setKpFileUrl(data.url);
-      else alert("Ошибка загрузки: " + data.error);
+      if (data.ok) {
+        setKpFileUrl(data.url);
+      } else {
+        alert("Ошибка загрузки: " + data.error);
+      }
     } finally {
       setUploadingPdf(false);
     }
+  }
+
+  function handleSaveAsTemplate() {
+    if (!kpFileUrl || !kpFileName) return;
+    saveTemplate(kpFileUrl, kpFileName);
+    setHasTemplate(true);
+  }
+
+  function handleClearTemplate() {
+    clearTemplate();
+    setKpFileUrl("");
+    setKpFileName("");
+    setKpFile(null);
+    setHasTemplate(false);
   }
 
   async function handleSendKP() {
@@ -164,7 +217,9 @@ export default function ProspectCardKP({
           {emailToUse ? `Отправить КП на ${emailToUse}` : "Сначала найдите email"}
         </button>
       ) : (
-        <div className="space-y-2 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+
+          {/* Email получателя */}
           <div>
             <label className="text-xs text-gray-500 mb-1 block font-medium">Email получателя</label>
             <input
@@ -174,6 +229,8 @@ export default function ProspectCardKP({
               placeholder="email@company.ru"
             />
           </div>
+
+          {/* Тема */}
           <div>
             <label className="text-xs text-gray-500 mb-1 block font-medium">Тема письма</label>
             <input
@@ -183,46 +240,79 @@ export default function ProspectCardKP({
             />
           </div>
 
-          {/* PDF загрузка */}
+          {/* PDF */}
           <div>
-            <label className="text-xs text-gray-500 mb-1 block font-medium">Прикрепить PDF с КП</label>
-            <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 border-dashed transition-all text-sm ${
-              kpFileUrl ? "border-emerald-300 bg-emerald-50" : "border-gray-200 hover:border-violet-300 bg-white"
-            }`}>
-              <input type="file" accept=".pdf" className="hidden" onChange={handlePdfSelect} disabled={uploadingPdf} />
-              {uploadingPdf ? (
-                <><Icon name="Loader2" size={14} className="animate-spin text-violet-500" /><span className="text-gray-500">Загружаю файл...</span></>
-              ) : kpFileUrl ? (
-                <>
-                  <Icon name="FileCheck" size={14} className="text-emerald-600" />
-                  <span className="text-emerald-700 font-medium truncate">{kpFileName}</span>
-                  <a href={kpFileUrl} target="_blank" rel="noreferrer" className="ml-auto text-xs text-violet-600 hover:underline shrink-0">Открыть</a>
-                </>
-              ) : kpFile ? (
-                <><Icon name="Loader2" size={14} className="animate-spin text-gray-400" /><span className="text-gray-500">{kpFileName}</span></>
-              ) : (
-                <><Icon name="Upload" size={14} className="text-gray-400" /><span className="text-gray-400">Выбрать PDF (макс. 10 МБ)</span></>
-              )}
-            </label>
-            {kpFileUrl && (
-              <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                <Icon name="Info" size={11} />
-                Файл будет вставлен как кнопка «Скачать КП» в письмо
-              </p>
+            <label className="text-xs text-gray-500 mb-1 block font-medium">PDF с коммерческим предложением</label>
+
+            {/* Загруженный / шаблон */}
+            {kpFileUrl ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-sm">
+                  <Icon name="FileCheck" size={14} className="text-emerald-600 shrink-0" />
+                  <span className="text-emerald-700 font-medium truncate flex-1">{kpFileName}</span>
+                  <a href={kpFileUrl} target="_blank" rel="noreferrer"
+                    className="text-xs text-violet-600 hover:underline shrink-0">Открыть</a>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Сохранить как шаблон */}
+                  {!hasTemplate ? (
+                    <button onClick={handleSaveAsTemplate}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 transition-all font-medium">
+                      <Icon name="Bookmark" size={12} />
+                      Сохранить как шаблон
+                    </button>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-xs text-violet-600 font-medium">
+                      <Icon name="BookmarkCheck" size={12} />
+                      Шаблон сохранён
+                    </span>
+                  )}
+                  {/* Заменить файл */}
+                  <label className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all cursor-pointer font-medium">
+                    <input type="file" accept=".pdf" className="hidden" onChange={handlePdfSelect} disabled={uploadingPdf} />
+                    <Icon name="RefreshCw" size={12} />
+                    Заменить файл
+                  </label>
+                  {/* Удалить шаблон */}
+                  <button onClick={handleClearTemplate}
+                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-all">
+                    <Icon name="Trash2" size={12} />
+                    Убрать
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 flex items-center gap-1">
+                  <Icon name="Info" size={11} />
+                  Кнопка «Скачать КП» появится в письме
+                </p>
+              </div>
+            ) : (
+              <label className={`flex items-center gap-2 cursor-pointer px-3 py-2.5 rounded-lg border-2 border-dashed transition-all text-sm border-gray-200 hover:border-violet-300 bg-white`}>
+                <input type="file" accept=".pdf" className="hidden" onChange={handlePdfSelect} disabled={uploadingPdf} />
+                {uploadingPdf ? (
+                  <><Icon name="Loader2" size={14} className="animate-spin text-violet-500" /><span className="text-gray-500">Загружаю файл...</span></>
+                ) : (
+                  <><Icon name="Upload" size={14} className="text-gray-400" /><span className="text-gray-400">Выбрать PDF (макс. 10 МБ)</span></>
+                )}
+              </label>
             )}
           </div>
 
+          {/* Превью текста из генератора */}
           {generatedMsg && (
             <div className="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg p-2">
               <span className="font-medium text-gray-700">Текст из генератора:</span>
               <p className="mt-1 line-clamp-3 text-gray-600">{generatedMsg.slice(0, 200)}...</p>
             </div>
           )}
+
+          {/* Ошибка */}
           {kpSent && !kpSent.ok && (
             <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-lg p-2">
               <Icon name="AlertCircle" size={14} />{kpSent.msg}
             </div>
           )}
+
+          {/* Кнопки */}
           <div className="flex gap-2 pt-1">
             <button
               onClick={handleSendKP}
