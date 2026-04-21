@@ -48,7 +48,12 @@ export default function ProspectModule({ token }: { token: string }) {
 
   useEffect(() => {
     loadProspects();
-  }, [filterProject, filterStatus, filterPriority, filterSearch]);
+  }, [filterProject, filterStatus, filterPriority]);
+
+  useEffect(() => {
+    const t = setTimeout(() => loadProspects(), 400);
+    return () => clearTimeout(t);
+  }, [filterSearch]);
 
   async function api(path: string, method = "GET", body?: object) {
     const res = await fetch(`${PROSPECTS_URL}${path}`, {

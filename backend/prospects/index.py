@@ -51,7 +51,7 @@ S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 
 
 def get_db():
-    return psycopg2.connect(os.environ['DATABASE_URL'], options=f"-c search_path={S}")
+    return psycopg2.connect(os.environ['DATABASE_URL'])
 
 
 def auth_check(event):
@@ -61,7 +61,7 @@ def auth_check(event):
         return False
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(f"SELECT id FROM {S}.admin_sessions WHERE token=%s AND expires_at > NOW()", (token,))
+    cur.execute("SELECT id FROM admin_sessions WHERE token=%s AND expires_at > NOW()", (token,))
     row = cur.fetchone()
     conn.close()
     return row is not None
