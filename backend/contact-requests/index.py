@@ -24,7 +24,8 @@ def auth_check(event):
         return False
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT id FROM admin_sessions WHERE token=%s AND expires_at > NOW()", (token,))
+    raw = token.rsplit('.', 1)[0] if '.' in token else token
+    cur.execute("SELECT id FROM admin_sessions WHERE token=%s AND expires_at > NOW()", (raw,))
     row = cur.fetchone()
     conn.close()
     return row is not None

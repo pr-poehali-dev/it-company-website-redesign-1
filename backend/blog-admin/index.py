@@ -62,8 +62,9 @@ def handler(event: dict, context) -> dict:
     def is_admin():
         if not token:
             return False
+        raw = token.rsplit('.', 1)[0] if '.' in token else token
         cur2 = conn.cursor()
-        cur2.execute("SELECT 1 FROM admin_sessions WHERE token = %s", (token,))
+        cur2.execute("SELECT 1 FROM admin_sessions WHERE token = %s", (raw,))
         return cur2.fetchone() is not None
 
     try:

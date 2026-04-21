@@ -24,9 +24,10 @@ def get_conn():
 def is_admin(token: str) -> bool:
     if not token:
         return False
+    raw = token.rsplit('.', 1)[0] if '.' in token else token
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT 1 FROM admin_sessions WHERE token = %s", (token,))
+    cur.execute("SELECT 1 FROM admin_sessions WHERE token = %s", (raw,))
     result = cur.fetchone()
     conn.close()
     return result is not None

@@ -60,24 +60,24 @@ def handler(event: dict, context) -> dict:
                 return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Неверный логин или пароль'})}
 
             raw_token = secrets.token_hex(32)
-            # Добавляем HMAC-подпись чтобы другие функции могли проверить токен без БД
+            cur.execute(
+                "INSERT INTO admin_sessions (token, user_id, username) VALUES (%s, %s, %s)",
+                (raw_token, user_id, username)
+            )
+            conn.commit()
+            # Добавляем HMAC-подпись к токену для проверки в других функциях без БД
             secret = os.environ.get('ADMIN_TOKEN_SECRET', '')
             if secret:
                 sig = hmac.new(secret.encode(), raw_token.encode(), hashlib.sha256).hexdigest()[:16]
-                token = f"{raw_token}.{sig}"
+                signed_token = f"{raw_token}.{sig}"
             else:
-                token = raw_token
-            cur.execute(
-                "INSERT INTO admin_sessions (token, user_id, username) VALUES (%s, %s, %s)",
-                (token, user_id, username)
-            )
-            conn.commit()
-            print(f"[auth] session created, token prefix: {token[:8]}")
+                signed_token = raw_token
+            print(f"[auth] session created, token prefix: {raw_token[:8]}")
 
             return {
                 'statusCode': 200,
                 'headers': CORS_HEADERS,
-                'body': json.dumps({'token': token, 'username': username})
+                'body': json.dumps({'token': signed_token, 'username': username})
             }
         finally:
             conn.close()
@@ -85,10 +85,12 @@ def handler(event: dict, context) -> dict:
     # GET /check — проверка токена
     if method == 'GET' and path.endswith('/check'):
         token = event.get('headers', {}).get('X-Session-Token', '')
+        # Если токен подписанный — берём только raw часть
+        raw_token = token.rsplit('.', 1)[0] if '.' in token else token
         conn = get_conn()
         cur = conn.cursor()
         try:
-            cur.execute("SELECT username FROM admin_sessions WHERE token = %s", (token,))
+            cur.execute("SELECT username FROM admin_sessions WHERE token = %s", (raw_token,))
             row = cur.fetchone()
         finally:
             conn.close()
