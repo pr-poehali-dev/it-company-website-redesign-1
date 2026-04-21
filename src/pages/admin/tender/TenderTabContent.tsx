@@ -157,38 +157,71 @@ export function TenderTabCorporate({
 }: TenderTabCorporateProps) {
   return (
     <>
-      {/* Corps picker */}
-      <div className="glass neon-border rounded-2xl p-4 space-y-3">
+      {/* Corps picker — с группировкой по категориям */}
+      <div className="glass neon-border rounded-2xl p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-white/50 uppercase tracking-wider">Выберите компании</span>
-          <button
-            onClick={() => onActiveCorpsChange(activeCorps.length === CORP_LIST.length ? [] : CORP_LIST.map(c => c.key))}
-            className="text-xs text-violet-400 hover:underline"
-          >
-            {activeCorps.length === CORP_LIST.length ? "Снять все" : "Выбрать все"}
-          </button>
+          <span className="text-xs text-white/50 uppercase tracking-wider">
+            Корпоративные площадки
+            <span className="ml-2 text-violet-400">{activeCorps.length} / {CORP_LIST.length}</span>
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onActiveCorpsChange(CORP_LIST.map(c => c.key))}
+              className="text-xs text-violet-400 hover:underline"
+            >Выбрать все</button>
+            <button
+              onClick={() => onActiveCorpsChange([])}
+              className="text-xs text-white/30 hover:text-white/60"
+            >Снять все</button>
+          </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-          {CORP_LIST.map(c => {
-            const on = activeCorps.includes(c.key);
-            const st = corpStatus.find(s => s.key === c.key);
-            return (
-              <button key={c.key}
-                onClick={() => onActiveCorpsChange(on ? activeCorps.filter(k => k !== c.key) : [...activeCorps, c.key])}
-                className={`flex items-center gap-3 p-3 rounded-xl border text-sm transition-all text-left ${on ? "border-violet-500/50 bg-violet-500/10" : "glass border-white/10 opacity-50 hover:opacity-80"}`}>
-                <span className="text-xl flex-shrink-0">{c.icon}</span>
-                <div className="min-w-0">
-                  <div className={`font-medium truncate ${on ? "text-white" : "text-white/60"}`}>{c.name}</div>
-                  {st && (
-                    <div className={`text-xs mt-0.5 ${st.ok ? (st.count > 0 ? "text-emerald-400" : "text-white/30") : "text-red-400"}`}>
-                      {st.ok ? (st.count > 0 ? `${st.count} найдено` : "Ссылка") : st.error || "Недоступен"}
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+
+        {/* Группы */}
+        {(["Банки", "Нефть и газ", "Госкорпорации", "Промышленность", "Телеком", "Ритейл"] as const).map(group => {
+          const groupCorps = CORP_LIST.filter(c => c.group === group);
+          const groupKeys = groupCorps.map(c => c.key);
+          const allOn = groupKeys.every(k => activeCorps.includes(k));
+          return (
+            <div key={group} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">{group}</span>
+                <div className="flex-1 h-px bg-white/5" />
+                <button
+                  onClick={() => {
+                    if (allOn) onActiveCorpsChange(activeCorps.filter(k => !groupKeys.includes(k)));
+                    else onActiveCorpsChange([...new Set([...activeCorps, ...groupKeys])]);
+                  }}
+                  className="text-xs text-white/30 hover:text-violet-400 transition-all"
+                >
+                  {allOn ? "снять" : "выбрать"} группу
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+                {groupCorps.map(c => {
+                  const on = activeCorps.includes(c.key);
+                  const st = corpStatus.find(s => s.key === c.key);
+                  return (
+                    <button key={c.key}
+                      onClick={() => onActiveCorpsChange(on ? activeCorps.filter(k => k !== c.key) : [...activeCorps, c.key])}
+                      className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm transition-all text-left ${on ? "border-violet-500/50 bg-violet-500/10" : "glass border-white/10 opacity-50 hover:opacity-80"}`}>
+                      <span className="text-lg flex-shrink-0 leading-none">{c.icon}</span>
+                      <div className="min-w-0">
+                        <div className={`font-medium text-xs truncate ${on ? "text-white" : "text-white/60"}`}>{c.name}</div>
+                        {st ? (
+                          <div className={`text-xs mt-0.5 ${st.ok ? (st.count > 0 ? "text-emerald-400" : "text-white/25") : "text-red-400"}`}>
+                            {st.ok ? (st.count > 0 ? `${st.count} найдено` : "↗") : "❌"}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-white/20 mt-0.5">223-ФЗ</div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <TenderFiltersPanel

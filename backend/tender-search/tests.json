@@ -5,8 +5,15 @@
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {},
       "bodyMatcher": "none"
+    },
+    {
+      "name": "GET root no auth",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 403,
+      "expectedBody": { "error": "Нет доступа" },
+      "bodyMatcher": "partial"
     }
   ]
 }
