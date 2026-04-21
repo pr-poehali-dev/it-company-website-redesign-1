@@ -334,6 +334,111 @@ def search_hh(query: str, region: str = '') -> list:
     return results
 
 
+def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
+    """Анализирует вакансии компании на HH.ru: находит IT-боли и формирует блок для КП"""
+    api_key = os.environ.get('POLZA_AI_API_KEY', '')
+    if not api_key:
+        return {'error': 'Нет ключа ИИ'}
+
+    # Ищем вакансии компании на HH
+    encoded = urllib.parse.quote(company_name)
+    url = f"https://api.hh.ru/vacancies?text={encoded}&employer_name={encoded}&per_page=20&page=0&area=113&only_with_salary=false"
+    r = http_get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+
+    vacancies = []
+    employer_info = {}
+    if r['ok'] and r['data']:
+        items = r['data'].get('items') or []
+        for item in items[:20]:
+            emp = item.get('employer') or {}
+            if company_name.lower() in (emp.get('name') or '').lower():
+                vacancies.append({
+                    'title': item.get('name', ''),
+                    'area': (item.get('area') or {}).get('name', ''),
+                    'salary': item.get('salary'),
+                    'snippet': (item.get('snippet') or {}).get('requirement', '') or '',
+                    'url': item.get('alternate_url', ''),
+                })
+                if not employer_info:
+                    employer_info = {
+                        'name': emp.get('name', ''),
+                        'site_url': emp.get('site_url', ''),
+                        'hh_url': emp.get('alternate_url', ''),
+                        'industries': [],
+                    }
+
+    if not vacancies:
+        # Попробуем более широкий поиск
+        url2 = f"https://api.hh.ru/vacancies?text={encoded}&per_page=10&page=0&area=113"
+        r2 = http_get(url2, timeout=10, headers={'User-Agent': 'Mozilla/5.0 (compatible; prospector/1.0)'})
+        if r2['ok'] and r2['data']:
+            for item in (r2['data'].get('items') or [])[:10]:
+                emp = item.get('employer') or {}
+                if company_name.lower()[:6] in (emp.get('name') or '').lower():
+                    vacancies.append({
+                        'title': item.get('name', ''),
+                        'area': (item.get('area') or {}).get('name', ''),
+                        'salary': item.get('salary'),
+                        'snippet': (item.get('snippet') or {}).get('requirement', '') or '',
+                        'url': item.get('alternate_url', ''),
+                    })
+                    if not employer_info:
+                        employer_info = {'name': emp.get('name', ''), 'site_url': emp.get('site_url', ''), 'hh_url': emp.get('alternate_url', '')}
+
+    vacancy_text = '\n'.join([
+        f"- {v['title']}" + (f" ({v['area']})" if v['area'] else '') + (f": {v['snippet'][:120]}" if v['snippet'] else '')
+        for v in vacancies[:15]
+    ]) or "Вакансии не найдены в открытом доступе"
+
+    prompt = f"""Ты — эксперт по B2B продажам IT-услуг. Анализируешь вакансии компании и определяешь, какие IT-проблемы они пытаются решить наймом сотрудников.
+
+Компания: {company_name}
+Сайт: {company_url or employer_info.get('site_url', 'не указан')}
+HH.ru: {employer_info.get('hh_url', f'https://hh.ru/search/vacancy?text={encoded}')}
+
+Вакансии на HH.ru:
+{vacancy_text}
+
+Задача: определи IT-боли и потребности компании по вакансиям. Если ищут разработчиков — значит нужна разработка. Если аналитиков данных — нужна BI/аналитика. Если DevOps — нужна инфраструктура. Формируй конкретные предложения от МАТ-Лабс.
+
+Верни ТОЛЬКО JSON без markdown:
+{{
+  "company_name": "{company_name}",
+  "vacancies_found": {len(vacancies)},
+  "hh_url": "{employer_info.get('hh_url', '')}",
+  "it_problems": [
+    {{"problem": "<проблема компании>", "evidence": "<какие вакансии указывают на это>", "solution": "<что может предложить МАТ-Лабс>", "benefit": "<бизнес-выгода для клиента>"}}
+  ],
+  "kp_block": "<готовый абзац для КП: 3-4 предложения, персонализированные под проблемы компании>",
+  "recommended_services": ["<услуга МАТ-Лабс 1>", "<услуга 2>", "<услуга 3>"],
+  "urgency": "<high|medium|low — насколько срочно им нужна помощь>",
+  "summary": "<2 предложения: главный вывод об IT-потребностях компании>"
+}}"""
+
+    try:
+        body_data = json.dumps({
+            'model': 'gpt-4o',
+            'messages': [{'role': 'user', 'content': prompt}],
+            'temperature': 0.3,
+            'max_tokens': 1200,
+        }).encode()
+        req = urllib.request.Request(
+            AI_URL, data=body_data,
+            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'},
+            method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=40) as resp:
+            data = json.loads(resp.read().decode())
+        text = data['choices'][0]['message']['content'].strip()
+        text = re.sub(r'^```(?:json)?\s*', '', text)
+        text = re.sub(r'\s*```$', '', text)
+        result = json.loads(text)
+        result['raw_vacancies'] = vacancies[:10]
+        return result
+    except Exception as e:
+        return {'error': str(e)[:200], 'raw_vacancies': vacancies[:5]}
+
+
 def search_all_sources(query: str, region: str = '', sources: list = None) -> dict:
     """Агрегирует результаты по всем источникам"""
     all_results = []
@@ -976,6 +1081,7 @@ def handler(event: dict, context) -> dict:
         'radar': '/radar',
         'find_email': '/find_email',
         'upload_kp': '/upload_kp',
+        'analyze_hh': '/analyze_hh',
         'projects': '/projects',
         'projects_create': '/projects',
         'list': '/',
@@ -997,6 +1103,17 @@ def handler(event: dict, context) -> dict:
         region = body.get('region', '')
         sources = body.get('sources', None)
         result = search_all_sources(query, region, sources)
+        return json_resp(result)
+
+    # /prospects/analyze_hh — анализ вакансий HH.ru компании
+    if path.endswith('/analyze_hh'):
+        if method != 'POST':
+            return err('Только POST')
+        company_name = (body.get('company_name') or '').strip()
+        company_url = (body.get('website') or '').strip()
+        if not company_name:
+            return err('Не указано название компании')
+        result = analyze_hh_vacancies(company_name, company_url)
         return json_resp(result)
 
     # /prospects/upload_kp — загрузка PDF КП в S3

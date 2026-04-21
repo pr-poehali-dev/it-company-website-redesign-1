@@ -124,6 +124,52 @@ export default function TechRadar({ token }: Props) {
   const [result, setResult] = useState<RadarResult | null>(null);
   const [filterTag, setFilterTag] = useState<string>("");
   const [filterPotential, setFilterPotential] = useState<string>("");
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [savingAll, setSavingAll] = useState(false);
+  const [saveAllCount, setSaveAllCount] = useState<number | null>(null);
+
+  async function saveSignalToCrm(signal: TechSignal): Promise<boolean> {
+    const res = await fetch(PROSPECTS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Token": token },
+      body: JSON.stringify({
+        action: "create",
+        company_name: signal.company_name,
+        inn: signal.inn || "",
+        region: signal.region || "",
+        industry: signal.industry || "",
+        description: signal.signal || "",
+        website: signal.website || "",
+        source: "Технологический радар",
+        source_url: "",
+        status: "new",
+        priority: signal.potential === "high" ? "high" : signal.potential === "medium" ? "medium" : "low",
+        note: `Технологии: ${signal.tech_tags.join(", ")}. Источник: ${signal.source || "Радар"}`,
+      }),
+    });
+    return res.ok;
+  }
+
+  async function handleAddToCrm(signal: TechSignal, key: string) {
+    setSavedIds(prev => new Set(prev).add(key + "_loading"));
+    await saveSignalToCrm(signal);
+    setSavedIds(prev => { const s = new Set(prev); s.delete(key + "_loading"); s.add(key); return s; });
+  }
+
+  async function handleSaveAllToCrm() {
+    if (!result?.tech_signals.length) return;
+    setSavingAll(true);
+    setSaveAllCount(null);
+    let count = 0;
+    for (const signal of result.tech_signals) {
+      const key = signal.company_name + signal.inn;
+      if (savedIds.has(key)) continue;
+      const ok = await saveSignalToCrm(signal);
+      if (ok) { count++; setSavedIds(prev => new Set(prev).add(key)); }
+    }
+    setSaveAllCount(count);
+    setSavingAll(false);
+  }
 
   async function runRadar() {
     if (!region.trim()) return;
@@ -131,6 +177,8 @@ export default function TechRadar({ token }: Props) {
     setResult(null);
     setFilterTag("");
     setFilterPotential("");
+    setSavedIds(new Set());
+    setSaveAllCount(null);
     try {
       const res = await fetch(PROSPECTS_URL, {
         method: "POST",
@@ -143,7 +191,7 @@ export default function TechRadar({ token }: Props) {
       });
       const data = await res.json();
       setResult(data);
-    } catch (e) {
+    } catch {
       setResult({ region, industry_filter: industry, summary: "", tech_signals: [], hot_industries: [], regional_trends: [], error: "Ошибка запроса" });
     } finally {
       setLoading(false);
@@ -199,7 +247,7 @@ export default function TechRadar({ token }: Props) {
             <select
               value={industry}
               onChange={e => setIndustry(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-violet-500/50"
+              className="w-full bg-white border border-white/20 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-violet-500"
             >
               <option value="">Все отрасли</option>
               {INDUSTRIES.slice(1).map(i => (
@@ -270,7 +318,7 @@ export default function TechRadar({ token }: Props) {
             </div>
           </div>
 
-          {/* Метрики */}
+          {/* Метрики + кнопка сохранения в CRM */}
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
               <div className="text-2xl font-bold text-white">{result.tech_signals.length}</div>
@@ -283,11 +331,28 @@ export default function TechRadar({ token }: Props) {
               <div className="text-xs text-white/50 mt-0.5">высокий потенциал</div>
             </div>
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-center">
-              <div className="text-2xl font-bold text-amber-400">
-                {allTags.length}
-              </div>
+              <div className="text-2xl font-bold text-amber-400">{allTags.length}</div>
               <div className="text-xs text-white/50 mt-0.5">типов технологий</div>
             </div>
+          </div>
+
+          {/* Сохранить все в CRM */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSaveAllToCrm}
+              disabled={savingAll || savedIds.size >= result.tech_signals.length}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium transition-all"
+            >
+              {savingAll
+                ? <><Icon name="Loader2" size={14} className="animate-spin" />Сохраняю в CRM...</>
+                : <><Icon name="DatabaseZap" size={14} />Сохранить все в CRM</>}
+            </button>
+            {saveAllCount !== null && (
+              <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                <Icon name="CheckCircle" size={13} />
+                Добавлено {saveAllCount} компаний
+              </span>
+            )}
           </div>
 
           {/* Тренды и горячие отрасли */}
@@ -363,6 +428,9 @@ export default function TechRadar({ token }: Props) {
           <div className="space-y-3">
             {filtered.map((signal, i) => {
               const potConf = POTENTIAL_CONFIG[signal.potential] || POTENTIAL_CONFIG.medium;
+              const crmKey = signal.company_name + signal.inn;
+              const isSaved = savedIds.has(crmKey);
+              const isSaving = savedIds.has(crmKey + "_loading");
               return (
                 <div key={i} className="bg-white/5 border border-white/10 hover:border-white/20 rounded-xl p-4 transition-all">
                   <div className="flex items-start justify-between gap-3">
@@ -420,13 +488,30 @@ export default function TechRadar({ token }: Props) {
                       {/* Сигнал */}
                       <p className="text-xs text-white/60 mt-2 leading-relaxed">{signal.signal}</p>
 
-                      {/* Источник */}
-                      {signal.source && (
-                        <p className="text-xs text-white/30 mt-1 flex items-center gap-1">
-                          <Icon name="Newspaper" size={10} />
-                          {signal.source}
-                        </p>
-                      )}
+                      {/* Источник + кнопка В CRM */}
+                      <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
+                        {signal.source && (
+                          <p className="text-xs text-white/30 flex items-center gap-1">
+                            <Icon name="Newspaper" size={10} />
+                            {signal.source}
+                          </p>
+                        )}
+                        <button
+                          onClick={() => handleAddToCrm(signal, crmKey)}
+                          disabled={isSaved || isSaving}
+                          className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg border transition-all font-medium ${
+                            isSaved
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 cursor-default"
+                              : "border-white/20 text-white/60 hover:text-white hover:border-white/40 hover:bg-white/5"
+                          }`}
+                        >
+                          {isSaving
+                            ? <><Icon name="Loader2" size={11} className="animate-spin" />Сохраняю...</>
+                            : isSaved
+                            ? <><Icon name="CheckCircle" size={11} />В CRM</>
+                            : <><Icon name="Plus" size={11} />В CRM</>}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

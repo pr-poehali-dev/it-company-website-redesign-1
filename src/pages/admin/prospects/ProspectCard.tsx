@@ -105,9 +105,10 @@ export default function ProspectCard({
             onCloseKPForm={() => setShowKPForm(false)}
           />
 
-          {/* ИИ-анализ + генератор */}
+          {/* ИИ-анализ + HH.ru + генератор */}
           <ProspectCardAI
             prospect={prospect}
+            token={token}
             analyzing={analyzing}
             onAnalyze={onAnalyze}
             generatingMsg={generatingMsg}
