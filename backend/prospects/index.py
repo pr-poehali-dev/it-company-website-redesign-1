@@ -61,25 +61,21 @@ def auth_check(event):
     if not token:
         return False
     try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute(f'SELECT id FROM {S}.admin_sessions WHERE token=%s AND expires_at > NOW()', (token,))
-        row = cur.fetchone()
-        conn.close()
-        return row is not None
+        req = urllib.request.Request(
+            AUTH_CHECK_URL,
+            headers={'X-Session-Token': token},
+            method='GET'
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read())
+            return data.get('ok') is True
+    except urllib.error.HTTPError as e:
+        # 401 = невалидный токен, остальное - ошибка
+        print(f"[auth_check] HTTP {e.code}")
+        return False
     except Exception as e:
-        print(f"[auth_check error] {type(e).__name__}: {e}")
-        # Fallback: пробуем без схемы
-        try:
-            conn2 = psycopg2.connect(os.environ['DATABASE_URL'])
-            cur2 = conn2.cursor()
-            cur2.execute('SELECT id FROM admin_sessions WHERE token=%s AND expires_at > NOW()', (token,))
-            row2 = cur2.fetchone()
-            conn2.close()
-            return row2 is not None
-        except Exception as e2:
-            print(f"[auth_check fallback error] {type(e2).__name__}: {e2}")
-            return False
+        print(f"[auth_check] error: {type(e).__name__}: {e}")
+        return False
 
 
 def json_resp(data, status=200):
