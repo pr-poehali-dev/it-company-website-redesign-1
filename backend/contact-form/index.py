@@ -1,10 +1,11 @@
 """
-Форма заявки — принимает данные с сайта и отправляет уведомление на почту через Unisender Go.
+Форма заявки — принимает данные с сайта, сохраняет в БД и отправляет уведомление на почту через Unisender Go.
 """
 
 import json
 import os
 import requests
+import psycopg2
 from datetime import datetime
 
 UNISENDER_GO_API_URL = "https://go2.unisender.ru/ru/transactional/api/v1"
@@ -25,7 +26,7 @@ def response(status, body):
 
 
 def handler(event: dict, context) -> dict:
-    """Принимает заявку с сайта и отправляет уведомление на почту менеджера."""
+    """Принимает заявку с сайта, сохраняет в БД и отправляет уведомление на почту менеджера."""
 
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": cors_headers(), "body": ""}
@@ -44,12 +45,22 @@ def handler(event: dict, context) -> dict:
     if "@" not in email:
         return response(400, {"error": "Некорректный email"})
 
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO contact_requests (name, email, phone, company, message) VALUES (%s, %s, %s, %s, %s)",
+        (name, email, phone, company or None, message)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
     api_key = os.environ.get("UNISENDER_API_KEY", "")
     sender_email = os.environ.get("UNISENDER_SENDER_EMAIL", "info@mat-labs.ru")
     sender_name = os.environ.get("UNISENDER_SENDER_NAME", "МАТ-Лабс")
 
     if not api_key:
-        return response(500, {"error": "Email-сервис не настроен. Добавьте UNISENDER_API_KEY."})
+        return response(200, {"success": True})
 
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
 
@@ -62,7 +73,7 @@ def handler(event: dict, context) -> dict:
       <table style="width: 100%; border-collapse: collapse;">
         <tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666; width: 35%;">Имя</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; font-weight: bold;">{name}</td></tr>
         <tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Email</td><td style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="mailto:{email}" style="color: #7c3aed;">{email}</a></td></tr>
-        {"<tr><td style='padding: 10px 0; border-bottom: 1px solid #eee; color: #666;'>Телефон</td><td style='padding: 10px 0; border-bottom: 1px solid #eee;'>" + phone + "</td></tr>" if phone else ""}
+        <tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Телефон</td><td style="padding: 10px 0; border-bottom: 1px solid #eee;">{phone}</td></tr>
         {"<tr><td style='padding: 10px 0; border-bottom: 1px solid #eee; color: #666;'>Компания</td><td style='padding: 10px 0; border-bottom: 1px solid #eee;'>" + company + "</td></tr>" if company else ""}
         <tr><td style="padding: 10px 0; color: #666; vertical-align: top;">Сообщение</td><td style="padding: 10px 0; white-space: pre-line;">{message}</td></tr>
       </table>
@@ -76,7 +87,7 @@ def handler(event: dict, context) -> dict:
             "recipients": [{"email": NOTIFY_EMAIL}],
             "from_email": sender_email,
             "from_name": sender_name,
-            "subject": f"Новая заявка от {name}",
+            "subject": f"Новая заявка от {name} | {phone}",
             "body": {"html": html},
             "track_links": 0,
             "track_read": 0,

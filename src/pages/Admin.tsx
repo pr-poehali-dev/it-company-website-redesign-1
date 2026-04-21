@@ -5,9 +5,10 @@ import AdminPostList from "./admin/AdminPostList";
 import AdminPostEditor from "./admin/AdminPostEditor";
 import TenderSearch from "./admin/TenderSearch";
 import ProspectModule from "./admin/ProspectModule";
+import ContactRequests from "./admin/ContactRequests";
 import { AUTH_URL, BLOG_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "blog" | "tenders" | "prospects";
+type Section = "blog" | "tenders" | "prospects" | "requests";
 
 export default function Admin() {
   const [token, setToken] = useState(() => sessionStorage.getItem("admin_token") || "");
@@ -129,6 +130,7 @@ export default function Admin() {
     { id: "blog", label: "Статьи блога", icon: "FileText", badge: posts.length || undefined },
     { id: "tenders", label: "Тендеры", icon: "Search" },
     { id: "prospects", label: "Клиенты", icon: "Users" },
+    { id: "requests", label: "Заявки", icon: "Mail" },
   ];
 
   return (
@@ -215,6 +217,11 @@ export default function Admin() {
         {/* PROSPECTS SECTION */}
         {section === "prospects" && (
           <ProspectModule token={token} />
+        )}
+
+        {/* REQUESTS SECTION */}
+        {section === "requests" && (
+          <ContactRequests token={token} />
         )}
       </div>
 
