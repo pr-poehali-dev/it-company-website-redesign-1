@@ -8,11 +8,14 @@ import os
 import re
 import hmac
 import hashlib
+import base64
+import uuid
 import urllib.request
 import urllib.parse
 import urllib.error
 import psycopg2
 import psycopg2.extras
+import boto3
 from datetime import datetime
 
 CORS_HEADERS = {
@@ -437,6 +440,41 @@ def ai_analyze_prospect(company: dict, project_description: str = '') -> dict:
         return result
     except Exception as e:
         return {'error': str(e)[:120]}
+
+
+def upload_kp_file(file_b64: str, filename: str) -> dict:
+    """Загружает PDF-файл КП в S3 и возвращает CDN-ссылку"""
+    try:
+        # Убираем data URL prefix если есть
+        if ',' in file_b64:
+            file_b64 = file_b64.split(',', 1)[1]
+        file_bytes = base64.b64decode(file_b64)
+
+        # Санитизация имени файла
+        safe_name = re.sub(r'[^\w\-.]', '_', filename)[:80]
+        if not safe_name.lower().endswith('.pdf'):
+            safe_name += '.pdf'
+        key = f"kp/{uuid.uuid4().hex}_{safe_name}"
+
+        s3 = boto3.client(
+            's3',
+            endpoint_url='https://bucket.poehali.dev',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        )
+        s3.put_object(
+            Bucket='files',
+            Key=key,
+            Body=file_bytes,
+            ContentType='application/pdf',
+            ContentDisposition=f'inline; filename="{safe_name}"',
+        )
+        cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+        print(f"[upload_kp] uploaded {len(file_bytes)} bytes → {cdn_url}")
+        return {'ok': True, 'url': cdn_url, 'filename': safe_name, 'size': len(file_bytes)}
+    except Exception as e:
+        print(f"[upload_kp] error: {e}")
+        return {'ok': False, 'error': str(e)[:200]}
 
 
 def find_company_email(company_name: str, website: str = '') -> dict:
@@ -937,6 +975,7 @@ def handler(event: dict, context) -> dict:
         'message': '/message',
         'radar': '/radar',
         'find_email': '/find_email',
+        'upload_kp': '/upload_kp',
         'projects': '/projects',
         'projects_create': '/projects',
         'list': '/',
@@ -958,6 +997,17 @@ def handler(event: dict, context) -> dict:
         region = body.get('region', '')
         sources = body.get('sources', None)
         result = search_all_sources(query, region, sources)
+        return json_resp(result)
+
+    # /prospects/upload_kp — загрузка PDF КП в S3
+    if path.endswith('/upload_kp'):
+        if method != 'POST':
+            return err('Только POST')
+        file_b64 = body.get('file') or ''
+        filename = body.get('filename') or 'КП_МАТ-Лабс.pdf'
+        if not file_b64:
+            return err('Файл не передан')
+        result = upload_kp_file(file_b64, filename)
         return json_resp(result)
 
     # /prospects/find_email — поиск email компании через Яндекс

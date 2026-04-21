@@ -35,6 +35,45 @@ export default function ProspectCard({
   const [kpSubject, setKpSubject] = useState(`Коммерческое предложение от МАТ-Лабс`);
   const [kpRecipient, setKpRecipient] = useState(prospect.email || "");
 
+  // PDF КП
+  const [kpFile, setKpFile] = useState<File | null>(null);
+  const [kpFileUrl, setKpFileUrl] = useState<string>("");
+  const [kpFileName, setKpFileName] = useState<string>("");
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+
+  async function handlePdfSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") { alert("Только PDF файлы"); return; }
+    if (file.size > 10 * 1024 * 1024) { alert("Файл слишком большой (макс 10 МБ)"); return; }
+    setKpFile(file);
+    setKpFileName(file.name);
+    setKpFileUrl(""); // сбросим предыдущий URL
+    setUploadingPdf(true);
+    try {
+      const b64 = await fileToBase64(file);
+      const res = await fetch(PROSPECTS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
+        body: JSON.stringify({ action: "upload_kp", file: b64, filename: file.name }),
+      });
+      const data = await res.json();
+      if (data.ok) setKpFileUrl(data.url);
+      else alert("Ошибка загрузки: " + data.error);
+    } finally {
+      setUploadingPdf(false);
+    }
+  }
+
+  function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string).split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function handleFindEmail() {
     setFindingEmail(true);
     setEmailResult(null);
@@ -65,7 +104,7 @@ export default function ProspectCard({
     setSendingKP(true);
     setKpSent(null);
     try {
-      const kpHtml = buildKpHtml(prospect, generatedMsg);
+      const kpHtml = buildKpHtml(prospect, generatedMsg, kpFileUrl, kpFileName);
       const res = await fetch(UNISENDER_URL + "/?action=send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -250,6 +289,35 @@ export default function ProspectCard({
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-violet-400 bg-white"
                   />
                 </div>
+                {/* PDF загрузка */}
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block font-medium">Прикрепить PDF с КП</label>
+                  <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 border-dashed transition-all text-sm ${
+                    kpFileUrl ? "border-emerald-300 bg-emerald-50" : "border-gray-200 hover:border-violet-300 bg-white"
+                  }`}>
+                    <input type="file" accept=".pdf" className="hidden" onChange={handlePdfSelect} disabled={uploadingPdf} />
+                    {uploadingPdf ? (
+                      <><Icon name="Loader2" size={14} className="animate-spin text-violet-500" /><span className="text-gray-500">Загружаю файл...</span></>
+                    ) : kpFileUrl ? (
+                      <>
+                        <Icon name="FileCheck" size={14} className="text-emerald-600" />
+                        <span className="text-emerald-700 font-medium truncate">{kpFileName}</span>
+                        <a href={kpFileUrl} target="_blank" rel="noreferrer" className="ml-auto text-xs text-violet-600 hover:underline shrink-0">Открыть</a>
+                      </>
+                    ) : kpFile ? (
+                      <><Icon name="Loader2" size={14} className="animate-spin text-gray-400" /><span className="text-gray-500">{kpFileName}</span></>
+                    ) : (
+                      <><Icon name="Upload" size={14} className="text-gray-400" /><span className="text-gray-400">Выбрать PDF (макс. 10 МБ)</span></>
+                    )}
+                  </label>
+                  {kpFileUrl && (
+                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                      <Icon name="Info" size={11} />
+                      Файл будет вставлен как кнопка «Скачать КП» в письмо
+                    </p>
+                  )}
+                </div>
+
                 {generatedMsg && (
                   <div className="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg p-2">
                     <span className="font-medium text-gray-700">Текст из генератора:</span>
@@ -397,7 +465,7 @@ export default function ProspectCard({
   );
 }
 
-function buildKpHtml(prospect: Prospect, customText: string): string {
+function buildKpHtml(prospect: Prospect, customText: string, pdfUrl?: string, pdfName?: string): string {
   const body = customText
     ? customText.replace(/\n/g, "<br>")
     : `
@@ -407,6 +475,16 @@ function buildKpHtml(prospect: Prospect, customText: string): string {
       <p>Хотели бы предложить нашу экспертизу для <strong>${prospect.company_name}</strong>${prospect.industry ? ` в сфере ${prospect.industry}` : ''}.</p>
       <p>Готовы организовать короткую встречу (15-20 минут) для обсуждения возможностей сотрудничества.</p>
     `;
+
+  const pdfBlock = pdfUrl ? `
+    <div style="margin:24px 0;text-align:center;">
+      <a href="${pdfUrl}" target="_blank"
+        style="display:inline-block;background:#7c3aed;color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.2px;">
+        📄 Скачать коммерческое предложение
+      </a>
+      ${pdfName ? `<div style="margin-top:8px;font-size:12px;color:#aaa;">${pdfName}</div>` : ''}
+    </div>
+  ` : '';
 
   return `<!DOCTYPE html>
 <html lang="ru">
@@ -419,6 +497,7 @@ function buildKpHtml(prospect: Prospect, customText: string): string {
     </div>
     <div style="padding:32px 36px;color:#333;font-size:15px;line-height:1.7;">
       ${body}
+      ${pdfBlock}
     </div>
     <div style="padding:20px 36px 32px;border-top:1px solid #f0f0f0;">
       <div style="font-size:13px;color:#888;">
