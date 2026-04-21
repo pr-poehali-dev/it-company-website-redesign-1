@@ -20,6 +20,7 @@ CORS_HEADERS = {
 }
 
 AI_URL = 'https://api.polza.ai/v1/chat/completions'
+AUTH_CHECK_URL = 'https://functions.poehali.dev/6f798d48-8951-473b-bde6-f8121977ddf4/check'
 
 COMPANY_PROFILE = """
 МАТ-Лабс — российская IT-компания полного цикла.
@@ -59,12 +60,17 @@ def auth_check(event):
             (event.get('headers') or {}).get('X-Session-Token') or ''
     if not token:
         return False
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM admin_sessions WHERE token=%s AND expires_at > NOW()", (token,))
-    row = cur.fetchone()
-    conn.close()
-    return row is not None
+    try:
+        req = urllib.request.Request(
+            AUTH_CHECK_URL,
+            headers={'X-Session-Token': token},
+            method='GET'
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read())
+            return data.get('ok') is True
+    except Exception:
+        return False
 
 
 def json_resp(data, status=200):
