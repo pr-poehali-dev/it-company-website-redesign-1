@@ -55,28 +55,34 @@ export default function ProspectModule({ token }: { token: string }) {
     return () => clearTimeout(t);
   }, [filterSearch]);
 
-  async function api(path: string, method = "GET", body?: object) {
-    const res = await fetch(`${PROSPECTS_URL}${path}`, {
+  async function api(action: string, method = "GET", body?: object, qparams?: Record<string, string>) {
+    const payload = method === "GET"
+      ? undefined
+      : JSON.stringify({ action, ...body });
+    const url = method === "GET"
+      ? `${PROSPECTS_URL}/?action=${encodeURIComponent(action)}${qparams ? "&" + new URLSearchParams(qparams).toString() : ""}`
+      : `${PROSPECTS_URL}/`;
+    const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json", "X-Session-Token": token },
-      body: body ? JSON.stringify(body) : undefined,
+      body: payload,
     });
     return res.json();
   }
 
   async function loadProjects() {
-    const data = await api("/projects");
+    const data = await api("projects");
     setProjects(data.projects || []);
   }
 
   async function loadProspects() {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (filterProject)  params.set("project_id", filterProject);
-    if (filterStatus)   params.set("status", filterStatus);
-    if (filterPriority) params.set("priority", filterPriority);
-    if (filterSearch)   params.set("search", filterSearch);
-    const data = await api(`/?${params}`);
+    const qp: Record<string, string> = {};
+    if (filterProject)  qp["project_id"] = filterProject;
+    if (filterStatus)   qp["status"] = filterStatus;
+    if (filterPriority) qp["priority"] = filterPriority;
+    if (filterSearch)   qp["search"] = filterSearch;
+    const data = await api("list", "GET", undefined, qp);
     setProspects(data.prospects || []);
     setStatusStats(data.status_stats || {});
     setTotal(data.total || 0);
@@ -84,22 +90,22 @@ export default function ProspectModule({ token }: { token: string }) {
   }
 
   async function loadActivities(id: number) {
-    const data = await api(`/${id}`);
+    const data = await api("detail", "GET", undefined, { id: String(id) });
     setActivities(data.activities || []);
     setSelected(data.prospect || null);
   }
 
   async function addFromSearch(r: SearchResult, projectId?: number) {
-    await api("/", "POST", { ...r, project_id: projectId || null });
+    await api("create", "POST", { ...r, project_id: projectId || null });
     await loadProspects();
   }
 
   async function saveProspect(form: Partial<Prospect>) {
     setSaving(true);
     if (isNewEdit) {
-      await api("/", "POST", form);
+      await api("create", "POST", form);
     } else if (editProspect?.id) {
-      await api(`/${editProspect.id}`, "PUT", form);
+      await api("update", "PUT", { ...form, id: editProspect.id });
       if (selected?.id === editProspect.id) await loadActivities(editProspect.id);
     }
     setEditProspect(null);
@@ -116,19 +122,20 @@ export default function ProspectModule({ token }: { token: string }) {
   async function analyze(p: Prospect) {
     setAnalyzing(true);
     const proj = projects.find(pr => pr.id === p.project_id);
-    const data = await api("/analyze", "POST", {
+    const data = await api("analyze", "POST", {
       company: p,
       project_description: proj?.description || "",
     });
     const a: AiAnalysis = data.analysis || {};
     if (!a.error) {
-      const updated = await api(`/${p.id}`, "PUT", {
+      const updated = await api("update", "PUT", {
         ...p,
         ai_score: a.score,
         ai_summary: a.summary,
         ai_reasons: a.reasons || [],
         priority: a.priority || p.priority,
         next_action: a.next_action || p.next_action,
+        id: p.id,
       });
       setSelected(updated.prospect || p);
       await loadProspects();
@@ -139,21 +146,21 @@ export default function ProspectModule({ token }: { token: string }) {
   async function generateMessage(type: string) {
     if (!selected) return;
     setGenMsg(true); setGenMsgText("");
-    const data = await api("/message", "POST", { company: selected, type });
+    const data = await api("message", "POST", { company: selected, type });
     setGenMsgText(data.message || "");
     setGenMsg(false);
   }
 
   async function addActivity(type: string, content: string) {
     if (!selected) return;
-    await api(`/${selected.id}/activity`, "POST", { activity_type: type, content });
+    await api("activity", "POST", { prospect_id: selected.id, activity_type: type, content });
     await loadActivities(selected.id);
   }
 
   async function createProject() {
     if (!newProject.name.trim()) return;
     setAddingProject(true);
-    await api("/projects", "POST", newProject);
+    await api("projects_create", "POST", newProject);
     setNewProject({ name: "", description: "", color: "#7c3aed" });
     setShowProjectForm(false);
     await loadProjects();

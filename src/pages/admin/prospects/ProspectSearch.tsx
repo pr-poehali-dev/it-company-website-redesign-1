@@ -23,10 +23,10 @@ export default function ProspectSearch({ token, projects, onAdd }: Props) {
     if (!query.trim()) return;
     setLoading(true); setError(""); setResults([]); setMeta([]);
     try {
-      const res = await fetch(`${PROSPECTS_URL}/search`, {
+      const res = await fetch(`${PROSPECTS_URL}/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Token": token },
-        body: JSON.stringify({ query: query.trim(), region, sources }),
+        body: JSON.stringify({ action: "search", query: query.trim(), region, sources }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Ошибка поиска"); return; }

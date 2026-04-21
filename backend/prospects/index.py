@@ -757,6 +757,23 @@ def handler(event: dict, context) -> dict:
         except Exception:
             pass
 
+    # Читаем action из тела или query, маппим в путь
+    action = body.get('action') or params.get('action') or ''
+    action_to_path = {
+        'search': '/search',
+        'analyze': '/analyze',
+        'message': '/message',
+        'projects': '/projects',
+        'projects_create': '/projects',
+        'list': '/',
+        'create': '/',
+        'update': f'/{body.get("id", "")}' if body.get('id') else '/',
+        'detail': f'/{params.get("id", "")}' if params.get('id') else '/',
+        'activity': f'/{body.get("prospect_id", "")}/activity' if body.get('prospect_id') else '/activity',
+    }
+    if action and path in ('/', ''):
+        path = action_to_path.get(action, '/' + action)
+
     # /prospects/search — поиск по источникам
     if path.endswith('/search'):
         if method != 'POST':
