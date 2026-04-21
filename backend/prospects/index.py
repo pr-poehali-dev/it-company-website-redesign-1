@@ -1,5 +1,5 @@
 """
-CRM-модуль поиска потенциальных клиентов.
+CRM-модуль поиска потенциальных клиентов. v2
 Поиск по открытым источникам (ЕГРЮЛ/ФНС, 2ГИС, Контур.Фокус, ЕИС),
 сохранение в базу, управление статусами, ИИ-анализ, аналитика.
 """
@@ -61,7 +61,7 @@ def auth_check(event):
         return False
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT id FROM admin_sessions WHERE token=%s AND expires_at > NOW()", (token,))
+    cur.execute(f"SELECT id FROM {S}.admin_sessions WHERE token=%s AND expires_at > NOW()", (token,))
     row = cur.fetchone()
     conn.close()
     return row is not None
