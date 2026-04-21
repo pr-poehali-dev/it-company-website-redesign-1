@@ -51,7 +51,7 @@ S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 
 
 def get_db():
-    return psycopg2.connect(os.environ['DATABASE_URL'])
+    return psycopg2.connect(os.environ['DATABASE_URL'], options=f"-c search_path={S}")
 
 
 def auth_check(event):
