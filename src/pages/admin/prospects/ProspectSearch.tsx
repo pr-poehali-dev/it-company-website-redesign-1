@@ -65,13 +65,13 @@ export default function ProspectSearch({ token, projects, onAdd }: Props) {
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === "Enter" && doSearch()}
             placeholder="Отрасль, ОКВЭД, название, ключевое слово..."
-            className="flex-1 glass border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50"
+            className="flex-1 bg-white border border-white/10 rounded-xl px-4 py-2.5 text-sm text-black placeholder-black/40 focus:outline-none focus:border-violet-500/50"
           />
           <input
             value={region}
             onChange={e => setRegion(e.target.value)}
             placeholder="Регион (опц.)"
-            className="w-36 glass border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50"
+            className="w-36 bg-white border border-white/10 rounded-xl px-4 py-2.5 text-sm text-black placeholder-black/40 focus:outline-none focus:border-violet-500/50"
           />
           <button
             onClick={doSearch}

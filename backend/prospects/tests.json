@@ -7,9 +7,9 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET projects (unauth)",
+      "name": "GET root (unauth)",
       "method": "GET",
-      "path": "/projects",
+      "path": "/",
       "expectedStatus": 401,
       "expectedBody": { "error": "Не авторизован" },
       "bodyMatcher": "partial"
