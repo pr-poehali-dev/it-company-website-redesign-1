@@ -3,13 +3,14 @@ import Icon from "@/components/ui/icon";
 import ProspectSearch from "./prospects/ProspectSearch";
 import ProspectCard from "./prospects/ProspectCard";
 import ProspectEdit from "./prospects/ProspectEdit";
+import TechRadar from "./prospects/TechRadar";
 import {
   PROSPECTS_URL, Project, Prospect, SearchResult, Activity, AiAnalysis,
   STATUSES, PRIORITIES, statusInfo, priorityInfo, scoreColor, scoreBg,
 } from "./prospects/types";
 
 export default function ProspectModule({ token }: { token: string }) {
-  const [tab, setTab] = useState<"search" | "crm" | "analytics">("search");
+  const [tab, setTab] = useState<"search" | "crm" | "analytics" | "radar">("search");
 
   // Data
   const [projects, setProjects]     = useState<Project[]>([]);
@@ -191,11 +192,16 @@ export default function ProspectModule({ token }: { token: string }) {
           </div>
         </div>
         <div className="flex items-center gap-1 glass border border-white/10 rounded-xl p-1">
-          {(["search", "crm", "analytics"] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-violet-600 text-white" : "text-white/40 hover:text-white hover:bg-white/5"}`}>
-              <Icon name={t === "search" ? "Search" : t === "crm" ? "LayoutList" : "BarChart2"} size={14} />
-              <span className="hidden sm:block">{t === "search" ? "Поиск" : t === "crm" ? "CRM" : "Аналитика"}</span>
+          {([
+            { key: "search",    label: "Поиск",     icon: "Search" },
+            { key: "crm",       label: "CRM",        icon: "LayoutList" },
+            { key: "radar",     label: "Радар",      icon: "Radar" },
+            { key: "analytics", label: "Аналитика",  icon: "BarChart2" },
+          ] as const).map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === t.key ? "bg-violet-600 text-white" : "text-white/40 hover:text-white hover:bg-white/5"}`}>
+              <Icon name={t.icon} size={14} />
+              <span className="hidden sm:block">{t.label}</span>
             </button>
           ))}
         </div>
@@ -204,6 +210,11 @@ export default function ProspectModule({ token }: { token: string }) {
       {/* SEARCH TAB */}
       {tab === "search" && (
         <ProspectSearch token={token} projects={projects} onAdd={addFromSearch} />
+      )}
+
+      {/* RADAR TAB */}
+      {tab === "radar" && (
+        <TechRadar token={token} />
       )}
 
       {/* CRM TAB */}

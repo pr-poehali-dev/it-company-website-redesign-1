@@ -439,6 +439,65 @@ def ai_analyze_prospect(company: dict, project_description: str = '') -> dict:
         return {'error': str(e)[:120]}
 
 
+def ai_tech_radar(region: str, industry: str = '') -> dict:
+    """ИИ-анализ: выявление компаний, внедряющих технологии, через новости и открытые данные"""
+    api_key = os.environ.get('POLZA_AI_API_KEY', '')
+    if not api_key:
+        return {'error': 'Нет ключа ИИ'}
+
+    region_text = region.strip() if region.strip() else 'Россия'
+    industry_text = f", отрасль: {industry.strip()}" if industry.strip() else ''
+
+    prompt = f"""Ты — аналитик B2B-рынка. Твоя задача — выявить компании в регионе "{region_text}"{industry_text}, которые активно внедряют новые технологии: ИИ, ERP, автоматизацию, роботизацию, цифровизацию, IoT, облака.
+
+Используй свои знания о российском бизнесе, региональных новостях, пресс-релизах, программах цифровизации (НТИ, нацпроекты), а также общеизвестные факты о технологической активности компаний.
+
+Верни список из 10-15 реальных или типичных компаний региона (или крупных игроков с присутствием в регионе) с признаками технологической активности.
+
+Верни ТОЛЬКО JSON без markdown:
+{{
+  "region": "{region_text}",
+  "industry_filter": "{industry.strip() or 'все отрасли'}",
+  "summary": "<2-3 предложения: общая картина технологической активности в регионе>",
+  "tech_signals": [
+    {{
+      "company_name": "<название компании>",
+      "inn": "<ИНН если известен, иначе пустая строка>",
+      "region": "<город/регион>",
+      "industry": "<отрасль>",
+      "tech_tags": ["<ИИ|ERP|Автоматизация|Роботизация|Цифровизация|IoT|Облака|RPA|ML|Промышленный IoT>"],
+      "signal": "<конкретный факт: что именно внедряют, откуда информация>",
+      "potential": "<high|medium|low — потенциал как клиента для IT-интегратора>",
+      "website": "<сайт если известен>",
+      "source": "<источник: название СМИ, пресс-релиз, нацпроект и т.д.>"
+    }}
+  ],
+  "hot_industries": ["<отрасль 1>", "<отрасль 2>", "<отрасль 3>"],
+  "regional_trends": ["<тренд 1>", "<тренд 2>", "<тренд 3>"]
+}}"""
+
+    try:
+        body_data = json.dumps({
+            'model': 'gpt-4o',
+            'messages': [{'role': 'user', 'content': prompt}],
+            'temperature': 0.4,
+            'max_tokens': 2500,
+        }).encode()
+        req = urllib.request.Request(
+            AI_URL, data=body_data,
+            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'},
+            method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = json.loads(resp.read().decode())
+        text = data['choices'][0]['message']['content'].strip()
+        text = re.sub(r'^```(?:json)?\s*', '', text)
+        text = re.sub(r'\s*```$', '', text)
+        return json.loads(text)
+    except Exception as e:
+        return {'error': str(e)[:200]}
+
+
 def ai_generate_message(company: dict, message_type: str = 'email') -> str:
     api_key = os.environ.get('POLZA_AI_API_KEY', '')
     if not api_key:
@@ -745,6 +804,7 @@ def handler(event: dict, context) -> dict:
         'search': '/search',
         'analyze': '/analyze',
         'message': '/message',
+        'radar': '/radar',
         'projects': '/projects',
         'projects_create': '/projects',
         'list': '/',
@@ -766,6 +826,15 @@ def handler(event: dict, context) -> dict:
         region = body.get('region', '')
         sources = body.get('sources', None)
         result = search_all_sources(query, region, sources)
+        return json_resp(result)
+
+    # /prospects/radar — технологический радар регионов
+    if path.endswith('/radar'):
+        if method != 'POST':
+            return err('Только POST')
+        region = (body.get('region') or '').strip()
+        industry = (body.get('industry') or '').strip()
+        result = ai_tech_radar(region, industry)
         return json_resp(result)
 
     # /prospects/analyze — ИИ-анализ компании
