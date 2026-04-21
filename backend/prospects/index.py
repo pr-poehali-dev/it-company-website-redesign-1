@@ -51,9 +51,7 @@ S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 
 
 def get_db():
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    conn.autocommit = False
-    return conn
+    return psycopg2.connect(os.environ['DATABASE_URL'], options=f"-c search_path={S}")
 
 
 def auth_check(event):
@@ -63,7 +61,7 @@ def auth_check(event):
         return False
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(f'SELECT id FROM "{S}".admin_sessions WHERE token=%s AND expires_at > NOW()', (token,))
+    cur.execute("SELECT id FROM admin_sessions WHERE token=%s AND expires_at > NOW()", (token,))
     row = cur.fetchone()
     conn.close()
     return row is not None
@@ -416,10 +414,10 @@ def handle_projects(event, method, body):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if method == 'GET':
-        cur.execute(f"""
+        cur.execute("""
             SELECT p.*, COUNT(pr.id) as prospect_count
-            FROM "{S}".prospect_projects p
-            LEFT JOIN "{S}".prospects pr ON pr.project_id = p.id
+            FROM prospect_projects p
+            LEFT JOIN prospects pr ON pr.project_id = p.id
             GROUP BY p.id ORDER BY p.created_at DESC
         """)
         projects = [dict(r) for r in cur.fetchall()]
@@ -432,7 +430,7 @@ def handle_projects(event, method, body):
             conn.close()
             return err('Название обязательно')
         cur.execute(
-            f'INSERT INTO "{S}".prospect_projects (name, description, color) VALUES (%s, %s, %s) RETURNING *',
+            "INSERT INTO prospect_projects (name, description, color) VALUES (%s, %s, %s) RETURNING *",
             (name, body.get('description', ''), body.get('color', '#7c3aed'))
         )
         proj = dict(cur.fetchone())
@@ -443,7 +441,7 @@ def handle_projects(event, method, body):
     if method == 'PUT':
         pid = body.get('id')
         cur.execute(
-            f'UPDATE "{S}".prospect_projects SET name=%s, description=%s, color=%s WHERE id=%s RETURNING *',
+            "UPDATE prospect_projects SET name=%s, description=%s, color=%s WHERE id=%s RETURNING *",
             (body.get('name'), body.get('description', ''), body.get('color', '#7c3aed'), pid)
         )
         proj = cur.fetchone()
@@ -481,8 +479,8 @@ def handle_prospects_list(event, method, body, params):
         where = ('WHERE ' + ' AND '.join(filters)) if filters else ''
         cur.execute(f"""
             SELECT p.*, pr.name as project_name, pr.color as project_color
-            FROM "{S}".prospects p
-            LEFT JOIN "{S}".prospect_projects pr ON pr.id = p.project_id
+            FROM prospects p
+            LEFT JOIN prospect_projects pr ON pr.id = p.project_id
             {where}
             ORDER BY p.updated_at DESC
             LIMIT 200
@@ -490,13 +488,13 @@ def handle_prospects_list(event, method, body, params):
         prospects = [dict(r) for r in cur.fetchall()]
 
         # Аналитика
-        cur.execute(f'SELECT status, COUNT(*) as cnt FROM "{S}".prospects GROUP BY status')
+        cur.execute("SELECT status, COUNT(*) as cnt FROM prospects GROUP BY status")
         status_stats = {r['status']: r['cnt'] for r in cur.fetchall()}
 
-        cur.execute(f'SELECT priority, COUNT(*) as cnt FROM "{S}".prospects GROUP BY priority')
+        cur.execute("SELECT priority, COUNT(*) as cnt FROM prospects GROUP BY priority")
         priority_stats = {r['priority']: r['cnt'] for r in cur.fetchall()}
 
-        cur.execute(f'SELECT COUNT(*) as total FROM "{S}".prospects')
+        cur.execute("SELECT COUNT(*) as total FROM prospects")
         total = cur.fetchone()['total']
 
         conn.close()
@@ -509,8 +507,8 @@ def handle_prospects_list(event, method, body, params):
 
     if method == 'POST':
         d = body
-        cur.execute(f"""
-            INSERT INTO "{S}".prospects (
+        cur.execute("""
+            INSERT INTO prospects (
                 project_id, company_name, inn, ogrn, industry, description,
                 website, email, phone, address, region,
                 source, source_url, revenue_range, employee_count, founded_year,
@@ -533,7 +531,7 @@ def handle_prospects_list(event, method, body, params):
 
         # Лог активности
         cur.execute(
-            f'INSERT INTO "{S}".prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)',
+            "INSERT INTO prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)",
             (prospect['id'], 'note', f"Компания добавлена из источника: {d.get('source', 'manual')}")
         )
         conn.commit()
@@ -549,10 +547,10 @@ def handle_prospect_detail(event, method, body, prospect_id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if method == 'GET':
-        cur.execute(f"""
+        cur.execute("""
             SELECT p.*, pr.name as project_name, pr.color as project_color
-            FROM "{S}".prospects p
-            LEFT JOIN "{S}".prospect_projects pr ON pr.id = p.project_id
+            FROM prospects p
+            LEFT JOIN prospect_projects pr ON pr.id = p.project_id
             WHERE p.id = %s
         """, (prospect_id,))
         p = cur.fetchone()
@@ -561,7 +559,7 @@ def handle_prospect_detail(event, method, body, prospect_id):
             return err('Не найден', 404)
         prospect = dict(p)
 
-        cur.execute(f'SELECT * FROM "{S}".prospect_activities WHERE prospect_id=%s ORDER BY created_at DESC', (prospect_id,))
+        cur.execute("SELECT * FROM prospect_activities WHERE prospect_id=%s ORDER BY created_at DESC", (prospect_id,))
         activities = [dict(r) for r in cur.fetchall()]
         conn.close()
         return json_resp({'prospect': prospect, 'activities': activities})
@@ -569,13 +567,13 @@ def handle_prospect_detail(event, method, body, prospect_id):
     if method == 'PUT':
         d = body
         old_status = None
-        cur.execute(f'SELECT status FROM "{S}".prospects WHERE id=%s', (prospect_id,))
+        cur.execute("SELECT status FROM prospects WHERE id=%s", (prospect_id,))
         row = cur.fetchone()
         if row:
             old_status = row['status']
 
-        cur.execute(f"""
-            UPDATE "{S}".prospects SET
+        cur.execute("""
+            UPDATE prospects SET
                 project_id=%s, company_name=%s, inn=%s, ogrn=%s, industry=%s,
                 description=%s, website=%s, email=%s, phone=%s, address=%s, region=%s,
                 revenue_range=%s, employee_count=%s, founded_year=%s,
@@ -599,7 +597,7 @@ def handle_prospect_detail(event, method, body, prospect_id):
         new_status = d.get('status')
         if old_status and new_status and old_status != new_status:
             cur.execute(
-                f'INSERT INTO "{S}".prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)',
+                "INSERT INTO prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)",
                 (prospect_id, 'status_change',
                  f"Статус изменён: {STATUS_LABELS.get(old_status, old_status)} → {STATUS_LABELS.get(new_status, new_status)}")
             )
@@ -609,9 +607,9 @@ def handle_prospect_detail(event, method, body, prospect_id):
         return json_resp({'prospect': dict(updated) if updated else None})
 
     if method == 'DELETE':
-        cur.execute(f'UPDATE "{S}".prospects SET status=\'lost\' WHERE id=%s', (prospect_id,))
+        cur.execute("UPDATE prospects SET status='lost' WHERE id=%s", (prospect_id,))
         cur.execute(
-            f'INSERT INTO "{S}".prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)',
+            "INSERT INTO prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)",
             (prospect_id, 'note', 'Статус изменён на «Отказ»')
         )
         conn.commit()
@@ -626,7 +624,7 @@ def handle_add_activity(prospect_id, body):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f'INSERT INTO "{S}".prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s) RETURNING *',
+        "INSERT INTO prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s) RETURNING *",
         (prospect_id, body.get('activity_type', 'note'), body.get('content', ''))
     )
     act = dict(cur.fetchone())
