@@ -91,12 +91,12 @@ def err(msg, status=400):
 
 # ── Поиск по открытым источникам ────────────────────────────────────────────
 
-def http_get(url, timeout=10):
+def http_get(url, timeout=10, headers=None):
     try:
-        req = urllib.request.Request(url, headers={
-            'User-Agent': 'Mozilla/5.0 (compatible; mat-labs-bot/1.0)',
-            'Accept': 'application/json, text/html',
-        })
+        h = {'User-Agent': 'Mozilla/5.0 (compatible; mat-labs-bot/1.0)', 'Accept': 'application/json, text/html'}
+        if headers:
+            h.update(headers)
+        req = urllib.request.Request(url, headers=h)
         with urllib.request.urlopen(req, timeout=timeout) as r:
             raw = r.read().decode('utf-8', errors='replace')
             try:
@@ -104,8 +104,10 @@ def http_get(url, timeout=10):
             except Exception:
                 return {'ok': True, 'data': None, 'text': raw}
     except urllib.error.HTTPError as e:
+        print(f"[http_get] HTTP {e.code} for {url[:60]}")
         return {'ok': False, 'error': f'HTTP {e.code}', 'data': None, 'text': ''}
     except Exception as e:
+        print(f"[http_get] ERR {type(e).__name__}: {str(e)[:80]} for {url[:60]}")
         return {'ok': False, 'error': str(e)[:120], 'data': None, 'text': ''}
 
 
@@ -374,6 +376,9 @@ def search_all_sources(query: str, region: str = '', sources: list = None) -> di
     if sources is None:
         sources = list(src_map.keys())
 
+    # Тест исходящей сети
+    test = http_get("https://httpbin.org/get", timeout=3)
+    print(f"[search] network_test ok={test['ok']} err={test.get('error','')}")
     print(f"[search] query={query!r} sources={sources}")
     for key in sources:
         if key not in src_map:
