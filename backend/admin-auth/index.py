@@ -4,6 +4,7 @@
 import json
 import os
 import hashlib
+import hmac
 import secrets
 import psycopg2
 
@@ -58,7 +59,14 @@ def handler(event: dict, context) -> dict:
             if not password_ok:
                 return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Неверный логин или пароль'})}
 
-            token = secrets.token_hex(32)
+            raw_token = secrets.token_hex(32)
+            # Добавляем HMAC-подпись чтобы другие функции могли проверить токен без БД
+            secret = os.environ.get('ADMIN_TOKEN_SECRET', '')
+            if secret:
+                sig = hmac.new(secret.encode(), raw_token.encode(), hashlib.sha256).hexdigest()[:16]
+                token = f"{raw_token}.{sig}"
+            else:
+                token = raw_token
             cur.execute(
                 "INSERT INTO admin_sessions (token, user_id, username) VALUES (%s, %s, %s)",
                 (token, user_id, username)

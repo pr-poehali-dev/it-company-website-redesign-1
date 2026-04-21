@@ -6,6 +6,8 @@ CRM-модуль поиска потенциальных клиентов. v3
 import json
 import os
 import re
+import hmac
+import hashlib
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -60,22 +62,19 @@ def auth_check(event):
             (event.get('headers') or {}).get('X-Session-Token') or ''
     if not token:
         return False
-    try:
-        req = urllib.request.Request(
-            AUTH_CHECK_URL,
-            headers={'X-Session-Token': token},
-            method='GET'
-        )
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read())
-            return data.get('ok') is True
-    except urllib.error.HTTPError as e:
-        # 401 = невалидный токен, остальное - ошибка
-        print(f"[auth_check] HTTP {e.code}")
+    secret = os.environ.get('ADMIN_TOKEN_SECRET', '')
+    if not secret:
+        print("[auth_check] ADMIN_TOKEN_SECRET не задан")
         return False
-    except Exception as e:
-        print(f"[auth_check] error: {type(e).__name__}: {e}")
+    # Токен имеет формат: {raw_token}.{hmac_sig}
+    if '.' not in token:
         return False
+    parts = token.rsplit('.', 1)
+    if len(parts) != 2:
+        return False
+    raw_token, sig = parts
+    expected_sig = hmac.new(secret.encode(), raw_token.encode(), hashlib.sha256).hexdigest()[:16]
+    return hmac.compare_digest(sig, expected_sig)
 
 
 def json_resp(data, status=200):
