@@ -374,15 +374,18 @@ def search_all_sources(query: str, region: str = '', sources: list = None) -> di
     if sources is None:
         sources = list(src_map.keys())
 
+    print(f"[search] query={query!r} sources={sources}")
     for key in sources:
         if key not in src_map:
             continue
         label, fn = src_map[key]
         try:
             res = fn(query)
+            print(f"[search] {label}: {len(res)} results")
             all_results.extend(res)
             meta.append({'source': label, 'count': len(res)})
         except Exception as e:
+            print(f"[search] {label} ERROR: {e}")
             errors.append(f"{label}: {str(e)[:60]}")
             meta.append({'source': label, 'count': 0, 'error': str(e)[:60]})
 
@@ -763,6 +766,7 @@ def handler(event: dict, context) -> dict:
 
     # Читаем action из тела или query, маппим в путь
     action = body.get('action') or params.get('action') or ''
+    print(f"[handler] method={method} path={path!r} action={action!r} body_keys={list(body.keys())}")
     action_to_path = {
         'search': '/search',
         'analyze': '/analyze',
