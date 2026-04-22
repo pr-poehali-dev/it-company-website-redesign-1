@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { technologies, jobs, navLinks, AnimatedSection } from "@/components/shared";
-import BlogModal, { type BlogPost } from "@/components/BlogModal";
+import { type BlogPost } from "@/components/BlogModal";
+import { generateSlug } from "@/lib/slug";
 
 const BLOG_URL = "https://functions.poehali.dev/f6938906-b3c4-4bf7-b1f9-96560e19ef1b";
 const CONTACT_URL = "https://functions.poehali.dev/0c33a6f9-4b7e-4dc3-8c2e-6db6eadb5f1d";
@@ -11,7 +13,7 @@ interface BottomSectionsProps {
 }
 
 export default function BottomSections({ scrollTo }: BottomSectionsProps) {
-  const [activePost, setActivePost] = useState<BlogPost | null>(null);
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
 
@@ -205,7 +207,7 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
                 <AnimatedSection key={i}>
                   <div
                     className={`glass neon-border rounded-2xl overflow-hidden card-hover group h-full flex flex-col ${post.content ? "cursor-pointer" : "opacity-60"}`}
-                    onClick={() => post.content && setActivePost(post)}
+                    onClick={() => post.content && navigate(`/blog/${generateSlug(post.title)}`)}
                   >
                     {post.cover_url ? (
                       <div className="relative h-40 overflow-hidden flex-shrink-0">
@@ -246,8 +248,6 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
               ))}
             </div>
           )}
-
-          {activePost && <BlogModal post={activePost} onClose={() => setActivePost(null)} />}
 
           <AnimatedSection className="text-center mt-10">
             <button className="glass border border-white/20 px-8 py-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/5 transition-all duration-300 text-sm font-semibold">

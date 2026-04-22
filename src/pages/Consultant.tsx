@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 
 const API_URL = "https://functions.poehali.dev/762d515a-ff32-4d7f-a30f-f5015a70496a";
@@ -109,6 +110,16 @@ export default function Consultant() {
 
   if (stage === "sent") {
     return (
+      <>
+        <Helmet>
+          <title>AI-консультант — ООО МАТ-Лабс</title>
+          <meta name="description" content="Получите бесплатную консультацию от AI-ассистента МАТ-Лабс. Опишите задачу — мы подготовим техническое задание и свяжемся с вами в течение 2 часов." />
+          <link rel="canonical" href="https://mat-labs.ru/consultant" />
+          <meta property="og:title" content="AI-консультант — ООО МАТ-Лабс" />
+          <meta property="og:description" content="Получите бесплатную консультацию от AI-ассистента МАТ-Лабс и техническое задание для вашего IT-проекта." />
+          <meta property="og:url" content="https://mat-labs.ru/consultant" />
+          <meta property="og:type" content="website" />
+        </Helmet>
       <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-6">
         <div className="max-w-2xl w-full text-center">
           <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
@@ -145,10 +156,21 @@ export default function Consultant() {
           </button>
         </div>
       </div>
+      </>
     );
   }
 
   return (
+    <>
+      <Helmet>
+        <title>AI-консультант — ООО МАТ-Лабс</title>
+        <meta name="description" content="Получите бесплатную консультацию от AI-ассистента МАТ-Лабс. Опишите задачу — мы подготовим техническое задание и свяжемся с вами в течение 2 часов." />
+        <link rel="canonical" href="https://mat-labs.ru/consultant" />
+        <meta property="og:title" content="AI-консультант — ООО МАТ-Лабс" />
+        <meta property="og:description" content="Получите бесплатную консультацию от AI-ассистента МАТ-Лабс и техническое задание для вашего IT-проекта." />
+        <meta property="og:url" content="https://mat-labs.ru/consultant" />
+        <meta property="og:type" content="website" />
+      </Helmet>
     <div className="min-h-screen bg-[#0d1117] flex flex-col">
       {/* Header */}
       <div className="border-b border-white/10 bg-[#0d1117]/95 backdrop-blur sticky top-0 z-10">
@@ -261,5 +283,6 @@ export default function Consultant() {
         </div>
       </div>
     </div>
+    </>
   );
 }
