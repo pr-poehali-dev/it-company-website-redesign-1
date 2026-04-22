@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import NavBar from "@/components/NavBar";
 import TopSections from "@/components/TopSections";
 import BottomSections from "@/components/BottomSections";
@@ -61,6 +62,14 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-[#080812] text-white font-golos overflow-x-hidden">
+      <Helmet>
+        <title>ООО МАТ-Лабс — Инновационные IT-решения</title>
+        <meta name="description" content="МАТ-Лабс — IT-компания полного цикла. Разработка ПО, облачные решения, искусственный интеллект и цифровая трансформация бизнеса." />
+        <link rel="canonical" href="https://mat-labs.ru/" />
+        <meta property="og:url" content="https://mat-labs.ru/" />
+        <meta property="og:title" content="ООО МАТ-Лабс — Инновационные IT-решения" />
+        <meta property="og:description" content="МАТ-Лабс — IT-компания полного цикла. Разработка ПО, облачные решения, искусственный интеллект и цифровая трансформация бизнеса." />
+      </Helmet>
       <NavBar
         scrolled={scrolled}
         menuOpen={menuOpen}
