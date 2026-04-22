@@ -12,6 +12,7 @@ export const navLinks = [
   { label: "Технологии", href: "#technologies" },
   { label: "Карьера", href: "#career" },
   { label: "Блог", href: "#blog" },
+  { label: "FAQ", href: "#faq" },
   { label: "Контакты", href: "#contacts" },
 ];
 
