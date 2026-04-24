@@ -37,7 +37,7 @@ export default function ProspectEdit({ prospect, projects, onSave, onCancel, sav
             <span className="text-xs text-white/40 uppercase tracking-wider">Основная информация</span>
             <Field label="Название компании *" required>
               <input value={form.company_name || ""} onChange={e => set("company_name", e.target.value)}
-                className="w-full glass border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50" />
+                className="w-full bg-white border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500/50" />
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="ИНН"><input value={form.inn || ""} onChange={e => set("inn", e.target.value)} className={inputCls} /></Field>
@@ -137,7 +137,7 @@ export default function ProspectEdit({ prospect, projects, onSave, onCancel, sav
   );
 }
 
-const inputCls = "w-full glass border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50";
+const inputCls = "w-full bg-white border border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500/50";
 
 function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
