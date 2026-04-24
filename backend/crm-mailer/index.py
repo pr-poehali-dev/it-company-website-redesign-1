@@ -16,34 +16,36 @@ CORS_HEADERS = {
 
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
-# Яндекс требует совпадения логина и адреса отправителя (регистронезависимо)
-# Адрес должен точно совпадать с тем, под которым создавался пароль приложения
-FROM_EMAIL = 'makst77@yandex.ru'   # строчными — Яндекс сравнивает именно так
-FROM_EMAIL_DISPLAY = 'maksT77@yandex.ru'
+# Логин — аккаунт с настроенным паролем приложения (уже работает в consultant)
+SMTP_LOGIN = 'atyurin2@yandex.ru'
+# Отображаемое имя отправителя — Максим Тюрин
 FROM_NAME = 'Тюрин Максим | MAT Labs'
+# Reply-To — чтобы ответы клиентов приходили на рабочий адрес
+REPLY_TO = 'maksT77@yandex.ru'
 
 
 def send_smtp(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
     """Отправляет письмо через SMTP Яндекса."""
-    smtp_password = os.environ.get('SMTP_PASSWORD_MAKST', '')
+    smtp_password = os.environ.get('SMTP_PASSWORD', '')
     if not smtp_password:
-        raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан — добавьте его в настройках проекта')
+        raise ValueError('Секрет SMTP_PASSWORD не задан')
 
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
-    # From и логин должны совпадать — используем строчный адрес для login() и sendmail()
-    msg['From'] = f'{FROM_NAME} <{FROM_EMAIL}>'
+    # From = логин аккаунта, но с именем Тюрина — Яндекс требует совпадения From и логина
+    msg['From'] = f'{FROM_NAME} <{SMTP_LOGIN}>'
     msg['To'] = f'{to_name} <{to_email}>' if to_name else to_email
-    msg['Reply-To'] = FROM_EMAIL
+    # Reply-To: клиент ответит на maksT77@yandex.ru
+    msg['Reply-To'] = f'{FROM_NAME} <{REPLY_TO}>'
 
     msg.attach(MIMEText(body_html, 'html', 'utf-8'))
 
-    print(f"[crm-mailer] connecting smtp login={FROM_EMAIL}")
+    print(f"[crm-mailer] smtp login={SMTP_LOGIN} reply-to={REPLY_TO} to={to_email}")
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
-        server.login(FROM_EMAIL, smtp_password)
-        server.sendmail(FROM_EMAIL, to_email, msg.as_bytes())
+        server.login(SMTP_LOGIN, smtp_password)
+        server.sendmail(SMTP_LOGIN, to_email, msg.as_bytes())
 
-    return {'success': True, 'from': FROM_EMAIL_DISPLAY, 'to': to_email}
+    return {'success': True, 'from': SMTP_LOGIN, 'reply_to': REPLY_TO, 'to': to_email}
 
 
 def handler(event: dict, context) -> dict:
