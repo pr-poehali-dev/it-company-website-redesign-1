@@ -65,15 +65,25 @@ def handler(event: dict, context) -> dict:
         except Exception:
             pass
 
-    to_email = (body.get('to_email') or '').strip()
+    import re
+    to_email_raw = (body.get('to_email') or '').strip()
     to_name = (body.get('to_name') or '').strip()
     subject = (body.get('subject') or 'Коммерческое предложение от MAT Labs').strip()
     body_html = body.get('body_html') or ''
 
     h = {**CORS_HEADERS, 'Content-Type': 'application/json'}
 
-    if not to_email:
+    if not to_email_raw:
         return {'statusCode': 400, 'headers': h, 'body': json.dumps({'success': False, 'error': 'Укажите email получателя'}, ensure_ascii=False)}
+
+    # Извлекаем первый корректный email из строки (на случай дублей вроде "a@b.ru@c.ru")
+    EMAIL_RE = re.compile(r'[\w.+\-]+@[\w\-]+\.[\w.\-]{2,}')
+    emails_found = EMAIL_RE.findall(to_email_raw)
+    if not emails_found:
+        return {'statusCode': 400, 'headers': h, 'body': json.dumps({'success': False, 'error': f'Некорректный email: {to_email_raw}'}, ensure_ascii=False)}
+    to_email = emails_found[0].lower()
+    if to_email != to_email_raw:
+        print(f"[crm-mailer] email sanitized: {to_email_raw!r} → {to_email!r}")
 
     if not body_html:
         return {'statusCode': 400, 'headers': h, 'body': json.dumps({'success': False, 'error': 'Пустое тело письма'}, ensure_ascii=False)}
