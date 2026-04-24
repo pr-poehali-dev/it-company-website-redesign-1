@@ -37,19 +37,29 @@ def send_unisender(to_email: str, to_name: str, subject: str, body_html: str) ->
     }
 
     data = json.dumps(payload).encode()
-    req = urllib.request.Request(
+    last_err = None
+    result = None
+    for base_url in [
         'https://go1.unisender.ru/ru/transactional/api/v1/email/send.json',
-        data=data,
-        headers={
-            'Content-Type': 'application/json',
-            'X-API-KEY': api_key,
-        },
-        method='POST',
-    )
-    with urllib.request.urlopen(req, timeout=20) as resp:
-        result = json.loads(resp.read().decode())
+        'https://go2.unisender.ru/ru/transactional/api/v1/email/send.json',
+    ]:
+        try:
+            req = urllib.request.Request(
+                base_url, data=data,
+                headers={'Content-Type': 'application/json', 'Accept': 'application/json', 'X-API-KEY': api_key},
+                method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                result = json.loads(resp.read().decode())
+            print(f"[crm-mailer] success via {base_url}: {result}")
+            break
+        except Exception as e:
+            print(f"[crm-mailer] failed {base_url}: {e}")
+            last_err = e
 
-    print(f"[crm-mailer] unisender response: {result}")
+    if result is None:
+        raise last_err
+
     return {'success': True, 'from': sender_email, 'to': to_email, 'result': result}
 
 
