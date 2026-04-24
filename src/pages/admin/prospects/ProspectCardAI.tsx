@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { Prospect, scoreColor } from "./types";
 
@@ -13,10 +14,31 @@ interface Props {
   onOpenKPForm: () => void;
 }
 
+function copyText(text: string) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text: string) {
+  const el = document.createElement("textarea");
+  el.value = text;
+  el.style.position = "fixed";
+  el.style.opacity = "0";
+  document.body.appendChild(el);
+  el.focus();
+  el.select();
+  document.execCommand("copy");
+  document.body.removeChild(el);
+}
+
 export default function ProspectCardAI({
   prospect, token, analyzing, onAnalyze,
   generatingMsg, generatedMsg, onMessage, onOpenKPForm,
 }: Props) {
+  const [editedMsg, setEditedMsg] = useState("");
 
   return (
     <>
@@ -90,10 +112,15 @@ export default function ProspectCardAI({
         )}
         {generatedMsg && (
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-            <pre className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans">{generatedMsg}</pre>
+            <textarea
+              value={editedMsg || generatedMsg}
+              onChange={e => setEditedMsg(e.target.value)}
+              rows={10}
+              className="w-full text-sm text-gray-800 bg-white border border-gray-200 rounded-lg px-3 py-2 leading-relaxed font-sans resize-y focus:outline-none focus:border-violet-400"
+            />
             <div className="flex gap-3 mt-3">
               <button
-                onClick={() => navigator.clipboard.writeText(generatedMsg)}
+                onClick={() => copyText(editedMsg || generatedMsg)}
                 className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 font-medium"
               >
                 <Icon name="Copy" size={12} />Копировать
