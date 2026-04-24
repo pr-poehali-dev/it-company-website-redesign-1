@@ -1,4 +1,5 @@
 {
+  "cron-runner": "https://functions.poehali.dev/e57ad53d-52a4-4403-b952-a44b6a2f496d",
   "funnel-stats": "https://functions.poehali.dev/b65235c5-530f-4505-bbf6-8ae0ccae3a3c",
   "radar-scheduler": "https://functions.poehali.dev/2725883d-2720-4230-8bac-e2703f726abc",
   "followup-engine": "https://functions.poehali.dev/b11d9fef-38cd-4721-9bb3-4d7e7d97927f",
