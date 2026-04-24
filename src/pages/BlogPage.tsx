@@ -115,16 +115,16 @@ export default function BlogPage() {
     <div className="min-h-screen bg-[#080812] text-white">
       {post && (
         <Helmet>
-          <title>{post.title} | Блог МАТ-Лабс</title>
+          <title>{post.title} | Блог MAT Labs</title>
           <meta name="description" content={description} />
           <link rel="canonical" href={canonicalUrl} />
-          <meta property="og:title" content={`${post.title} | Блог МАТ-Лабс`} />
+          <meta property="og:title" content={`${post.title} | Блог MAT Labs`} />
           <meta property="og:description" content={description} />
           <meta property="og:url" content={canonicalUrl} />
           <meta property="og:type" content="article" />
           {post.cover_url && <meta property="og:image" content={post.cover_url} />}
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={`${post.title} | Блог МАТ-Лабс`} />
+          <meta name="twitter:title" content={`${post.title} | Блог MAT Labs`} />
           <meta name="twitter:description" content={description} />
           {post.cover_url && <meta name="twitter:image" content={post.cover_url} />}
           {jsonLd && (

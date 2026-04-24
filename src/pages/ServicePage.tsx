@@ -13,7 +13,7 @@ export default function ServicePage() {
     return null;
   }
 
-  const pageTitle = `${service.title} — ООО МАТ-Лабс`;
+  const pageTitle = `${service.title} — MAT Labs | AI-автоматизация бизнеса`;
   const pageUrl = `https://mat-labs.ru/services/${service.slug}`;
   const ogImage = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/bucket/445e832b-e1ed-413e-a842-7a510d6d41f1.jpg";
 
@@ -24,7 +24,7 @@ export default function ServicePage() {
     "description": service.fullDesc,
     "provider": {
       "@type": "Organization",
-      "name": "ООО МАТ-Лабс",
+      "name": "MAT Labs",
       "url": "https://mat-labs.ru"
     },
     "priceRange": service.price,
