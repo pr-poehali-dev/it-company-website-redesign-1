@@ -1,1 +1,4 @@
-{"tests": [{"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200}]}
+{"tests": [
+  {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+  {"name": "GET status", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"ok": true, "is_due": true}, "bodyMatcher": "partial"}
+]}

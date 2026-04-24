@@ -716,12 +716,103 @@ function TabAnalyze() {
   );
 }
 
+const CRON_URL = "https://functions.poehali.dev/e57ad53d-52a4-4403-b952-a44b6a2f496d";
+const CHECK_INTERVAL_MS = 60 * 60 * 1000;
+
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: "emailer", label: "Авто-рассылка", icon: "Mail" },
   { key: "followup", label: "Follow-up", icon: "RefreshCw" },
   { key: "radar", label: "Радар", icon: "Radar" },
   { key: "analyze", label: "Анализ сайтов", icon: "Globe" },
 ];
+
+function fmtAgo(iso: string | null): string {
+  if (!iso) return "никогда";
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (diff < 2) return "только что";
+  if (diff < 60) return `${diff} мин. назад`;
+  const h = Math.floor(diff / 60);
+  if (h < 24) return `${h} ч. назад`;
+  return `${Math.floor(h / 24)} д. назад`;
+}
+
+function CronStatusBar() {
+  const [lastRun, setLastRun] = useState<string | null>(null);
+  const [isDue, setIsDue] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [lastResult, setLastResult] = useState<{ emails_sent?: number; radar_inserted?: number; followups_sent?: number } | null>(null);
+
+  const checkAndRun = useCallback(async () => {
+    try {
+      const res = await fetch(CRON_URL, { method: "GET" });
+      const data = await res.json();
+      setLastRun(data.last_run ?? null);
+      setIsDue(data.is_due ?? false);
+      setLastResult(data.last_result ?? null);
+      if (data.is_due && !running) {
+        setRunning(true);
+        try {
+          const r = await fetch(CRON_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+          const rd = await r.json();
+          setLastRun(rd.started_at ?? new Date().toISOString());
+          setLastResult(rd);
+          setIsDue(false);
+        } finally {
+          setRunning(false);
+        }
+      }
+    } catch {
+      // silent
+    }
+  }, [running]);
+
+  useEffect(() => {
+    checkAndRun();
+    const timer = setInterval(checkAndRun, CHECK_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [checkAndRun]);
+
+  return (
+    <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs transition-all ${
+      running
+        ? "bg-violet-500/10 border-violet-500/30 text-violet-300"
+        : isDue
+        ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+        : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+    }`}>
+      {running ? (
+        <Icon name="Loader2" size={13} className="animate-spin flex-shrink-0" />
+      ) : isDue ? (
+        <Icon name="Clock" size={13} className="flex-shrink-0" />
+      ) : (
+        <Icon name="CheckCircle" size={13} className="flex-shrink-0" />
+      )}
+      <span>
+        {running
+          ? "Агент работает: радар → письма → follow-up..."
+          : isDue
+          ? "Готов к запуску"
+          : `Последний запуск: ${fmtAgo(lastRun)}`}
+      </span>
+      {!running && lastResult && (
+        <span className="ml-auto text-white/30 flex gap-3">
+          {lastResult.radar_inserted !== undefined && <span>+{lastResult.radar_inserted} лидов</span>}
+          {lastResult.emails_sent !== undefined && <span>{lastResult.emails_sent} писем</span>}
+          {lastResult.followups_sent !== undefined && <span>{lastResult.followups_sent} follow-up</span>}
+        </span>
+      )}
+      {!running && (
+        <button
+          onClick={checkAndRun}
+          title="Запустить сейчас"
+          className="ml-2 opacity-50 hover:opacity-100 transition-opacity"
+        >
+          <Icon name="Play" size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function AutomationHub({ token: _token }: { token: string }) {
   const [activeTab, setActiveTab] = useState<Tab>("emailer");
@@ -739,6 +830,8 @@ export default function AutomationHub({ token: _token }: { token: string }) {
           </p>
         </div>
       </div>
+
+      <CronStatusBar />
 
       <div className="flex gap-1 glass border border-white/10 rounded-xl p-1 w-fit flex-wrap">
         {TABS.map(t => (
