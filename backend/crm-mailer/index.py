@@ -16,15 +16,15 @@ CORS_HEADERS = {
 
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
-SMTP_LOGIN = 'maksT77@yandex.ru'
+SMTP_LOGIN = 'atyurin2@yandex.ru'
 FROM_NAME = 'Тюрин Максим | MAT Labs'
 
 
 def send_smtp(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
-    """Отправляет письмо через SMTP Яндекса с аккаунта maksT77@yandex.ru."""
-    smtp_password = os.environ.get('SMTP_PASSWORD_MAKST', '')
+    """Отправляет письмо через SMTP Яндекса с аккаунта atyurin2@yandex.ru."""
+    smtp_password = os.environ.get('SMTP_PASSWORD', '')
     if not smtp_password:
-        raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан')
+        raise ValueError('Секрет SMTP_PASSWORD не задан')
 
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
