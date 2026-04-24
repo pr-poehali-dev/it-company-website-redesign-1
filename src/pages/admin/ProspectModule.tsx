@@ -158,6 +158,20 @@ export default function ProspectModule({ token }: { token: string }) {
     await loadActivities(selected.id);
   }
 
+  async function deleteProspect(id: number) {
+    await api("delete", "POST", { id });
+    setSelected(null);
+    setGenMsgText("");
+    await loadProspects();
+  }
+
+  async function agentAct(prospectId: number, mode = "auto") {
+    const data = await api("agent_act", "POST", { prospect_id: prospectId, mode });
+    if (selected?.id === prospectId) await loadActivities(prospectId);
+    await loadProspects();
+    return data;
+  }
+
   async function createProject() {
     if (!newProject.name.trim()) return;
     setAddingProject(true);
@@ -453,6 +467,8 @@ export default function ProspectModule({ token }: { token: string }) {
           token={token}
           onEdit={() => { setEditProspect(selected); setIsNewEdit(false); }}
           onClose={() => { setSelected(null); setGenMsgText(""); }}
+          onDelete={() => deleteProspect(selected.id)}
+          onAgentAct={(mode) => agentAct(selected.id, mode)}
           onAnalyze={() => analyze(selected)}
           analyzing={analyzing}
           onMessage={generateMessage}

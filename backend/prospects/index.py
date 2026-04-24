@@ -938,17 +938,201 @@ def handle_prospect_detail(event, method, body, prospect_id):
         return json_resp({'prospect': dict(updated) if updated else None})
 
     if method == 'DELETE':
-        cur.execute(f"UPDATE {S}.prospects SET status='lost' WHERE id=%s", (prospect_id,))
-        cur.execute(
-            f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)",
-            (prospect_id, 'note', 'Статус изменён на «Отказ»')
-        )
+        # Проверяем существование
+        cur.execute(f"SELECT id, company_name FROM {S}.prospects WHERE id=%s", (prospect_id,))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return err('Не найден', 404)
+        company_name = row['company_name']
+        # Удаляем активности, затем саму запись
+        cur.execute(f"DELETE FROM {S}.prospect_activities WHERE prospect_id=%s", (prospect_id,))
+        cur.execute(f"DELETE FROM {S}.prospects WHERE id=%s", (prospect_id,))
         conn.commit()
         conn.close()
-        return json_resp({'ok': True})
+        print(f"[delete] Удалён лид #{prospect_id} «{company_name}»")
+        return json_resp({'ok': True, 'deleted_id': prospect_id})
 
     conn.close()
     return err('Метод не поддерживается')
+
+
+def handle_agent_act(body: dict) -> dict:
+    """
+    AI-агент: анализирует лид и выполняет одно из действий:
+    - update_status: меняет статус лида
+    - set_next_action: ставит задачу (следующее действие + дата)
+    - add_note: добавляет заметку в историю
+    - recommend: возвращает план действий без изменений
+    Режим 'auto' — агент сам решает что делать.
+    """
+    api_key = os.environ.get('POLZA_AI_API_KEY', '')
+    if not api_key:
+        return err('Нет ключа ИИ')
+
+    prospect_id = body.get('prospect_id')
+    mode = body.get('mode', 'auto')  # auto | recommend | update_status | set_next_action
+
+    if not prospect_id:
+        return err('Не указан prospect_id')
+
+    # Загружаем лид + историю
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"""
+        SELECT p.*, pr.name as project_name, pr.description as project_description
+        FROM {S}.prospects p
+        LEFT JOIN {S}.prospect_projects pr ON pr.id = p.project_id
+        WHERE p.id = %s
+    """, (prospect_id,))
+    p = cur.fetchone()
+    if not p:
+        conn.close()
+        return err('Лид не найден', 404)
+    prospect = dict(p)
+
+    cur.execute(f"""
+        SELECT activity_type, content, created_at
+        FROM {S}.prospect_activities
+        WHERE prospect_id=%s
+        ORDER BY created_at DESC LIMIT 10
+    """, (prospect_id,))
+    activities = [dict(r) for r in cur.fetchall()]
+    conn.close()
+
+    # Строим историю для промпта
+    history_text = ""
+    if activities:
+        history_text = "\n".join([
+            f"  [{a['created_at'].strftime('%d.%m %H:%M') if hasattr(a['created_at'], 'strftime') else str(a['created_at'])[:16]}] {a['activity_type']}: {a['content'][:120]}"
+            for a in activities
+        ])
+    else:
+        history_text = "  История пуста"
+
+    prompt = f"""Ты — Юра, AI-менеджер по продажам IT-компании MAT Labs. Ты — эталонный универсальный сотрудник:
+думаешь стратегически, действуешь точно, никогда не теряешь клиентов.
+
+{COMPANY_PROFILE.strip()}
+
+КАРТОЧКА ЛИДА:
+Компания: {prospect.get('company_name', '')}
+Отрасль: {prospect.get('industry', '')}
+Регион: {prospect.get('region', '')}
+Сайт: {prospect.get('website', '')}
+Email: {prospect.get('email', '')}
+Телефон: {prospect.get('phone', '')}
+Текущий статус: {STATUS_LABELS.get(prospect.get('status', ''), prospect.get('status', ''))}
+Приоритет: {PRIORITY_LABELS.get(prospect.get('priority', ''), prospect.get('priority', ''))}
+AI-скор: {prospect.get('ai_score', 'не задан')}
+AI-анализ: {prospect.get('ai_summary', 'не проводился')}
+Текущее следующее действие: {prospect.get('next_action', 'не задано')}
+Дата следующего действия: {prospect.get('next_action_date', 'не задана')}
+Заметка: {prospect.get('note', '')}
+
+ИСТОРИЯ АКТИВНОСТЕЙ (последние 10):
+{history_text}
+
+ЗАДАЧА: проанализируй лид и реши что делать ПРЯМО СЕЙЧАС.
+Режим: {mode}
+
+Логика решения:
+- Если нет контакта и есть email/телефон → нужно написать/позвонить
+- Если был контакт → оцени реакцию, предложи следующий шаг
+- Если интерес проявлен → push к переговорам
+- Если переговоры → помоги закрыть сделку
+- Если нет активности давно → реанимация
+
+Верни ТОЛЬКО JSON без markdown:
+{{
+  "summary": "<3-5 предложений: что за клиент, где находится в воронке, главный риск>",
+  "recommended_status": "<new|contacted|interested|negotiation|won|lost|postponed — рекомендуемый статус, null если менять не нужно>",
+  "recommended_priority": "<low|medium|high — рекомендуемый приоритет, null если менять не нужно>",
+  "next_action": "<конкретная задача для менеджера: что сделать, как именно, что сказать>",
+  "next_action_date": "<дата в формате YYYY-MM-DD, через сколько дней выполнить>",
+  "message_draft": "<готовый текст письма или скрипт звонка, если требуется. Пустая строка если не нужно>",
+  "note": "<заметка для истории: что агент определил и почему>",
+  "actions": [
+    {{
+      "type": "<update_status|update_priority|set_next_action|add_note>",
+      "label": "<что делает на русском, например: Сменить статус на «Контакт установлен»>",
+      "auto": <true — выполнить автоматически, false — требует подтверждения>
+    }}
+  ],
+  "urgency": "<high|medium|low — насколько срочно действовать>",
+  "confidence": "<high|medium|low — уверенность в рекомендации>"
+}}"""
+
+    try:
+        body_data = json.dumps({
+            'model': 'gpt-4o',
+            'messages': [{'role': 'user', 'content': prompt}],
+            'temperature': 0.3,
+            'max_tokens': 1200,
+        }).encode()
+        req = urllib.request.Request(
+            AI_URL, data=body_data,
+            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'},
+            method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = json.loads(resp.read().decode())
+        text = data['choices'][0]['message']['content'].strip()
+        text = re.sub(r'^```(?:json)?\s*', '', text)
+        text = re.sub(r'\s*```$', '', text)
+        result = json.loads(text)
+    except Exception as e:
+        return err(f'Ошибка ИИ: {str(e)[:120]}')
+
+    # Авто-выполнение действий помеченных auto=true
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    applied = []
+
+    for act in result.get('actions', []):
+        if not act.get('auto'):
+            continue
+        t = act.get('type')
+        if t == 'update_status' and result.get('recommended_status'):
+            cur.execute(
+                f"UPDATE {S}.prospects SET status=%s, updated_at=NOW() WHERE id=%s",
+                (result['recommended_status'], prospect_id)
+            )
+            cur.execute(
+                f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content) VALUES (%s,%s,%s)",
+                (prospect_id, 'status_change',
+                 f"AI-агент: статус изменён → {STATUS_LABELS.get(result['recommended_status'], result['recommended_status'])}")
+            )
+            applied.append(act['label'])
+
+        elif t == 'update_priority' and result.get('recommended_priority'):
+            cur.execute(
+                f"UPDATE {S}.prospects SET priority=%s, updated_at=NOW() WHERE id=%s",
+                (result['recommended_priority'], prospect_id)
+            )
+            applied.append(act['label'])
+
+        elif t == 'set_next_action' and result.get('next_action'):
+            cur.execute(
+                f"UPDATE {S}.prospects SET next_action=%s, next_action_date=%s, updated_at=NOW() WHERE id=%s",
+                (result['next_action'], result.get('next_action_date'), prospect_id)
+            )
+            applied.append(act['label'])
+
+        elif t == 'add_note' and result.get('note'):
+            cur.execute(
+                f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content) VALUES (%s,%s,%s)",
+                (prospect_id, 'ai_agent', f"AI-агент: {result['note']}")
+            )
+            applied.append(act['label'])
+
+    if applied:
+        conn.commit()
+    conn.close()
+
+    result['applied_actions'] = applied
+    result['prospect_id'] = prospect_id
+    return json_resp(result)
 
 
 def handle_add_activity(prospect_id, body):
@@ -1001,11 +1185,16 @@ def handler(event: dict, context) -> dict:
         'list': '/',
         'create': '/',
         'update': f'/{body.get("id", "")}' if body.get('id') else '/',
+        'delete': f'/{body.get("id", "")}' if body.get('id') else '/',
         'detail': f'/{params.get("id", "")}' if params.get('id') else '/',
         'activity': f'/{body.get("prospect_id", "")}/activity' if body.get('prospect_id') else '/activity',
+        'agent_act': '/agent_act',
     }
     if action and path in ('/', ''):
         path = action_to_path.get(action, '/' + action)
+        # action=delete → форсируем DELETE-метод
+        if action == 'delete':
+            method = 'DELETE'
 
     # /prospects/search — поиск по источникам
     if path.endswith('/search'):
@@ -1115,6 +1304,12 @@ def handler(event: dict, context) -> dict:
             return handle_prospect_detail(event, method, body, prospect_id)
         except ValueError:
             pass
+
+    # /prospects/agent_act — AI-агент выполняет действие в CRM
+    if path.endswith('/agent_act'):
+        if method != 'POST':
+            return err('Только POST')
+        return handle_agent_act(body)
 
     # /prospects/ — список и создание
     return handle_prospects_list(event, method, body, params)
