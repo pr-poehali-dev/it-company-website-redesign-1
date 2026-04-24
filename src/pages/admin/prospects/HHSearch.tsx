@@ -146,10 +146,10 @@ export default function HHSearch({ token }: Props) {
       <div>
         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
           <Icon name="Briefcase" size={20} className="text-red-400" />
-          Поиск клиентов через HH.ru
+          Поиск клиентов по отрасли
         </h2>
         <p className="text-sm text-white/50 mt-1">
-          Ищем вакансии → находим компании, которые нанимают → они ваши потенциальные клиенты
+          Ищем компании по отрасли / роли через ЕГРЮЛ и госзакупки → готовые лиды с ИНН и регионом
         </p>
       </div>
 

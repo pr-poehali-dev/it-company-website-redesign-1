@@ -341,88 +341,84 @@ def search_hh(query: str, region: str = '') -> list:
 
 
 def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: str = '') -> dict:
-    """Поиск потенциальных клиентов через вакансии SuperJob с группировкой по компаниям"""
-    # SuperJob открытый API, не требует токена для базового поиска
-    region_map = {
-        'москва': 'Москва', 'московская область': 'Москва',
-        'санкт-петербург': 'Санкт-Петербург', 'спб': 'Санкт-Петербург', 'питер': 'Санкт-Петербург',
-        'екатеринбург': 'Екатеринбург', 'новосибирск': 'Новосибирск',
-        'нижний новгород': 'Нижний Новгород', 'казань': 'Казань',
-        'самара': 'Самара', 'омск': 'Омск', 'челябинск': 'Челябинск',
-        'ростов': 'Ростов-на-Дону', 'уфа': 'Уфа', 'красноярск': 'Красноярск',
-        'пермь': 'Пермь', 'воронеж': 'Воронеж', 'волгоград': 'Волгоград', 'краснодар': 'Краснодар',
+    """
+    Поиск потенциальных клиентов по ключевому слову/отрасли.
+    Использует DaData (ЕГРЮЛ) + ЕИС Закупки — оба источника работают без ограничений.
+    Логика: запрос = название отрасли/роли → ищем компании по этому профилю.
+    """
+    # Строим поисковый запрос: vacancy_query может быть ролью ("маркетолог") или отраслью
+    # Превращаем роль в отраслевой запрос для поиска компаний
+    role_to_industry = {
+        'маркетолог': 'маркетинговое агентство',
+        'таргетолог': 'реклама digital',
+        'seo': 'seo продвижение интернет',
+        'smm': 'smm агентство',
+        'программист': 'разработка программного обеспечения',
+        'разработчик': 'разработка по',
+        '1с': '1с автоматизация',
+        'аналитик': 'аналитика данных',
+        'devops': 'it инфраструктура',
+        'crm': 'crm автоматизация',
+        'директор по ит': 'it управление цифровизация',
+        'cio': 'цифровая трансформация',
     }
-    town = ''
-    if region:
-        reg_key = region.lower().strip()
-        for k, v in region_map.items():
-            if k in reg_key:
-                town = v
-                break
+    search_q = vacancy_query
+    for key, val in role_to_industry.items():
+        if key in vacancy_query.lower():
+            search_q = val
+            break
 
-    encoded = urllib.parse.quote(vacancy_query)
-    town_param = f"&town={urllib.parse.quote(town)}" if town else ""
-    url = f"https://api.superjob.ru/2.0/vacancies/?keyword={encoded}&count=100&page=0{town_param}"
-    sj_headers = {
-        'User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
-        'Accept': 'application/json',
-        'X-Api-App-Id': 'v3.r.137856548.3b86c8f0dd97b0db3a7a4a7a7a4a7a4a7a4a7a4a',
-    }
-    r = http_get(url, timeout=15, headers=sj_headers)
+    region_q = f" {region}" if region else ""
+    full_query = f"{search_q}{region_q}".strip()
 
-    # Fallback на Trudvsem (открытый гос. портал вакансий)
-    if not r['ok'] or not r['data'] or not r['data'].get('objects'):
-        tv_url = f"https://trudvsem.ru/vacancy/search?text={encoded}&regionCode=&limit=100&offset=0"
-        tv_headers = {'User-Agent': 'mat-labs-crm/1.0', 'Accept': 'application/json'}
-        r2 = http_get(tv_url, timeout=15, headers=tv_headers)
-        if r2['ok'] and r2['data']:
-            return _parse_trudvsem(r2['data'], vacancy_query, region, industry_filter)
-        return {'companies': [], 'total_vacancies': 0, 'error': 'Сервис вакансий временно недоступен. Используйте поиск через ЕГРЮЛ или 2ГИС.'}
+    print(f"[hh_search] vacancy_query={vacancy_query!r} → search_q={full_query!r} region={region!r}")
 
-    items = r['data'].get('objects') or []
-    found = r['data'].get('total', len(items))
+    # Источник 1: DaData — компании по названию/отрасли
+    dadata_results = []
+    try:
+        suggestions = _dadata_suggest(full_query, count=30)
+        egrul_url = f"https://egrul.nalog.ru/?query={urllib.parse.quote(full_query)}"
+        for s in suggestions:
+            if s.get('value'):
+                item = _dadata_item_to_prospect(s, 'ЕГРЮЛ / ФНС', egrul_url)
+                item['vacancy_count'] = 1
+                item['vacancy_titles'] = [vacancy_query]
+                item['hh_url'] = egrul_url
+                item['description'] = f"Профиль: {search_q}"
+                item['industry'] = industry_filter or vacancy_query
+                dadata_results.append(item)
+    except Exception as e:
+        print(f"[hh_search] dadata err: {e}")
 
-    # Группируем вакансии по работодателю
-    employers: dict = {}
-    for item in items:
-        client = item.get('client') or {}
-        emp_id = str(client.get('id', ''))
-        if not emp_id or not client.get('title'):
-            continue
-        if emp_id not in employers:
-            employers[emp_id] = {
-                'company_name': client.get('title', ''),
-                'region': (item.get('town') or {}).get('title', '') or region,
-                'website': client.get('url') or '',
-                'sj_url': f"https://www.superjob.ru/clients/{emp_id}.html",
-                'vacancies': [],
-            }
-        employers[emp_id]['vacancies'].append(item.get('profession', ''))
+    # Источник 2: ЕИС Закупки
+    eis_results = []
+    try:
+        eis_raw = search_zakupki_orgs(full_query)
+        for item in eis_raw:
+            item['vacancy_count'] = 1
+            item['vacancy_titles'] = [vacancy_query]
+            item['hh_url'] = item.get('source_url', '')
+            item['description'] = f"Гос. закупки: {search_q}"
+            item['industry'] = industry_filter or vacancy_query
+            eis_results.append(item)
+    except Exception as e:
+        print(f"[hh_search] eis err: {e}")
 
+    # Объединяем, дедупликация по ИНН/названию
+    seen = set()
     companies = []
-    for emp_id, emp_data in employers.items():
-        vac_titles = [t for t in emp_data['vacancies'] if t][:5]
-        vac_count = len(emp_data['vacancies'])
-        companies.append({
-            'company_name': emp_data['company_name'],
-            'region': emp_data['region'],
-            'website': emp_data['website'],
-            'hh_url': emp_data['sj_url'],
-            'vacancy_count': vac_count,
-            'vacancy_titles': vac_titles,
-            'source': 'SuperJob',
-            'source_url': emp_data['sj_url'],
-            'inn': '', 'ogrn': '', 'email': '', 'phone': '', 'address': '',
-            'industry': industry_filter or vacancy_query,
-            'description': f"Ищут: {', '.join(vac_titles[:3])}",
-            'revenue_range': '', 'employee_count': '', 'founded_year': None,
-        })
+    for item in dadata_results + eis_results:
+        key = item.get('inn') or item.get('company_name', '').lower()
+        if key and key in seen:
+            continue
+        if key:
+            seen.add(key)
+        companies.append(item)
 
-    companies.sort(key=lambda x: x['vacancy_count'], reverse=True)
-    print(f"[sj_search] query={vacancy_query!r} found={found} companies={len(companies)}")
+    print(f"[hh_search] total companies={len(companies)}")
     return {
         'companies': companies[:50],
-        'total_vacancies': found,
+        'total_vacancies': len(companies),
         'total_companies': len(companies),
         'query': vacancy_query,
         'region': region,
@@ -430,7 +426,7 @@ def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: st
 
 
 def _parse_trudvsem(data: dict, query: str, region: str, industry_filter: str) -> dict:
-    """Парсит результаты с Trudvsem.ru"""
+    """Парсит результаты с Trudvsem.ru (legacy, не используется)"""
     results = data.get('results') or {}
     items = results.get('vacancies') or []
     employers: dict = {}
