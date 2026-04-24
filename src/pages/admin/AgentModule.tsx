@@ -47,6 +47,8 @@ interface StrategyReport {
 interface LeadRec {
   company: string;
   status: string;
+  segment?: string;
+  warm_signals?: string;
   next_step: string;
   email_subject: string;
   email_body: string;
@@ -376,6 +378,15 @@ export default function AgentModule({ token }: { token: string }) {
               {report.leads_recommendations.map((lead, i) => {
                 const isOpen = expandedLead === i;
                 const timingCls = TIMING_COLOR[lead.timing?.toLowerCase() || ""] || "text-white/40 bg-white/5";
+
+                const SEGMENT_COLOR: Record<string, string> = {
+                  "Услуги": "text-violet-300 bg-violet-500/10 border-violet-500/20",
+                  "Онлайн-школа": "text-cyan-300 bg-cyan-500/10 border-cyan-500/20",
+                  "E-commerce": "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
+                  "B2B": "text-amber-300 bg-amber-500/10 border-amber-500/20",
+                };
+                const segCls = SEGMENT_COLOR[lead.segment || ""] || "text-white/40 bg-white/5 border-white/10";
+
                 return (
                   <div key={i} className="glass border border-white/10 rounded-2xl overflow-hidden">
                     <button
@@ -384,8 +395,15 @@ export default function AgentModule({ token }: { token: string }) {
                     >
                       <span className="text-xs font-bold text-white/30 flex-shrink-0 w-6">{String(i + 1).padStart(2, "0")}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm text-white truncate">{lead.company}</div>
-                        <div className="text-xs text-white/40 truncate mt-0.5">{lead.next_step}</div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-semibold text-sm text-white truncate">{lead.company}</span>
+                          {lead.segment && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full border flex-shrink-0 ${segCls}`}>
+                              {lead.segment}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-white/40 truncate">{lead.next_step}</div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {lead.timing && (
@@ -398,11 +416,21 @@ export default function AgentModule({ token }: { token: string }) {
                     </button>
 
                     {isOpen && (
-                      <div className="border-t border-white/5 px-5 py-5 space-y-5">
+                      <div className="border-t border-white/5 px-5 py-5 space-y-4">
+                        {/* Признаки тёплого клиента */}
+                        {lead.warm_signals && (
+                          <div className="bg-amber-500/8 border border-amber-500/20 rounded-xl p-4">
+                            <div className="text-xs text-amber-400 font-semibold mb-1 flex items-center gap-1.5">
+                              <Icon name="Flame" size={12} />Признаки хаоса / потерь
+                            </div>
+                            <p className="text-xs text-white/70">{lead.warm_signals}</p>
+                          </div>
+                        )}
+
                         {/* Оффер */}
                         <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4">
                           <div className="text-xs text-violet-400 font-semibold mb-1 flex items-center gap-1.5">
-                            <Icon name="Package" size={12} />Предложение
+                            <Icon name="Package" size={12} />Что предложить
                           </div>
                           <p className="text-sm text-white/80">{lead.offer}</p>
                         </div>
@@ -416,7 +444,7 @@ export default function AgentModule({ token }: { token: string }) {
                             <CopyBtn text={`Тема: ${lead.email_subject}\n\n${lead.email_body}`} />
                           </div>
                           <div className="bg-white/3 border border-white/5 rounded-xl p-4">
-                            <div className="text-xs text-white/50 mb-1">Тема: <span className="text-white/80">{lead.email_subject}</span></div>
+                            <div className="text-xs text-white/50 mb-2">Тема: <span className="text-white/80 font-medium">{lead.email_subject}</span></div>
                             <pre className="text-xs text-white/70 whitespace-pre-wrap leading-relaxed font-sans">{lead.email_body}</pre>
                           </div>
                         </div>
