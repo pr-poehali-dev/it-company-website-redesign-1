@@ -161,27 +161,81 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
             </AnimatedSection>
 
             <AnimatedSection>
-              <div className="space-y-6">
-                {[
-                  { icon: "MapPin", title: "Офис", value: "Москва, Пресненская наб., 12, БЦ «Башня Федерация»", color: "text-violet-400", bg: "bg-violet-500/20" },
-                  { icon: "Phone", title: "Телефон", value: "+7 (927) 748-68-68", color: "text-cyan-400", bg: "bg-cyan-500/20" },
-                  { icon: "Mail", title: "Email", value: "maksT77@yandex.ru", color: "text-pink-400", bg: "bg-pink-500/20" },
-                  { icon: "Clock", title: "Часы работы", value: "Пн–Пт: 9:00–19:00 МСК", color: "text-emerald-400", bg: "bg-emerald-500/20" },
-                ].map((item, i) => (
-                  <div key={i} className="glass neon-border rounded-2xl p-5 flex items-start gap-4 card-hover">
-                    <div className={`w-11 h-11 ${item.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                      <Icon name={item.icon} size={20} className={item.color} />
-                    </div>
-                    <div>
-                      <div className="text-white/50 text-xs mb-1">{item.title}</div>
-                      <div className="text-white font-medium text-sm">{item.value}</div>
-                    </div>
+              <div className="space-y-5">
+                {/* Что вы получите */}
+                <div className="glass neon-border rounded-2xl p-7">
+                  <div className="inline-flex items-center gap-2 glass px-3 py-1.5 rounded-full text-xs text-emerald-300 border border-emerald-500/30 mb-5">
+                    <Icon name="Gift" size={13} className="text-emerald-400" />
+                    Что вы получите
                   </div>
-                ))}
+                  <div className="space-y-4">
+                    {[
+                      {
+                        step: "01",
+                        icon: "Search",
+                        title: "Разбор ваших процессов",
+                        desc: "Изучим, где теряются заявки и какие задачи занимают больше всего времени",
+                        color: "text-violet-400",
+                        bg: "bg-violet-500/10",
+                        border: "border-violet-500/20",
+                      },
+                      {
+                        step: "02",
+                        icon: "Lightbulb",
+                        title: "Конкретный план автоматизации",
+                        desc: "Покажем, что именно автоматизировать и какой результат это даст",
+                        color: "text-cyan-400",
+                        bg: "bg-cyan-500/10",
+                        border: "border-cyan-500/20",
+                      },
+                      {
+                        step: "03",
+                        icon: "Calculator",
+                        title: "Стоимость и сроки",
+                        desc: "Назовём цену и срок внедрения под вашу задачу — без воды и лишних затрат",
+                        color: "text-emerald-400",
+                        bg: "bg-emerald-500/10",
+                        border: "border-emerald-500/20",
+                      },
+                    ].map((item, i) => (
+                      <div key={i} className={`flex gap-4 ${item.bg} border ${item.border} rounded-xl px-4 py-4`}>
+                        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                          <div className={`w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center`}>
+                            <Icon name={item.icon} size={16} className={item.color} />
+                          </div>
+                          <span className={`text-xs font-bold ${item.color} opacity-50`}>{item.step}</span>
+                        </div>
+                        <div className="pt-1">
+                          <div className="text-sm font-semibold text-white mb-1">{item.title}</div>
+                          <div className="text-xs text-white/50 leading-relaxed">{item.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-                <div className="glass neon-border rounded-2xl p-5">
-                  <div className="text-white/50 text-xs mb-3">Мы в соцсетях</div>
-                  <div className="flex gap-3">
+                  <div className="mt-5 pt-5 border-t border-white/5 flex items-center gap-3">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse flex-shrink-0" />
+                    <p className="text-xs text-white/40">
+                      Разбор бесплатный и ни к чему не обязывает. Ответим в течение 24 часов.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Контакты компактно */}
+                <div className="glass neon-border rounded-2xl p-5 space-y-3">
+                  <div className="text-white/40 text-xs mb-1">Или свяжитесь напрямую</div>
+                  {[
+                    { icon: "Phone", value: "+7 (927) 748-68-68", color: "text-cyan-400", bg: "bg-cyan-500/20" },
+                    { icon: "Mail", value: "maksT77@yandex.ru", color: "text-pink-400", bg: "bg-pink-500/20" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className={`w-8 h-8 ${item.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <Icon name={item.icon} size={15} className={item.color} />
+                      </div>
+                      <span className="text-white/70 text-sm">{item.value}</span>
+                    </div>
+                  ))}
+                  <div className="pt-1 flex gap-2">
                     {[
                       { icon: "MessageCircle", label: "Telegram" },
                       { icon: "Linkedin", label: "LinkedIn" },
@@ -191,9 +245,9 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                       <button
                         key={i}
                         title={s.label}
-                        className="w-10 h-10 glass border border-white/10 rounded-xl flex items-center justify-center hover:border-violet-500/50 hover:bg-violet-500/10 transition-all duration-200 group"
+                        className="w-9 h-9 glass border border-white/10 rounded-xl flex items-center justify-center hover:border-violet-500/50 hover:bg-violet-500/10 transition-all duration-200 group"
                       >
-                        <Icon name={s.icon} size={16} className="text-white/50 group-hover:text-violet-400 transition-colors" />
+                        <Icon name={s.icon} size={15} className="text-white/40 group-hover:text-violet-400 transition-colors" />
                       </button>
                     ))}
                   </div>
