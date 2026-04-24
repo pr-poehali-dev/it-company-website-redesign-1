@@ -295,10 +295,10 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
               Услуги
             </div>
             <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-              Полный спектр{" "}
-              <span className="gradient-text-3">IT-решений</span>
+              Всё, что нужно для{" "}
+              <span className="gradient-text-3">роста бизнеса</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">От идеи до запуска — всё в одном месте</p>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">AI-автоматизация, сайты и разработка — под конкретную задачу, а не «в общем»</p>
           </AnimatedSection>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
