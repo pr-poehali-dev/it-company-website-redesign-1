@@ -19,10 +19,13 @@ interface Props {
 export default function ProspectCardContacts({ prospect, token, onEmailFound, onKpRecipientChange }: Props) {
   const [findingEmail, setFindingEmail] = useState(false);
   const [emailResult, setEmailResult] = useState<EmailResult | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   async function handleFindEmail() {
     setFindingEmail(true);
     setEmailResult(null);
+    setSaved(false);
     try {
       const res = await fetch(PROSPECTS_URL, {
         method: "POST",
@@ -37,10 +40,21 @@ export default function ProspectCardContacts({ prospect, token, onEmailFound, on
       setEmailResult(data);
       if (data.primary) {
         onKpRecipientChange(data.primary);
-        if (onEmailFound) onEmailFound(data.primary);
+        // Автоматически сохраняем найденный email
+        await handleSaveEmail(data.primary);
       }
     } finally {
       setFindingEmail(false);
+    }
+  }
+
+  async function handleSaveEmail(email: string) {
+    setSaving(true);
+    try {
+      if (onEmailFound) onEmailFound(email);
+      setSaved(true);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -81,28 +95,39 @@ export default function ProspectCardContacts({ prospect, token, onEmailFound, on
         <div className="mt-3 space-y-2">
           <button
             onClick={handleFindEmail}
-            disabled={findingEmail}
+            disabled={findingEmail || saving}
             className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-all disabled:opacity-50 font-medium"
           >
             {findingEmail
               ? <><Icon name="Loader2" size={14} className="animate-spin" />Ищу email в Яндексе...</>
-              : <><Icon name="SearchCheck" size={14} />Найти email автоматически</>}
+              : saving
+                ? <><Icon name="Loader2" size={14} className="animate-spin" />Сохраняю...</>
+                : <><Icon name="SearchCheck" size={14} />Найти email автоматически</>}
           </button>
+
           {emailResult && (
             <div className={`rounded-xl p-3 text-sm border ${emailResult.primary ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-200"}`}>
               {emailResult.primary ? (
-                <div className="flex items-center gap-2">
-                  <Icon name="Mail" size={14} className="text-emerald-600" />
-                  <span className="font-semibold text-emerald-700">{emailResult.primary}</span>
-                  {emailResult.emails.length > 1 && (
-                    <span className="text-gray-400 text-xs">+ ещё {emailResult.emails.length - 1}</span>
-                  )}
-                  <button
-                    onClick={() => navigator.clipboard.writeText(emailResult.primary)}
-                    className="ml-auto text-gray-400 hover:text-gray-600"
-                  >
-                    <Icon name="Copy" size={13} />
-                  </button>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Icon name="Mail" size={14} className="text-emerald-600" />
+                    <span className="font-semibold text-emerald-700">{emailResult.primary}</span>
+                    {emailResult.emails.length > 1 && (
+                      <span className="text-gray-400 text-xs">+ ещё {emailResult.emails.length - 1}</span>
+                    )}
+                    <button
+                      onClick={() => navigator.clipboard.writeText(emailResult.primary)}
+                      className="ml-auto text-gray-400 hover:text-gray-600"
+                    >
+                      <Icon name="Copy" size={13} />
+                    </button>
+                  </div>
+                  {saved ? (
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                      <Icon name="CheckCircle" size={13} />
+                      Сохранён в карточку — больше не нужно искать
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-gray-500">

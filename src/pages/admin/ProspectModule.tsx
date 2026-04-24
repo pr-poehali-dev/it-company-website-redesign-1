@@ -461,7 +461,7 @@ export default function ProspectModule({ token }: { token: string }) {
           onAddActivity={addActivity}
           onEmailFound={async (email) => {
             if (selected?.id) {
-              await api("update", "PUT", { id: selected.id, email });
+              await api("patch_email", "POST", { prospect_id: selected.id, email });
               await loadActivities(selected.id);
               await loadProspects();
             }

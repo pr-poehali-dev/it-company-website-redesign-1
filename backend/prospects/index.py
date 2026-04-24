@@ -994,6 +994,7 @@ def handler(event: dict, context) -> dict:
         'message': '/message',
         'radar': '/radar',
         'find_email': '/find_email',
+        'patch_email': '/patch_email',
         'upload_kp': '/upload_kp',
         'projects': '/projects',
         'projects_create': '/projects',
@@ -1029,6 +1030,29 @@ def handler(event: dict, context) -> dict:
             return err('Файл не передан')
         result = upload_kp_file(file_b64, filename)
         return json_resp(result)
+
+    # /prospects/patch_email — сохранение найденного email в карточку
+    if path.endswith('/patch_email'):
+        if method != 'POST':
+            return err('Только POST')
+        prospect_id = body.get('prospect_id')
+        email = (body.get('email') or '').strip()
+        if not prospect_id or not email:
+            return err('Не указан prospect_id или email')
+        conn = get_db()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"UPDATE {S}.prospects SET email=%s, updated_at=NOW() WHERE id=%s RETURNING id, email",
+            (email, int(prospect_id))
+        )
+        row = cur.fetchone()
+        cur.execute(
+            f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)",
+            (int(prospect_id), 'note', f"Email найден и сохранён: {email}")
+        )
+        conn.commit()
+        conn.close()
+        return json_resp({'ok': True, 'email': email})
 
     # /prospects/find_email — поиск email компании через Яндекс
     if path.endswith('/find_email'):
