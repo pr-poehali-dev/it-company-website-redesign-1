@@ -1,12 +1,10 @@
 """
-CRM Mailer — отправка писем и КП из CRM через SMTP Яндекс.Почты.
-Использует maksT77@yandex.ru как отправителя.
+CRM Mailer — отправка писем и КП из CRM через Unisender Go API.
 """
 import json
 import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import re
+import urllib.request
 
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -14,36 +12,49 @@ CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token, X-Authorization',
 }
 
-SMTP_HOST = 'smtp.yandex.ru'
-SMTP_PORT = 465
-SMTP_LOGIN = 'atyurin2@yandex.ru'
-FROM_NAME = 'Тюрин Максим | MAT Labs'
+EMAIL_RE = re.compile(r'[\w.+\-]+@[\w\-]+\.[\w.\-]{2,}')
 
 
-def send_smtp(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
-    """Отправляет письмо через SMTP Яндекса с аккаунта atyurin2@yandex.ru."""
-    smtp_password = os.environ.get('SMTP_PASSWORD', '')
-    if not smtp_password:
-        raise ValueError('Секрет SMTP_PASSWORD не задан')
+def send_unisender(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
+    """Отправляет письмо через Unisender Go API."""
+    api_key = os.environ.get('UNISENDER_API_KEY', '')
+    sender_email = os.environ.get('UNISENDER_SENDER_EMAIL', 'info@mat-labs.ru')
+    sender_name = os.environ.get('UNISENDER_SENDER_NAME', 'Тюрин Максим | MAT Labs')
 
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = subject
-    # From = логин аккаунта, но с именем Тюрина — Яндекс требует совпадения From и логина
-    msg['From'] = f'{FROM_NAME} <{SMTP_LOGIN}>'
-    msg['To'] = f'{to_name} <{to_email}>' if to_name else to_email
+    if not api_key:
+        raise ValueError('Секрет UNISENDER_API_KEY не задан')
 
-    msg.attach(MIMEText(body_html, 'html', 'utf-8'))
+    payload = {
+        'message': {
+            'recipients': [{'email': to_email, 'substitutions': {'to_name': to_name or to_email}}],
+            'sender_email': sender_email,
+            'sender_name': sender_name,
+            'subject': subject,
+            'body': {'html': body_html},
+            'track_links': 0,
+            'track_read': 0,
+        }
+    }
 
-    print(f"[crm-mailer] smtp login={SMTP_LOGIN} to={to_email}")
-    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
-        server.login(SMTP_LOGIN, smtp_password)
-        server.sendmail(SMTP_LOGIN, to_email, msg.as_bytes())
+    data = json.dumps(payload).encode()
+    req = urllib.request.Request(
+        'https://go1.unisender.ru/ru/transactional/api/v1/email/send.json',
+        data=data,
+        headers={
+            'Content-Type': 'application/json',
+            'X-API-KEY': api_key,
+        },
+        method='POST',
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        result = json.loads(resp.read().decode())
 
-    return {'success': True, 'from': SMTP_LOGIN, 'to': to_email}
+    print(f"[crm-mailer] unisender response: {result}")
+    return {'success': True, 'from': sender_email, 'to': to_email, 'result': result}
 
 
 def handler(event: dict, context) -> dict:
-    """Отправка писем и КП из CRM через SMTP Яндекс (maksT77@yandex.ru)."""
+    """Отправка писем и КП из CRM через Unisender Go."""
     method = event.get('httpMethod', 'GET')
 
     if method == 'OPTIONS':
@@ -59,7 +70,6 @@ def handler(event: dict, context) -> dict:
         except Exception:
             pass
 
-    import re
     to_email_raw = (body.get('to_email') or '').strip()
     to_name = (body.get('to_name') or '').strip()
     subject = (body.get('subject') or 'Коммерческое предложение от MAT Labs').strip()
@@ -70,8 +80,6 @@ def handler(event: dict, context) -> dict:
     if not to_email_raw:
         return {'statusCode': 400, 'headers': h, 'body': json.dumps({'success': False, 'error': 'Укажите email получателя'}, ensure_ascii=False)}
 
-    # Извлекаем первый корректный email из строки (на случай дублей вроде "a@b.ru@c.ru")
-    EMAIL_RE = re.compile(r'[\w.+\-]+@[\w\-]+\.[\w.\-]{2,}')
     emails_found = EMAIL_RE.findall(to_email_raw)
     if not emails_found:
         return {'statusCode': 400, 'headers': h, 'body': json.dumps({'success': False, 'error': f'Некорректный email: {to_email_raw}'}, ensure_ascii=False)}
@@ -83,7 +91,7 @@ def handler(event: dict, context) -> dict:
         return {'statusCode': 400, 'headers': h, 'body': json.dumps({'success': False, 'error': 'Пустое тело письма'}, ensure_ascii=False)}
 
     try:
-        result = send_smtp(to_email, to_name, subject, body_html)
+        result = send_unisender(to_email, to_name, subject, body_html)
         print(f"[crm-mailer] sent to={to_email} subject={subject[:50]}")
         return {'statusCode': 200, 'headers': h, 'body': json.dumps(result, ensure_ascii=False)}
     except Exception as e:
