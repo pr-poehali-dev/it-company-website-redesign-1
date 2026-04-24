@@ -9,6 +9,7 @@ import hashlib
 import urllib.request
 import psycopg2
 import psycopg2.extras
+import threading
 from datetime import datetime
 
 CORS_HEADERS = {
@@ -186,12 +187,13 @@ def build_crm_summary(data: dict) -> str:
 
 
 def generate_full_report(data: dict, focus: str = 'all') -> dict:
-    """Генерирует полный отчёт: стратегия + рекомендации по каждому лиду."""
+    """Генерирует полный отчёт: стратегия + рекомендации по каждому лиду (параллельно)."""
+    import re
     crm_summary = build_crm_summary(data)
     prospects = data['prospects']
 
-    # 1. Общая стратегия
-    strategy_prompt = f"""Ты — опытный директор по продажам IT-компании MAT Labs.
+    # 1. Промпт стратегии
+    strategy_prompt = f"""Ты — директор по продажам IT-компании MAT Labs.
 
 Профиль компании:
 {COMPANY_PROFILE.strip()}
@@ -199,110 +201,106 @@ def generate_full_report(data: dict, focus: str = 'all') -> dict:
 Данные CRM:
 {crm_summary}
 
-Задача: проанализируй базу лидов и составь стратегический отчёт.
-
-Верни ТОЛЬКО JSON (без markdown):
+Задача: проанализируй базу лидов. Верни ТОЛЬКО JSON (без markdown):
 {{
-  "executive_summary": "<3-4 предложения: ключевые выводы о состоянии воронки продаж>",
+  "executive_summary": "<3-4 предложения: ключевые выводы о воронке продаж>",
   "pipeline_health": {{
-    "score": <0-100, общее здоровье воронки>,
+    "score": <0-100>,
     "verdict": "<отлично|хорошо|требует внимания|критично>",
     "comment": "<1-2 предложения>"
   }},
   "top_opportunities": [
-    {{
-      "company": "<название>",
-      "reason": "<почему приоритетный>",
-      "action": "<что сделать прямо сейчас>"
-    }}
+    {{"company": "<название>", "reason": "<почему приоритетный>", "action": "<что сделать сейчас>"}}
   ],
   "risks": [
-    {{
-      "company": "<название>",
-      "risk": "<в чём риск>",
-      "mitigation": "<как снизить риск>"
-    }}
+    {{"company": "<название>", "risk": "<в чём риск>", "mitigation": "<как снизить>"}}
   ],
   "strategy": {{
     "focus": "<на каком сегменте сосредоточиться>",
     "channels": ["<канал 1>", "<канал 2>", "<канал 3>"],
-    "messaging": "<ключевое сообщение для текущей базы>",
-    "timeline": "<рекомендуемые шаги на ближайшие 2 недели>"
+    "messaging": "<ключевое сообщение>",
+    "timeline": "<шаги на 2 недели>"
   }},
-  "quick_wins": [
-    "<конкретное действие 1, которое можно сделать сегодня>",
-    "<конкретное действие 2>",
-    "<конкретное действие 3>"
-  ],
+  "quick_wins": ["<действие 1>", "<действие 2>", "<действие 3>"],
   "segments": [
-    {{
-      "name": "<сегмент>",
-      "count": <кол-во лидов>,
-      "approach": "<стратегия работы с сегментом>"
-    }}
+    {{"name": "<сегмент>", "count": <число>, "approach": "<стратегия>"}}
   ]
 }}"""
 
-    strategy_raw = call_ai(strategy_prompt, model='gpt-4o', max_tokens=3000)
-    import re
-    strategy_raw = re.sub(r'^```(?:json)?\s*', '', strategy_raw)
-    strategy_raw = re.sub(r'\s*```$', '', strategy_raw)
-    try:
-        strategy = json.loads(strategy_raw)
-    except Exception:
-        strategy = {'executive_summary': strategy_raw, 'error': 'parse_error'}
-
-    # 2. Рекомендации по каждому лиду (топ-15 приоритетных)
+    # 2. Топ-10 приоритетных лидов для рекомендаций
     priority_prospects = [
         p for p in prospects
         if p.get('status') not in ('won', 'lost') and p.get('ai_score', 0)
-    ][:15]
+    ][:10]
 
     leads_text = "\n".join([
         f"- {p['company_name']} | {STATUS_LABELS.get(p['status'], p['status'])} | "
-        f"скор {p.get('ai_score','?')} | {p.get('industry','?')} | {p.get('region','?')} | "
-        f"сайт: {p.get('website','нет')} | контакт: {p.get('email','') or p.get('phone','нет')}"
-        + (f" | ИИ-анализ: {p['ai_summary'][:100]}" if p.get('ai_summary') else '')
+        f"скор {p.get('ai_score','?')} | {p.get('industry','?')} | {p.get('region','?')}"
+        + (f" | {p['ai_summary'][:80]}" if p.get('ai_summary') else '')
         for p in priority_prospects
     ])
 
-    leads_prompt = f"""Ты — B2B менеджер по продажам IT-компании MAT Labs.
+    leads_prompt = f"""Ты — B2B менеджер MAT Labs (AI-автоматизация бизнеса, внедрение за 7-14 дней).
 
-Профиль компании:
-{COMPANY_PROFILE.strip()}
-
-Список приоритетных лидов для проработки:
+Лиды для проработки:
 {leads_text}
 
-Для каждого лида дай конкретные рекомендации. Верни ТОЛЬКО JSON (без markdown):
+Для каждого лида верни ТОЛЬКО JSON (без markdown):
 {{
   "leads": [
     {{
       "company": "<название>",
-      "status": "<текущий статус>",
-      "next_step": "<конкретное следующее действие>",
+      "status": "<статус>",
+      "next_step": "<следующее действие>",
       "email_subject": "<тема письма>",
-      "email_body": "<текст холодного/тёплого письма 100-150 слов>",
-      "call_script": "<скрипт звонка 5-7 реплик>",
-      "offer": "<конкретное предложение от MAT Labs под этот бизнес>",
-      "timing": "<когда связаться: сегодня/эта неделя/следующая неделя>"
+      "email_body": "<письмо 80-120 слов>",
+      "call_script": "<скрипт 4-5 реплик>",
+      "offer": "<предложение под этот бизнес>",
+      "timing": "<сегодня|эта неделя|следующая неделя>"
     }}
   ]
 }}"""
 
-    leads_raw = call_ai(leads_prompt, model='gpt-4o', max_tokens=4000)
-    leads_raw = re.sub(r'^```(?:json)?\s*', '', leads_raw)
-    leads_raw = re.sub(r'\s*```$', '', leads_raw)
-    try:
-        leads_report = json.loads(leads_raw)
-    except Exception:
-        leads_report = {'leads': [], 'error': 'parse_error'}
+    # Запускаем оба запроса параллельно
+    results = {}
+    errors = {}
+
+    def run_strategy():
+        try:
+            raw = call_ai(strategy_prompt, model='gpt-4o-mini', max_tokens=2000, temperature=0.3)
+            raw = re.sub(r'^```(?:json)?\s*', '', raw)
+            raw = re.sub(r'\s*```$', '', raw)
+            results['strategy'] = json.loads(raw)
+        except Exception as e:
+            errors['strategy'] = str(e)
+            results['strategy'] = {'executive_summary': f'Ошибка: {e}', 'error': 'parse_error'}
+
+    def run_leads():
+        try:
+            raw = call_ai(leads_prompt, model='gpt-4o-mini', max_tokens=2500, temperature=0.4)
+            raw = re.sub(r'^```(?:json)?\s*', '', raw)
+            raw = re.sub(r'\s*```$', '', raw)
+            data_leads = json.loads(raw)
+            results['leads'] = data_leads.get('leads', [])
+        except Exception as e:
+            errors['leads'] = str(e)
+            results['leads'] = []
+
+    t1 = threading.Thread(target=run_strategy)
+    t2 = threading.Thread(target=run_leads)
+    t1.start()
+    t2.start()
+    t1.join(timeout=55)
+    t2.join(timeout=55)
+
+    if errors:
+        print(f"[ai-agent] errors: {errors}")
 
     return {
         'generated_at': datetime.now().isoformat(),
         'total_prospects': len(prospects),
-        'strategy': strategy,
-        'leads_recommendations': leads_report.get('leads', []),
+        'strategy': results.get('strategy', {}),
+        'leads_recommendations': results.get('leads', []),
     }
 
 
