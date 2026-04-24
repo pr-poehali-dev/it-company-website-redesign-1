@@ -358,21 +358,18 @@ def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: st
                 break
 
     encoded = urllib.parse.quote(vacancy_query)
-    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=100&page=0&area={area_id}&only_with_salary=false"
     hh_headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Referer': 'https://hh.ru/',
-        'Origin': 'https://hh.ru',
+        'User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
+        'Accept': 'application/json',
         'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
     }
-    r = http_get(url, timeout=12, headers=hh_headers)
+    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=100&page=0&area={area_id}&only_with_salary=false"
+    r = http_get(url, timeout=15, headers=hh_headers)
 
     if not r['ok'] or not r['data']:
         # Fallback: пробуем без area фильтра
         url2 = f"https://api.hh.ru/vacancies?text={encoded}&per_page=50&page=0&only_with_salary=false"
-        r = http_get(url2, timeout=12, headers=hh_headers)
+        r = http_get(url2, timeout=15, headers=hh_headers)
 
     if not r['ok'] or not r['data']:
         return {'companies': [], 'total_vacancies': 0, 'error': f"HH.ru недоступен ({r.get('error', '403')}). Попробуйте позже."}
@@ -445,10 +442,8 @@ def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
     # Ищем вакансии компании на HH
     encoded = urllib.parse.quote(company_name)
     _hh_h = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
         'Accept': 'application/json',
-        'Accept-Language': 'ru-RU,ru;q=0.9',
-        'Referer': 'https://hh.ru/',
         'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
     }
     url = f"https://api.hh.ru/vacancies?text={encoded}&employer_name={encoded}&per_page=20&page=0&area=113&only_with_salary=false"
