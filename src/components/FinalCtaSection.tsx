@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { AnimatedSection } from "@/components/shared";
+import { ymGoal } from "@/lib/ym";
 
 export default function FinalCtaSection({ scrollTo }: { scrollTo: (href: string) => void }) {
   return (
@@ -31,7 +32,7 @@ export default function FinalCtaSection({ scrollTo }: { scrollTo: (href: string)
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
-                  onClick={() => scrollTo("#contacts")}
+                  onClick={() => { ymGoal("cta_click", { source: "final_cta" }); scrollTo("#contacts"); }}
                   className="btn-gradient px-10 py-4 rounded-2xl text-base font-semibold text-white glow-purple flex items-center justify-center gap-2"
                 >
                   Получить разбор

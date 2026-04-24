@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { AnimatedSection } from "@/components/shared";
+import { ymGoal } from "@/lib/ym";
 
 export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) => void }) {
   return (
@@ -73,7 +74,7 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
               </div>
 
               <button
-                onClick={() => scrollTo("#contacts")}
+                onClick={() => { ymGoal("cta_click", { source: "problem" }); scrollTo("#contacts"); }}
                 className="mt-7 w-full btn-gradient py-3.5 rounded-2xl text-sm font-semibold text-white flex items-center justify-center gap-2"
               >
                 Решить эту проблему

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, TEAM_IMAGE, PORTFOLIO_IMAGE, services, portfolio, AnimatedSection } from "@/components/shared";
+import { ymGoal } from "@/lib/ym";
 
 interface TopSectionsProps {
   scrollTo: (href: string) => void;
@@ -44,7 +45,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
 
             <div className="flex flex-wrap gap-4 animate-fade-in-up delay-300">
               <button
-                onClick={() => scrollTo("#contacts")}
+                onClick={() => { ymGoal("cta_click", { source: "hero" }); scrollTo("#contacts"); }}
                 className="btn-gradient px-8 py-4 rounded-2xl text-base font-semibold text-white glow-purple group"
               >
                 <span className="flex items-center gap-2">
@@ -213,7 +214,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
                   onClick={() => scrollTo("#contacts")}
                   className="btn-gradient px-10 py-4 rounded-2xl text-base font-semibold text-white glow-purple"
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2" onClick={() => ymGoal("cta_click", { source: "what_we_do" })}>
                     Оставить заявку
                     <Icon name="ArrowRight" size={18} />
                   </span>
