@@ -1,4 +1,5 @@
 {
+  "crm-mailer": "https://functions.poehali.dev/0f73653d-eb69-4fc3-9e28-4819734962ef",
   "ai-agent": "https://functions.poehali.dev/401fd6b1-332e-454e-a93d-f90b30785044",
   "contact-requests": "https://functions.poehali.dev/42921a14-b374-412d-beaf-5b0eea6cc1da",
   "prospects": "https://functions.poehali.dev/8146ab1d-615f-4e22-bfef-1cdb9da3f944",

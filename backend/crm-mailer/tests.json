@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing email",
+      "method": "POST",
+      "path": "/",
+      "body": {"subject": "Тест", "body_html": "<p>Тест</p>"},
+      "expectedStatus": 400,
+      "expectedBody": {"success": false},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

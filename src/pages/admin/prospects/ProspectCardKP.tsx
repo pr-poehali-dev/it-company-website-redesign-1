@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Prospect, PROSPECTS_URL } from "./types";
 
-const UNISENDER_URL = "https://functions.poehali.dev/ab7e3cca-4d86-41fc-80d4-255065a92d33";
+const CRM_MAILER_URL = "https://functions.poehali.dev/0f73653d-eb69-4fc3-9e28-4819734962ef";
 const KP_TEMPLATE_KEY = "kp_template_pdf"; // localStorage key
 
 interface Props {
@@ -170,7 +170,7 @@ export default function ProspectCardKP({
     setKpSent(null);
     try {
       const kpHtml = buildKpHtml(prospect, generatedMsg, kpFileUrl, kpFileName);
-      const res = await fetch(UNISENDER_URL + "/?action=send", {
+      const res = await fetch(CRM_MAILER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -178,7 +178,6 @@ export default function ProspectCardKP({
           to_name: prospect.company_name,
           subject: kpSubject,
           body_html: kpHtml,
-          tags: ["kp", "crm"],
         }),
       });
       const data = await res.json();
