@@ -1,0 +1,1 @@
+{"tests": [{"name": "GET stats", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"funnel": {}}, "bodyMatcher": "partial"}]}

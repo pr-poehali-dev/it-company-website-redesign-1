@@ -1,4 +1,8 @@
 {
+  "funnel-stats": "https://functions.poehali.dev/b65235c5-530f-4505-bbf6-8ae0ccae3a3c",
+  "radar-scheduler": "https://functions.poehali.dev/2725883d-2720-4230-8bac-e2703f726abc",
+  "followup-engine": "https://functions.poehali.dev/b11d9fef-38cd-4721-9bb3-4d7e7d97927f",
+  "auto-emailer": "https://functions.poehali.dev/977f553d-a834-4fba-9f2f-349939384e9e",
   "crm-mailer": "https://functions.poehali.dev/0f73653d-eb69-4fc3-9e28-4819734962ef",
   "ai-agent": "https://functions.poehali.dev/401fd6b1-332e-454e-a93d-f90b30785044",
   "contact-requests": "https://functions.poehali.dev/42921a14-b374-412d-beaf-5b0eea6cc1da",

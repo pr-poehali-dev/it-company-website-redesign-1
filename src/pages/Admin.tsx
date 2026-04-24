@@ -7,9 +7,11 @@ import TenderSearch from "./admin/TenderSearch";
 import ProspectModule from "./admin/ProspectModule";
 import ContactRequests from "./admin/ContactRequests";
 import AgentModule from "./admin/AgentModule";
+import AutomationHub from "./admin/AutomationHub";
+import FunnelDashboard from "./admin/FunnelDashboard";
 import { AUTH_URL, BLOG_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "blog" | "tenders" | "prospects" | "requests" | "agent";
+type Section = "blog" | "tenders" | "prospects" | "requests" | "agent" | "automation" | "funnel";
 
 export default function Admin() {
   const [token, setToken] = useState(() => sessionStorage.getItem("admin_token") || "");
@@ -133,6 +135,8 @@ export default function Admin() {
     { id: "prospects", label: "Клиенты", icon: "Users" },
     { id: "requests", label: "Заявки", icon: "Mail" },
     { id: "agent", label: "AI-агент", icon: "BrainCircuit" },
+    { id: "automation", label: "Автоматизация", icon: "Zap" },
+    { id: "funnel", label: "Воронка", icon: "BarChart2" },
   ];
 
   return (
@@ -229,6 +233,16 @@ export default function Admin() {
         {/* AI-AGENT SECTION */}
         {section === "agent" && (
           <AgentModule token={token} />
+        )}
+
+        {/* AUTOMATION HUB */}
+        {section === "automation" && (
+          <AutomationHub token={token} />
+        )}
+
+        {/* FUNNEL DASHBOARD */}
+        {section === "funnel" && (
+          <FunnelDashboard token={token} />
         )}
       </div>
 
