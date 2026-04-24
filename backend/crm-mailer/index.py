@@ -16,7 +16,10 @@ CORS_HEADERS = {
 
 SMTP_HOST = 'smtp.yandex.ru'
 SMTP_PORT = 465
-FROM_EMAIL = 'maksT77@yandex.ru'
+# Яндекс требует совпадения логина и адреса отправителя (регистронезависимо)
+# Адрес должен точно совпадать с тем, под которым создавался пароль приложения
+FROM_EMAIL = 'makst77@yandex.ru'   # строчными — Яндекс сравнивает именно так
+FROM_EMAIL_DISPLAY = 'maksT77@yandex.ru'
 FROM_NAME = 'Тюрин Максим | MAT Labs'
 
 
@@ -24,21 +27,23 @@ def send_smtp(to_email: str, to_name: str, subject: str, body_html: str) -> dict
     """Отправляет письмо через SMTP Яндекса."""
     smtp_password = os.environ.get('SMTP_PASSWORD_MAKST', '')
     if not smtp_password:
-        raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан')
+        raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан — добавьте его в настройках проекта')
 
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
+    # From и логин должны совпадать — используем строчный адрес для login() и sendmail()
     msg['From'] = f'{FROM_NAME} <{FROM_EMAIL}>'
     msg['To'] = f'{to_name} <{to_email}>' if to_name else to_email
     msg['Reply-To'] = FROM_EMAIL
 
     msg.attach(MIMEText(body_html, 'html', 'utf-8'))
 
+    print(f"[crm-mailer] connecting smtp login={FROM_EMAIL}")
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
         server.login(FROM_EMAIL, smtp_password)
         server.sendmail(FROM_EMAIL, to_email, msg.as_bytes())
 
-    return {'success': True, 'from': FROM_EMAIL, 'to': to_email}
+    return {'success': True, 'from': FROM_EMAIL_DISPLAY, 'to': to_email}
 
 
 def handler(event: dict, context) -> dict:
