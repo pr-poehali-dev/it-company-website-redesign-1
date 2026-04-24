@@ -46,43 +46,18 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
 
   return (
     <>
-      {/* CTA */}
-      <section className="py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-violet-900/50 via-purple-900/50 to-indigo-900/50" />
-        <div className="absolute inset-0 grid-bg opacity-30" />
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-cyan-500/15 rounded-full blur-3xl animate-float-reverse" />
-        <AnimatedSection>
-          <div className="max-w-4xl mx-auto px-6 text-center relative">
-            <h2 className="font-oswald text-4xl md:text-6xl font-bold mb-6">
-              Готовы запустить{" "}
-              <span className="gradient-text">следующий проект?</span>
-            </h2>
-            <p className="text-white/60 text-lg mb-8 max-w-2xl mx-auto">
-              Оставьте заявку — наш менеджер свяжется с вами в течение 2 часов
-            </p>
-            <button
-              onClick={() => scrollTo("#contacts")}
-              className="btn-gradient px-10 py-5 rounded-2xl text-lg font-semibold text-white glow-purple"
-            >
-              <span>Обсудить проект бесплатно</span>
-            </button>
-          </div>
-        </AnimatedSection>
-      </section>
-
       {/* CONTACTS */}
       <section id="contacts" className="py-24 relative">
         <div className="max-w-7xl mx-auto px-6">
           <AnimatedSection className="text-center mb-16">
-            <div className="inline-block glass px-4 py-1.5 rounded-full text-sm text-violet-300 border border-violet-500/30 mb-6">
-              Контакты
+            <div className="inline-block glass px-4 py-1.5 rounded-full text-sm text-emerald-300 border border-emerald-500/30 mb-6">
+              Бесплатный разбор
             </div>
             <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-              Начнём{" "}
-              <span className="gradient-text">прямо сейчас</span>
+              Получить{" "}
+              <span className="gradient-text">бесплатный разбор</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">Расскажите о вашем проекте — мы предложим оптимальное решение</p>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">Расскажите о своих процессах — мы покажем, что и как можно автоматизировать</p>
           </AnimatedSection>
 
           <div className="grid lg:grid-cols-2 gap-12">
@@ -95,7 +70,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                         <Icon name="CheckCircle" size={32} className="text-emerald-400" />
                       </div>
                       <h3 className="font-oswald text-2xl font-bold text-white">Заявка отправлена!</h3>
-                      <p className="text-white/50 text-sm">Наш менеджер свяжется с вами в течение 2 часов</p>
+                      <p className="text-white/50 text-sm">Подготовим разбор и свяжемся с вами в течение 24 часов</p>
                       <button
                         onClick={() => setFormStatus("idle")}
                         className="glass border border-white/20 px-6 py-2 rounded-xl text-sm text-white/70 hover:text-white transition-all"
@@ -152,13 +127,13 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-white/60 mb-2">Расскажите о проекте *</label>
+                        <label className="block text-sm text-white/60 mb-2">Опишите вашу задачу *</label>
                         <textarea
                           rows={4}
                           name="message"
                           value={form.message}
                           onChange={handleFormChange}
-                          placeholder="Опишите задачу, бюджет, сроки..."
+                          placeholder="Что хотите автоматизировать? Какие процессы занимают больше всего времени?"
                           className="w-full glass border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-3 text-white placeholder-white/30 outline-none transition-all bg-transparent text-sm resize-none"
                         />
                       </div>
@@ -168,12 +143,13 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                       <button
                         onClick={handleSubmit}
                         disabled={formStatus === "sending"}
-                        className="btn-gradient w-full py-4 rounded-2xl font-semibold text-white text-base glow-purple disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="btn-gradient w-full py-4 rounded-2xl font-semibold text-white text-base glow-purple disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <span className="flex items-center justify-center gap-2">
-                          {formStatus === "sending" ? "Отправляем..." : "Отправить заявку"}
-                          <Icon name={formStatus === "sending" ? "Loader" : "Send"} size={18} />
-                        </span>
+                        {formStatus === "sending" ? (
+                          <><Icon name="Loader2" size={18} className="animate-spin" />Отправляем...</>
+                        ) : (
+                          <>Получить бесплатный разбор<Icon name="ArrowRight" size={18} /></>
+                        )}
                       </button>
                       <p className="text-center text-white/30 text-xs">
                         Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
