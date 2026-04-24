@@ -19,32 +19,44 @@ export default function FinalCtaSection({ scrollTo }: { scrollTo: (href: string)
 
               <h2 className="font-oswald text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                 Начните с{" "}
-                <span className="gradient-text">бесплатного разбора</span>
+                <span className="gradient-text">простого шага</span>
               </h2>
 
-              <p className="text-white/60 text-lg leading-relaxed max-w-2xl mx-auto mb-4">
-                Покажем, какие процессы можно автоматизировать в вашем бизнесе
-                и как увеличить количество заявок без расширения штата.
+              <p className="text-white/60 text-lg leading-relaxed max-w-2xl mx-auto mb-3">
+                Оставьте заявку и получите разбор ваших процессов с конкретными рекомендациями.
               </p>
-              <p className="text-white/40 text-sm mb-10">
-                Оставьте заявку — и получите конкретные рекомендации уже через 24 часа.
-              </p>
+
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-white/40 mb-10">
+                {[
+                  "где теряются заявки",
+                  "что можно автоматизировать",
+                  "как снизить нагрузку на сотрудников",
+                ].map((t, i) => (
+                  <span key={i} className="flex items-center gap-1.5">
+                    <Icon name="ChevronRight" size={13} className="text-violet-400" />
+                    {t}
+                  </span>
+                ))}
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => { ymGoal("cta_click", { source: "final_cta" }); scrollTo("#contacts"); }}
                   className="btn-gradient px-10 py-4 rounded-2xl text-base font-semibold text-white glow-purple flex items-center justify-center gap-2"
                 >
-                  Получить разбор
+                  Оставить заявку
                   <Icon name="ArrowRight" size={18} />
                 </button>
-                <button
-                  onClick={() => scrollTo("#what-we-do")}
+                <a
+                  href="https://t.me/mat_labs"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => ymGoal("telegram_click")}
                   className="glass px-10 py-4 rounded-2xl text-base font-semibold text-white hover:bg-white/10 transition-all duration-300 border border-white/20 flex items-center justify-center gap-2"
                 >
-                  <Icon name="PlayCircle" size={18} />
-                  Как мы работаем
-                </button>
+                  <Icon name="MessageCircle" size={18} />
+                  Написать в Telegram
+                </a>
               </div>
 
               <div className="flex flex-wrap justify-center gap-6 mt-10 pt-10 border-t border-white/10">

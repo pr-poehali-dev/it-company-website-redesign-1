@@ -4,6 +4,7 @@ import FaqSection from "@/components/FaqSection";
 import ContactsSection from "@/components/ContactsSection";
 import AudienceSection from "@/components/AudienceSection";
 import ProblemSection from "@/components/ProblemSection";
+import ProcessSection from "@/components/ProcessSection";
 import FinalCtaSection from "@/components/FinalCtaSection";
 
 interface BottomSectionsProps {
@@ -13,8 +14,9 @@ interface BottomSectionsProps {
 export default function BottomSections({ scrollTo }: BottomSectionsProps) {
   return (
     <>
-      <AudienceSection scrollTo={scrollTo} />
       <ProblemSection scrollTo={scrollTo} />
+      <AudienceSection scrollTo={scrollTo} />
+      <ProcessSection scrollTo={scrollTo} />
       <TechnologiesSection scrollTo={scrollTo} />
       <BlogSection />
       <FaqSection />

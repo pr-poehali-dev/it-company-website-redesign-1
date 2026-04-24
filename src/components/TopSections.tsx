@@ -29,44 +29,49 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full mb-8 border border-cyan-500/30 animate-fade-in-up">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-sm text-white/80">AI-автоматизация бизнеса под ключ</span>
+              <span className="text-sm text-white/80">Внедрение за 7–14 дней · Бесплатный разбор</span>
             </div>
 
-            <h1 className="font-oswald text-6xl md:text-7xl lg:text-8xl font-bold leading-[0.95] mb-6 animate-fade-in-up delay-100">
-              <span className="block text-white">MAT Labs —</span>
-              <span className="block gradient-text">автоматизируем</span>
-              <span className="block text-white">бизнес с AI</span>
+            <h1 className="font-oswald text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.0] mb-6 animate-fade-in-up delay-100">
+              <span className="block text-white">Автоматизируем</span>
+              <span className="block gradient-text">бизнес-процессы</span>
+              <span className="block text-white">и увеличиваем</span>
+              <span className="block gradient-text-3">поток заявок</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-white/60 max-w-2xl leading-relaxed mb-10 animate-fade-in-up delay-200">
-              Помогаем компаниям снижать нагрузку на сотрудников, ускорять процессы
-              и увеличивать количество заявок — без расширения штата.
+            <p className="text-lg md:text-xl text-white/60 max-w-2xl leading-relaxed mb-4 animate-fade-in-up delay-200">
+              Помогаем компаниям снизить ручную работу, ускорить обработку клиентов
+              и зарабатывать больше с помощью автоматизации и продуманных сайтов.
             </p>
 
-            <div className="flex flex-wrap gap-4 animate-fade-in-up delay-300">
+            <div className="flex flex-wrap gap-4 mb-4 animate-fade-in-up delay-300">
               <button
                 onClick={() => { ymGoal("cta_click", { source: "hero" }); scrollTo("#contacts"); }}
                 className="btn-gradient px-8 py-4 rounded-2xl text-base font-semibold text-white glow-purple group"
               >
                 <span className="flex items-center gap-2">
-                  Оставить заявку
+                  Получить бесплатный разбор
                   <Icon name="ArrowRight" size={18} />
                 </span>
               </button>
               <button
-                onClick={() => scrollTo("#services")}
+                onClick={() => scrollTo("#what-we-do")}
                 className="glass px-8 py-4 rounded-2xl text-base font-semibold text-white hover:bg-white/10 transition-all duration-300 border border-white/20"
               >
                 Что мы делаем
               </button>
             </div>
 
-            <div ref={statsRef} className="flex flex-wrap gap-10 mt-16 animate-fade-in-up delay-400">
+            <p className="text-sm text-white/35 mb-12 animate-fade-in-up delay-300">
+              Бесплатно покажем, где вы теряете заявки и как исправить это за 7–14 дней
+            </p>
+
+            <div ref={statsRef} className="flex flex-wrap gap-10 animate-fade-in-up delay-400">
               {[
                 { val: `${counter.projects}+`, label: "Проектов" },
-                { val: "7–14", label: "Дней до внедрения" },
+                { val: "7–14", label: "Дней до результата" },
+                { val: "70%", label: "Сокращение ручной работы" },
                 { val: `${counter.clients}%`, label: "Довольных клиентов" },
-                { val: `${counter.team}+`, label: "Специалистов" },
               ].map((s, i) => (
                 <div key={i} className="text-center">
                   <div className="font-oswald text-3xl md:text-4xl font-bold gradient-text">{s.val}</div>
@@ -83,141 +88,81 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
         </div>
       </section>
 
-      {/* ЧТО МЫ ДЕЛАЕМ */}
+      {/* ЧТО МЫ ВНЕДРЯЕМ */}
       <section id="what-we-do" className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-950/10 to-transparent" />
         <div className="max-w-7xl mx-auto px-6 relative">
-          <AnimatedSection className="text-center mb-16">
+          <AnimatedSection className="text-center mb-14">
             <div className="inline-block glass px-4 py-1.5 rounded-full text-sm text-violet-300 border border-violet-500/30 mb-6">
-              Что мы делаем
+              Что мы внедряем
             </div>
             <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-              Три направления,{" "}
+              Четыре направления —{" "}
               <span className="gradient-text">один результат</span>
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Оставьте заявку — покажем, что можно автоматизировать в вашем бизнесе уже сейчас
+              Больше заявок, меньше ручной работы, прозрачные процессы
             </p>
           </AnimatedSection>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-20">
+          <div className="grid md:grid-cols-2 gap-5 mb-14">
             {[
               {
-                icon: "Bot",
+                icon: "Inbox",
                 gradient: "from-violet-600 to-purple-600",
-                glow: "bg-violet-500/20",
-                title: "AI для обработки заявок и поддержки",
-                desc: "Внедряем умные чат-боты и AI-агентов, которые отвечают клиентам 24/7, квалифицируют лиды и снимают нагрузку с команды.",
-                tag: "AI",
+                title: "Автоматизация обработки заявок",
+                desc: "Автоответы, распределение лидов, фиксация всех обращений — ни одна заявка не теряется.",
               },
               {
-                icon: "Zap",
+                icon: "GitBranch",
                 gradient: "from-cyan-500 to-blue-600",
-                glow: "bg-cyan-500/20",
-                title: "Автоматизация рутинных процессов",
-                desc: "Избавляем от ручного труда: интеграции между системами, автоматические отчёты, уведомления и обработка данных.",
-                tag: "Автоматизация",
+                title: "Интеграции и процессы",
+                desc: "Связываем CRM, сайт, формы и сервисы в единую систему без ручного переноса данных.",
+              },
+              {
+                icon: "Bot",
+                gradient: "from-pink-500 to-rose-600",
+                title: "AI для бизнеса",
+                desc: "Используем AI для обработки обращений, квалификации лидов и упрощения работы команды.",
               },
               {
                 icon: "TrendingUp",
                 gradient: "from-emerald-500 to-teal-600",
-                glow: "bg-emerald-500/20",
-                title: "Сайты, которые приносят клиентов",
-                desc: "Создаём конверсионные сайты и лендинги с AI-персонализацией, CRM-интеграцией и аналитикой заявок.",
-                tag: "Сайты",
+                title: "Сайты, которые приносят заявки",
+                desc: "Создаём и дорабатываем сайты с фокусом на конверсию: форма → CRM → уведомление менеджеру.",
               },
             ].map((item, i) => (
               <AnimatedSection key={i}>
-                <div className="glass neon-border rounded-2xl p-7 card-hover h-full flex flex-col group">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
+                <div className="glass neon-border rounded-2xl p-7 card-hover flex gap-5 group h-full">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
                     <Icon name={item.icon} size={22} className="text-white" />
                   </div>
-                  <div className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium mb-4 ${item.glow} text-white/70 w-fit`}>
-                    {item.tag}
+                  <div>
+                    <h3 className="font-oswald text-lg font-semibold mb-2 text-white">{item.title}</h3>
+                    <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
                   </div>
-                  <h3 className="font-oswald text-xl font-semibold mb-3 text-white">{item.title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed flex-1">{item.desc}</p>
                 </div>
               </AnimatedSection>
             ))}
           </div>
 
-          {/* РЕЗУЛЬТАТ + ПОЧЕМУ МЫ */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Результат */}
-            <AnimatedSection>
-              <div className="glass neon-border rounded-2xl p-8 h-full">
-                <div className="inline-flex items-center gap-2 glass px-3 py-1.5 rounded-full text-sm text-emerald-300 border border-emerald-500/30 mb-6">
-                  <Icon name="CheckCircle" size={14} className="text-emerald-400" />
-                  Результат
-                </div>
-                <h3 className="font-oswald text-2xl font-bold mb-6 text-white">
-                  Что вы получаете
-                </h3>
-                <div className="space-y-4">
-                  {[
-                    { icon: "Clock", text: "Меньше ручной работы — сотрудники заняты важным", color: "text-violet-400" },
-                    { icon: "MessageCircle", text: "Быстрее ответы клиентам — AI отвечает за секунды", color: "text-cyan-400" },
-                    { icon: "BarChart2", text: "Рост конверсии и продаж без найма людей", color: "text-emerald-400" },
-                  ].map((r, i) => (
-                    <div key={i} className="flex items-start gap-4">
-                      <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Icon name={r.icon} size={16} className={r.color} />
-                      </div>
-                      <p className="text-white/70 text-sm leading-relaxed pt-1.5">{r.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </AnimatedSection>
-
-            {/* Почему мы */}
-            <AnimatedSection>
-              <div className="glass neon-border rounded-2xl p-8 h-full">
-                <div className="inline-flex items-center gap-2 glass px-3 py-1.5 rounded-full text-sm text-amber-300 border border-amber-500/30 mb-6">
-                  <Icon name="Star" size={14} className="text-amber-400" />
-                  Почему мы
-                </div>
-                <h3 className="font-oswald text-2xl font-bold mb-6 text-white">
-                  Наши принципы
-                </h3>
-                <div className="space-y-4">
-                  {[
-                    { icon: "Rocket", text: "Внедрение за 7–14 дней — быстро видите результат", color: "text-violet-400" },
-                    { icon: "Settings", text: "Решения под конкретный бизнес, а не шаблоны", color: "text-cyan-400" },
-                    { icon: "Target", text: "Фокус на результате, а не «разработке ради разработки»", color: "text-emerald-400" },
-                  ].map((r, i) => (
-                    <div key={i} className="flex items-start gap-4">
-                      <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Icon name={r.icon} size={16} className={r.color} />
-                      </div>
-                      <p className="text-white/70 text-sm leading-relaxed pt-1.5">{r.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </AnimatedSection>
-          </div>
-
-          {/* CTA-блок */}
+          {/* CTA */}
           <AnimatedSection>
-            <div className="mt-12 text-center glass neon-border rounded-2xl p-10 relative overflow-hidden">
+            <div className="text-center glass neon-border rounded-2xl p-10 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-cyan-600/10 to-violet-600/10" />
               <div className="relative">
-                <h3 className="font-oswald text-3xl md:text-4xl font-bold mb-4 text-white">
-                  Готовы автоматизировать ваш бизнес?
+                <h3 className="font-oswald text-3xl md:text-4xl font-bold mb-3 text-white">
+                  Готовы найти потери в вашем бизнесе?
                 </h3>
                 <p className="text-white/50 mb-8 max-w-xl mx-auto">
-                  Оставьте заявку — разберём ваши процессы и покажем конкретные точки роста
+                  Бесплатно покажем, что можно автоматизировать и какой будет результат
                 </p>
                 <button
-                  onClick={() => scrollTo("#contacts")}
-                  className="btn-gradient px-10 py-4 rounded-2xl text-base font-semibold text-white glow-purple"
+                  onClick={() => { ymGoal("cta_click", { source: "what_we_do" }); scrollTo("#contacts"); }}
+                  className="btn-gradient px-10 py-4 rounded-2xl text-base font-semibold text-white glow-purple flex items-center gap-2 mx-auto"
                 >
-                  <span className="flex items-center gap-2" onClick={() => ymGoal("cta_click", { source: "what_we_do" })}>
-                    Оставить заявку
-                    <Icon name="ArrowRight" size={18} />
-                  </span>
+                  Получить бесплатный разбор
+                  <Icon name="ArrowRight" size={18} />
                 </button>
               </div>
             </div>

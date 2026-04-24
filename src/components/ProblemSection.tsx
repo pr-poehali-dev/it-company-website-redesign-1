@@ -9,7 +9,7 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
       <div className="max-w-7xl mx-auto px-6 relative">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-          {/* Левая колонка — проблема */}
+          {/* Левая — проблема */}
           <AnimatedSection>
             <div>
               <div className="inline-flex items-center gap-2 glass px-3 py-1.5 rounded-full text-sm text-red-300 border border-red-500/30 mb-6">
@@ -17,67 +17,68 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
                 Проблема
               </div>
               <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                Почему бизнес{" "}
-                <span className="text-red-400">теряет заявки</span>
+                Большинство компаний{" "}
+                <span className="text-red-400">теряют клиентов</span>{" "}
+                из-за процессов
               </h2>
-              <p className="text-white/60 text-lg leading-relaxed mb-6">
-                Во многих компаниях заявки обрабатываются вручную.
-                Клиенты ждут ответа, менеджеры перегружены, а часть обращений просто теряется.
-              </p>
-              <p className="text-white/50 leading-relaxed mb-8">
-                Каждая потерянная заявка — это недополученная выручка.
-                И чем дольше клиент ждёт ответа, тем выше шанс, что он уйдёт к конкурентам.
-              </p>
-              <div className="flex flex-col gap-3">
+
+              <div className="space-y-3 mb-8">
                 {[
-                  "Менеджер не успел перезвонить — клиент ушёл",
-                  "Заявка потерялась между почтой и мессенджером",
-                  "Нет понимания, сколько заявок и откуда приходит",
+                  "Заявки обрабатываются вручную",
+                  "Клиенты ждут ответа часами",
+                  "Сотрудники перегружены рутиной",
+                  "Часть обращений просто теряется",
                 ].map((text, i) => (
-                  <div key={i} className="flex items-start gap-3 bg-red-500/5 border border-red-500/10 rounded-xl px-4 py-3">
-                    <Icon name="X" size={15} className="text-red-400 shrink-0 mt-0.5" />
-                    <span className="text-sm text-white/60">{text}</span>
+                  <div key={i} className="flex items-center gap-3 bg-red-500/5 border border-red-500/10 rounded-xl px-4 py-3">
+                    <Icon name="X" size={15} className="text-red-400 shrink-0" />
+                    <span className="text-sm text-white/70">{text}</span>
                   </div>
                 ))}
               </div>
+
+              <p className="text-white/50 text-base leading-relaxed border-l-2 border-red-500/40 pl-4">
+                В итоге бизнес теряет деньги, даже не замечая этого.
+                Мы находим и устраняем эти потери с помощью автоматизации.
+              </p>
             </div>
           </AnimatedSection>
 
-          {/* Правая колонка — решение */}
+          {/* Правая — решение */}
           <AnimatedSection>
             <div className="glass neon-border rounded-2xl p-8">
               <div className="inline-flex items-center gap-2 glass px-3 py-1.5 rounded-full text-sm text-emerald-300 border border-emerald-500/30 mb-6">
                 <Icon name="CheckCircle" size={14} className="text-emerald-400" />
-                Решение
+                Что вы получите
               </div>
-              <h3 className="font-oswald text-2xl font-bold mb-4 text-white">
-                Автоматизируем — и проблема исчезает
+              <h3 className="font-oswald text-2xl font-bold mb-7 text-white">
+                После внедрения автоматизации
               </h3>
-              <p className="text-white/50 text-sm leading-relaxed mb-7">
-                Мы настраиваем автоматическую обработку заявок и прозрачную систему,
-                где ни одно обращение не теряется.
-              </p>
 
-              <div className="space-y-4">
+              <div className="space-y-4 mb-8">
                 {[
-                  { icon: "Clock", color: "text-cyan-400", bg: "bg-cyan-500/10", text: "Быстрые ответы клиентам — AI отвечает за секунды" },
-                  { icon: "BarChart2", color: "text-violet-400", bg: "bg-violet-500/10", text: "Прозрачная система обработки заявок" },
-                  { icon: "Users", color: "text-emerald-400", bg: "bg-emerald-500/10", text: "Меньше ручной работы — сотрудники заняты важным" },
+                  { icon: "TrendingDown", color: "text-violet-400", bg: "bg-violet-500/10", metric: "до 70%", text: "сокращение ручной работы" },
+                  { icon: "Zap", color: "text-cyan-400", bg: "bg-cyan-500/10", metric: "в минуты", text: "быстрые ответы клиентам" },
+                  { icon: "ShieldCheck", color: "text-emerald-400", bg: "bg-emerald-500/10", metric: "0", text: "потерянных заявок" },
+                  { icon: "BarChart2", color: "text-amber-400", bg: "bg-amber-500/10", metric: "↑", text: "рост конверсии и продаж" },
+                  { icon: "Eye", color: "text-pink-400", bg: "bg-pink-500/10", metric: "100%", text: "прозрачные и понятные процессы" },
                 ].map((item, i) => (
-                  <div key={i} className={`flex items-start gap-4 ${item.bg} rounded-xl px-4 py-4`}>
-                    <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
+                  <div key={i} className={`flex items-center gap-4 ${item.bg} rounded-xl px-4 py-3`}>
+                    <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
                       <Icon name={item.icon} size={16} className={item.color} />
                     </div>
-                    <p className="text-sm text-white/75 leading-relaxed pt-2">{item.text}</p>
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className={`font-oswald font-bold text-lg ${item.color}`}>{item.metric}</span>
+                      <span className="text-sm text-white/70">{item.text}</span>
+                    </div>
                   </div>
                 ))}
               </div>
 
               <button
                 onClick={() => { ymGoal("cta_click", { source: "problem" }); scrollTo("#contacts"); }}
-                className="mt-7 w-full btn-gradient py-3.5 rounded-2xl text-sm font-semibold text-white flex items-center justify-center gap-2"
+                className="w-full btn-gradient py-3.5 rounded-2xl text-sm font-semibold text-white flex items-center justify-center gap-2"
               >
-                Решить эту проблему
+                Найти потери в моём бизнесе
                 <Icon name="ArrowRight" size={16} />
               </button>
             </div>
