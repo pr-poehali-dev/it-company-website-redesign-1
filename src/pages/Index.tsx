@@ -63,12 +63,17 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-[#080812] text-white font-golos overflow-x-hidden">
       <Helmet>
-        <title>ООО МАТ-Лабс — Инновационные IT-решения</title>
-        <meta name="description" content="МАТ-Лабс — IT-компания полного цикла. Разработка ПО, облачные решения, искусственный интеллект и цифровая трансформация бизнеса." />
+        <title>MAT Labs — AI-автоматизация бизнеса | Внедрение за 7–14 дней</title>
+        <meta name="description" content="MAT Labs автоматизирует бизнес-процессы с помощью AI: обработка заявок, интеграция с CRM, создание сайтов. Внедрение за 7–14 дней. Бесплатный разбор." />
+        <meta name="keywords" content="AI автоматизация бизнеса, автоматизация заявок, внедрение ИИ, интеграция CRM, автоматизация процессов, MAT Labs, МАТ Лабс" />
         <link rel="canonical" href="https://mat-labs.ru/" />
         <meta property="og:url" content="https://mat-labs.ru/" />
-        <meta property="og:title" content="ООО МАТ-Лабс — Инновационные IT-решения" />
-        <meta property="og:description" content="МАТ-Лабс — IT-компания полного цикла. Разработка ПО, облачные решения, искусственный интеллект и цифровая трансформация бизнеса." />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="MAT Labs — AI-автоматизация бизнеса | Внедрение за 7–14 дней" />
+        <meta property="og:description" content="Помогаем снижать нагрузку на сотрудников, ускорять процессы и увеличивать заявки без расширения штата. Бесплатный разбор." />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="MAT Labs — AI-автоматизация бизнеса" />
+        <meta name="twitter:description" content="Внедряем AI для обработки заявок, автоматизируем рутину, создаём сайты. Результат за 7–14 дней." />
       </Helmet>
       <NavBar
         scrolled={scrolled}
