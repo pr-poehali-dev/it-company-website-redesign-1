@@ -340,251 +340,12 @@ def search_hh(query: str, region: str = '') -> list:
     return results
 
 
-def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: str = '') -> dict:
-    """
-    Поиск потенциальных клиентов по ключевому слову/отрасли.
-    Использует DaData (ЕГРЮЛ) + ЕИС Закупки — оба источника работают без ограничений.
-    Логика: запрос = название отрасли/роли → ищем компании по этому профилю.
-    """
-    # Строим поисковый запрос: vacancy_query может быть ролью ("маркетолог") или отраслью
-    # Превращаем роль в отраслевой запрос для поиска компаний
-    role_to_industry = {
-        'маркетолог': 'маркетинговое агентство',
-        'таргетолог': 'реклама digital',
-        'seo': 'seo продвижение интернет',
-        'smm': 'smm агентство',
-        'программист': 'разработка программного обеспечения',
-        'разработчик': 'разработка по',
-        '1с': '1с автоматизация',
-        'аналитик': 'аналитика данных',
-        'devops': 'it инфраструктура',
-        'crm': 'crm автоматизация',
-        'директор по ит': 'it управление цифровизация',
-        'cio': 'цифровая трансформация',
-    }
-    search_q = vacancy_query
-    for key, val in role_to_industry.items():
-        if key in vacancy_query.lower():
-            search_q = val
-            break
 
-    region_q = f" {region}" if region else ""
-    full_query = f"{search_q}{region_q}".strip()
-
-    print(f"[hh_search] vacancy_query={vacancy_query!r} → search_q={full_query!r} region={region!r}")
-
-    # Источник 1: DaData — компании по названию/отрасли
-    dadata_results = []
-    try:
-        suggestions = _dadata_suggest(full_query, count=30)
-        egrul_url = f"https://egrul.nalog.ru/?query={urllib.parse.quote(full_query)}"
-        for s in suggestions:
-            if s.get('value'):
-                item = _dadata_item_to_prospect(s, 'ЕГРЮЛ / ФНС', egrul_url)
-                item['vacancy_count'] = 1
-                item['vacancy_titles'] = [vacancy_query]
-                item['hh_url'] = egrul_url
-                item['description'] = f"Профиль: {search_q}"
-                item['industry'] = industry_filter or vacancy_query
-                dadata_results.append(item)
-    except Exception as e:
-        print(f"[hh_search] dadata err: {e}")
-
-    # Источник 2: ЕИС Закупки
-    eis_results = []
-    try:
-        eis_raw = search_zakupki_orgs(full_query)
-        for item in eis_raw:
-            item['vacancy_count'] = 1
-            item['vacancy_titles'] = [vacancy_query]
-            item['hh_url'] = item.get('source_url', '')
-            item['description'] = f"Гос. закупки: {search_q}"
-            item['industry'] = industry_filter or vacancy_query
-            eis_results.append(item)
-    except Exception as e:
-        print(f"[hh_search] eis err: {e}")
-
-    # Объединяем, дедупликация по ИНН/названию
-    seen = set()
-    companies = []
-    for item in dadata_results + eis_results:
-        key = item.get('inn') or item.get('company_name', '').lower()
-        if key and key in seen:
-            continue
-        if key:
-            seen.add(key)
-        companies.append(item)
-
-    print(f"[hh_search] total companies={len(companies)}")
-    return {
-        'companies': companies[:50],
-        'total_vacancies': len(companies),
-        'total_companies': len(companies),
-        'query': vacancy_query,
-        'region': region,
-    }
-
-
-def _parse_trudvsem(data: dict, query: str, region: str, industry_filter: str) -> dict:
-    """Парсит результаты с Trudvsem.ru (legacy, не используется)"""
-    results = data.get('results') or {}
-    items = results.get('vacancies') or []
-    employers: dict = {}
-    for item in items:
-        vac = item.get('vacancy') or {}
-        company = vac.get('company') or {}
-        name = company.get('name', '')
-        if not name:
-            continue
-        key = name.lower()
-        if key not in employers:
-            employers[key] = {
-                'company_name': name,
-                'region': (vac.get('addresses') or {}).get('address', [{}])[0].get('location', '') if (vac.get('addresses') or {}).get('address') else region,
-                'website': company.get('hr-agency', '') or '',
-                'url': vac.get('vac_url', ''),
-                'vacancies': [],
-                'inn': company.get('inn', '') or '',
-                'ogrn': company.get('ogrn', '') or '',
-            }
-        employers[key]['vacancies'].append(vac.get('job-name', ''))
-
-    companies = []
-    for key, emp in employers.items():
-        vac_titles = [t for t in emp['vacancies'] if t][:5]
-        companies.append({
-            'company_name': emp['company_name'],
-            'region': emp['region'],
-            'website': emp['website'],
-            'hh_url': emp['url'],
-            'vacancy_count': len(emp['vacancies']),
-            'vacancy_titles': vac_titles,
-            'source': 'Trudvsem.ru',
-            'source_url': emp['url'],
-            'inn': emp['inn'], 'ogrn': emp['ogrn'],
-            'email': '', 'phone': '', 'address': '',
-            'industry': industry_filter or query,
-            'description': f"Ищут: {', '.join(vac_titles[:3])}",
-            'revenue_range': '', 'employee_count': '', 'founded_year': None,
-        })
-    companies.sort(key=lambda x: x['vacancy_count'], reverse=True)
-    total = (data.get('results') or {}).get('total', len(companies))
-    print(f"[trudvsem] query={query!r} companies={len(companies)}")
-    return {'companies': companies[:50], 'total_vacancies': total, 'total_companies': len(companies), 'query': query, 'region': region}
 
 
 def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
-    """Анализирует вакансии компании на HH.ru: находит IT-боли и формирует блок для КП"""
-    api_key = os.environ.get('POLZA_AI_API_KEY', '')
-    if not api_key:
-        return {'error': 'Нет ключа ИИ'}
-
-    # Ищем вакансии компании на HH
-    encoded = urllib.parse.quote(company_name)
-    _hh_h = {
-        'User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
-        'Accept': 'application/json',
-        'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
-    }
-    # Ищем через SuperJob (HH.ru недоступен с серверных IP)
-    sj_url = f"https://api.superjob.ru/2.0/vacancies/?keyword={encoded}&count=20&page=0"
-    sj_h = {'User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)', 'Accept': 'application/json',
-            'X-Api-App-Id': 'v3.r.137856548.3b86c8f0dd97b0db3a7a4a7a7a4a7a4a7a4a7a4a'}
-    r = http_get(sj_url, timeout=10, headers=sj_h)
-
-    vacancies = []
-    employer_info = {}
-    if r['ok'] and r['data']:
-        items = r['data'].get('objects') or []
-        for item in items[:20]:
-            client = item.get('client') or {}
-            if company_name.lower()[:6] in (client.get('title') or '').lower():
-                vacancies.append({
-                    'title': item.get('profession', ''),
-                    'area': (item.get('town') or {}).get('title', ''),
-                    'salary': None,
-                    'snippet': item.get('candidat', '') or '',
-                    'url': item.get('link', ''),
-                })
-                if not employer_info:
-                    employer_info = {
-                        'name': client.get('title', ''),
-                        'site_url': client.get('url', ''),
-                        'hh_url': f"https://www.superjob.ru/clients/{client.get('id', '')}.html",
-                        'industries': [],
-                    }
-
-    if not vacancies:
-        # Fallback: Trudvsem
-        tv_url = f"https://trudvsem.ru/vacancy/search?text={encoded}&limit=10&offset=0"
-        r2 = http_get(tv_url, timeout=10, headers={'User-Agent': 'mat-labs-crm/1.0', 'Accept': 'application/json'})
-        if r2['ok'] and r2['data']:
-            for item in ((r2['data'].get('results') or {}).get('vacancies') or [])[:10]:
-                vac = item.get('vacancy') or {}
-                co = vac.get('company') or {}
-                if company_name.lower()[:6] in (co.get('name') or '').lower():
-                    vacancies.append({
-                        'title': vac.get('job-name', ''),
-                        'area': '',
-                        'salary': None,
-                        'snippet': vac.get('duty', '') or '',
-                        'url': vac.get('vac_url', ''),
-                    })
-                    if not employer_info:
-                        employer_info = {'name': co.get('name', ''), 'site_url': '', 'hh_url': vac.get('vac_url', '')}
-
-    vacancy_text = '\n'.join([
-        f"- {v['title']}" + (f" ({v['area']})" if v['area'] else '') + (f": {v['snippet'][:120]}" if v['snippet'] else '')
-        for v in vacancies[:15]
-    ]) or "Вакансии не найдены в открытом доступе"
-
-    prompt = f"""Ты — эксперт по B2B продажам IT-услуг. Анализируешь вакансии компании и определяешь, какие IT-проблемы они пытаются решить наймом сотрудников.
-
-Компания: {company_name}
-Сайт: {company_url or employer_info.get('site_url', 'не указан')}
-HH.ru: {employer_info.get('hh_url', f'https://hh.ru/search/vacancy?text={encoded}')}
-
-Вакансии на HH.ru:
-{vacancy_text}
-
-Задача: определи IT-боли и потребности компании по вакансиям. Если ищут разработчиков — значит нужна разработка. Если аналитиков данных — нужна BI/аналитика. Если DevOps — нужна инфраструктура. Формируй конкретные предложения от МАТ-Лабс.
-
-Верни ТОЛЬКО JSON без markdown:
-{{
-  "company_name": "{company_name}",
-  "vacancies_found": {len(vacancies)},
-  "hh_url": "{employer_info.get('hh_url', '')}",
-  "it_problems": [
-    {{"problem": "<проблема компании>", "evidence": "<какие вакансии указывают на это>", "solution": "<что может предложить МАТ-Лабс>", "benefit": "<бизнес-выгода для клиента>"}}
-  ],
-  "kp_block": "<готовый абзац для КП: 3-4 предложения, персонализированные под проблемы компании>",
-  "recommended_services": ["<услуга МАТ-Лабс 1>", "<услуга 2>", "<услуга 3>"],
-  "urgency": "<high|medium|low — насколько срочно им нужна помощь>",
-  "summary": "<2 предложения: главный вывод об IT-потребностях компании>"
-}}"""
-
-    try:
-        body_data = json.dumps({
-            'model': 'gpt-4o',
-            'messages': [{'role': 'user', 'content': prompt}],
-            'temperature': 0.3,
-            'max_tokens': 1200,
-        }).encode()
-        req = urllib.request.Request(
-            AI_URL, data=body_data,
-            headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'},
-            method='POST'
-        )
-        with urllib.request.urlopen(req, timeout=40) as resp:
-            data = json.loads(resp.read().decode())
-        text = data['choices'][0]['message']['content'].strip()
-        text = re.sub(r'^```(?:json)?\s*', '', text)
-        text = re.sub(r'\s*```$', '', text)
-        result = json.loads(text)
-        result['raw_vacancies'] = vacancies[:10]
-        return result
-    except Exception as e:
-        return {'error': str(e)[:200], 'raw_vacancies': vacancies[:5]}
+    """Анализирует вакансии компании (заглушка — функция удалена)"""
+    return {'error': 'Анализ вакансий недоступен'}
 
 
 def search_all_sources(query: str, region: str = '', sources: list = None) -> dict:
@@ -599,7 +360,6 @@ def search_all_sources(query: str, region: str = '', sources: list = None) -> di
         'kontur': ('Контур.Фокус', search_kontur),
         '2gis': ('2ГИС', lambda q: search_2gis(q, region)),
         'msp': ('Реестр МСП', search_msp),
-        'hh': ('HH.ru', lambda q: search_hh(q, region)),
     }
     if sources is None:
         sources = list(src_map.keys())
@@ -1229,8 +989,6 @@ def handler(event: dict, context) -> dict:
         'radar': '/radar',
         'find_email': '/find_email',
         'upload_kp': '/upload_kp',
-        'analyze_hh': '/analyze_hh',
-        'hh_search': '/hh_search',
         'projects': '/projects',
         'projects_create': '/projects',
         'list': '/',
@@ -1254,28 +1012,6 @@ def handler(event: dict, context) -> dict:
         result = search_all_sources(query, region, sources)
         return json_resp(result)
 
-    # /prospects/hh_search — поиск клиентов по вакансиям HH.ru
-    if path.endswith('/hh_search'):
-        if method != 'POST':
-            return err('Только POST')
-        vacancy_query = (body.get('vacancy_query') or body.get('query') or '').strip()
-        region = (body.get('region') or '').strip()
-        industry_filter = (body.get('industry') or '').strip()
-        if not vacancy_query:
-            return err('Не указан запрос')
-        result = hh_prospect_search(vacancy_query, region, industry_filter)
-        return json_resp(result)
-
-    # /prospects/analyze_hh — анализ вакансий HH.ru компании
-    if path.endswith('/analyze_hh'):
-        if method != 'POST':
-            return err('Только POST')
-        company_name = (body.get('company_name') or '').strip()
-        company_url = (body.get('website') or '').strip()
-        if not company_name:
-            return err('Не указано название компании')
-        result = analyze_hh_vacancies(company_name, company_url)
-        return json_resp(result)
 
     # /prospects/upload_kp — загрузка PDF КП в S3
     if path.endswith('/upload_kp'):
