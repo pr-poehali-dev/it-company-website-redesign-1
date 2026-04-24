@@ -354,8 +354,255 @@ def generate_full_report(data: dict, focus: str = 'all') -> dict:
     }
 
 
+def run_radar(region: str, industry: str) -> dict:
+    """Запускает AI-радар и возвращает список сигналов."""
+    import re as _re
+    region_text = region.strip() or 'Россия'
+    industry_text = f", отрасль: {industry.strip()}" if industry.strip() else ''
+
+    prompt = f"""Ты — аналитик B2B-рынка. Выяви компании в регионе "{region_text}"{industry_text}, которые активно внедряют новые технологии: ИИ, ERP, автоматизацию, роботизацию, цифровизацию, IoT, облака.
+
+Используй знания о российском бизнесе, региональных новостях, пресс-релизах, нацпроектах.
+
+Верни список из 30-40 реальных компаний региона с признаками технологической активности.
+
+Верни ТОЛЬКО JSON без markdown:
+{{
+  "region": "{region_text}",
+  "industry_filter": "{industry.strip() or 'все отрасли'}",
+  "summary": "<2-3 предложения об общей картине>",
+  "tech_signals": [
+    {{
+      "company_name": "<название>",
+      "inn": "<ИНН или пустая строка>",
+      "region": "<город/регион>",
+      "industry": "<отрасль>",
+      "tech_tags": ["<ИИ|ERP|Автоматизация|Роботизация|Цифровизация|IoT|Облака|RPA|ML>"],
+      "signal": "<что именно внедряют, источник>",
+      "potential": "<high|medium|low>",
+      "website": "<сайт или пустая строка>",
+      "source": "<источник>"
+    }}
+  ],
+  "hot_industries": ["<отрасль 1>", "<отрасль 2>"],
+  "regional_trends": ["<тренд 1>", "<тренд 2>"]
+}}"""
+
+    api_key = os.environ.get('POLZA_AI_API_KEY', '')
+    body = json.dumps({
+        'model': 'gpt-4o',
+        'messages': [{'role': 'user', 'content': prompt}],
+        'temperature': 0.4,
+        'max_tokens': 6000,
+    }).encode()
+    req = urllib.request.Request(
+        AI_URL, data=body,
+        headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'},
+        method='POST',
+    )
+    with urllib.request.urlopen(req, timeout=55) as resp:
+        data = json.loads(resp.read().decode())
+    text = data['choices'][0]['message']['content'].strip()
+    import re as _re2
+    text = _re2.sub(r'^```(?:json)?\s*', '', text)
+    text = _re2.sub(r'\s*```$', '', text)
+    return json.loads(text)
+
+
+def ai_enrich_signals(signals: list) -> list:
+    """AI-обогащение: для каждой компании строит ai_score, ai_summary, ai_reasons, next_action."""
+    import re as _re
+    if not signals:
+        return []
+
+    lines = []
+    for i, s in enumerate(signals):
+        lines.append(
+            f"{i+1}. {s.get('company_name','')} | {s.get('industry','')} | "
+            f"тех: {', '.join(s.get('tech_tags',[]))} | потенциал: {s.get('potential','')} | "
+            f"сигнал: {s.get('signal','')[:120]}"
+        )
+
+    prompt = f"""Ты — директор по продажам MAT Labs (AI-автоматизация, CRM-интеграции, сайты). Внедрение за 7-14 дней.
+
+Оцени каждую компанию как потенциального клиента. Верни ТОЛЬКО JSON без markdown:
+{{
+  "results": [
+    {{
+      "idx": <номер 1..N>,
+      "ai_score": <0-100, насколько перспективен как клиент>,
+      "ai_summary": "<1-2 предложения: почему интересен для MAT Labs>",
+      "ai_reasons": ["<причина 1>", "<причина 2>", "<причина 3>"],
+      "next_action": "<конкретное первое действие: позвонить/написать + что сказать>"
+    }}
+  ]
+}}
+
+Компании:
+{chr(10).join(lines)}"""
+
+    raw = call_ai(prompt, model='gpt-4o-mini', max_tokens=3000, temperature=0.3)
+    raw = _re.sub(r'^```(?:json)?\s*', '', raw)
+    raw = _re.sub(r'\s*```$', '', raw)
+    enriched_map = {}
+    try:
+        data = json.loads(raw)
+        for r in data.get('results', []):
+            enriched_map[r['idx'] - 1] = r
+    except Exception as e:
+        print(f"[ai-agent] enrich parse error: {e}")
+
+    result = []
+    for i, s in enumerate(signals):
+        e = enriched_map.get(i, {})
+        result.append({**s, **{
+            'ai_score': e.get('ai_score'),
+            'ai_summary': e.get('ai_summary', ''),
+            'ai_reasons': e.get('ai_reasons', []),
+            'next_action': e.get('next_action', ''),
+        }})
+    return result
+
+
+def save_signals_to_crm(signals: list, project_id=None) -> dict:
+    """Пакетно сохраняет сигналы в CRM с дедубликацией по ИНН и названию."""
+    if not signals:
+        return {'inserted': 0, 'skipped': 0, 'errors': 0}
+
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Загружаем существующие ИНН и имена для дедубликации
+    cur.execute(f"SELECT LOWER(company_name) as cn, inn FROM {S}.prospects WHERE inn IS NOT NULL OR company_name IS NOT NULL")
+    existing = cur.fetchall()
+    existing_inns = {r['inn'] for r in existing if r['inn']}
+    existing_names = {r['cn'] for r in existing if r['cn']}
+
+    inserted = skipped = errors = 0
+    inserted_ids = []
+
+    for s in signals:
+        try:
+            inn = (s.get('inn') or '').strip()
+            name = s.get('company_name', '').strip()
+            name_lower = name.lower()
+
+            # Дедубликация
+            if inn and inn in existing_inns:
+                skipped += 1
+                continue
+            if name_lower in existing_names:
+                skipped += 1
+                continue
+
+            priority = 'high' if s.get('potential') == 'high' else ('medium' if s.get('potential') == 'medium' else 'low')
+            tech_note = f"Технологии: {', '.join(s.get('tech_tags', []))}. Источник: {s.get('source', 'Радар')}."
+            if s.get('next_action'):
+                tech_note += f" Следующий шаг: {s.get('next_action')}"
+
+            cur.execute(f"""
+                INSERT INTO {S}.prospects (
+                    project_id, company_name, inn, industry, description,
+                    website, region, source, source_url,
+                    status, priority, note,
+                    ai_score, ai_summary, ai_reasons
+                ) VALUES (
+                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                ) RETURNING id
+            """, (
+                project_id,
+                name,
+                inn or None,
+                s.get('industry', ''),
+                s.get('signal', ''),
+                s.get('website', ''),
+                s.get('region', ''),
+                'radar',
+                '',
+                'new',
+                priority,
+                tech_note,
+                s.get('ai_score'),
+                s.get('ai_summary', ''),
+                s.get('ai_reasons', []),
+            ))
+            pid = cur.fetchone()['id']
+            inserted_ids.append(pid)
+
+            cur.execute(
+                f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)",
+                (pid, 'note', f"Добавлен из Технологического радара. {tech_note}")
+            )
+
+            # Обновляем множества дедубликации
+            if inn:
+                existing_inns.add(inn)
+            existing_names.add(name_lower)
+            inserted += 1
+
+        except Exception as e:
+            print(f"[ai-agent] insert error for {s.get('company_name')}: {e}")
+            errors += 1
+            conn.rollback()
+
+    conn.commit()
+    conn.close()
+    print(f"[ai-agent] radar_to_crm: inserted={inserted}, skipped={skipped}, errors={errors}")
+    return {'inserted': inserted, 'skipped': skipped, 'errors': errors, 'ids': inserted_ids}
+
+
+def handle_radar_to_crm(body: dict) -> dict:
+    """
+    Полный пайплайн: радар → AI-обогащение → CRM.
+    Этапы:
+      1. Запуск радара для региона/отрасли
+      2. AI-обогащение каждой компании (score, summary, reasons, next_action)
+      3. Пакетный INSERT с дедубликацией
+    """
+    region = body.get('region', '').strip()
+    industry = body.get('industry', '').strip()
+    project_id = body.get('project_id')
+    enrich = body.get('enrich', True)  # можно отключить обогащение для скорости
+
+    if not region:
+        return {'error': 'Укажите регион'}
+
+    print(f"[ai-agent] radar_to_crm: region={region} industry={industry}")
+
+    # 1. Радар
+    print(f"[ai-agent] step 1: running radar...")
+    radar_result = run_radar(region, industry)
+    signals = radar_result.get('tech_signals', [])
+    print(f"[ai-agent] radar found {len(signals)} signals")
+
+    if not signals:
+        return {'ok': False, 'error': 'Радар не нашёл компаний', 'radar_summary': radar_result.get('summary', '')}
+
+    # 2. AI-обогащение параллельно с подготовкой
+    if enrich:
+        print(f"[ai-agent] step 2: enriching {len(signals)} signals with AI...")
+        signals = ai_enrich_signals(signals)
+        print(f"[ai-agent] enrichment done")
+
+    # 3. Сохранение в CRM
+    print(f"[ai-agent] step 3: saving to CRM...")
+    stats = save_signals_to_crm(signals, project_id=project_id)
+
+    return {
+        'ok': True,
+        'radar_summary': radar_result.get('summary', ''),
+        'hot_industries': radar_result.get('hot_industries', []),
+        'regional_trends': radar_result.get('regional_trends', []),
+        'total_found': len(signals),
+        'inserted': stats['inserted'],
+        'skipped': stats['skipped'],
+        'errors': stats['errors'],
+        'signals': signals,  # возвращаем для показа в UI
+    }
+
+
 def handler(event: dict, context) -> dict:
-    """AI-агент: анализирует всю CRM и генерирует отчёт со стратегией и рекомендациями по каждому лиду."""
+    """AI-агент: анализирует CRM, генерирует стратегию, запускает связку Радар→CRM."""
     method = event.get('httpMethod', 'GET')
 
     if method == 'OPTIONS':
@@ -383,5 +630,9 @@ def handler(event: dict, context) -> dict:
         report = generate_full_report(data, focus)
         print(f"[ai-agent] report generated ok")
         return json_resp({'ok': True, 'report': report})
+
+    if action == 'radar_to_crm':
+        result = handle_radar_to_crm(body)
+        return json_resp(result)
 
     return err('Неизвестный action')
