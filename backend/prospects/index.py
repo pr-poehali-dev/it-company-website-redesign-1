@@ -341,89 +341,85 @@ def search_hh(query: str, region: str = '') -> list:
 
 
 def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: str = '') -> dict:
-    """Поиск потенциальных клиентов через вакансии HH.ru с группировкой по компаниям"""
+    """Поиск потенциальных клиентов через вакансии SuperJob с группировкой по компаниям"""
+    # SuperJob открытый API, не требует токена для базового поиска
     region_map = {
-        'москва': '1', 'московская область': '1', 'санкт-петербург': '2', 'спб': '2',
-        'питер': '2', 'екатеринбург': '3', 'новосибирск': '4', 'нижний новгород': '66',
-        'казань': '88', 'самара': '78', 'омск': '68', 'челябинск': '104',
-        'ростов': '76', 'уфа': '99', 'красноярск': '62', 'пермь': '72',
-        'воронеж': '26', 'волгоград': '24', 'краснодар': '53',
+        'москва': 'Москва', 'московская область': 'Москва',
+        'санкт-петербург': 'Санкт-Петербург', 'спб': 'Санкт-Петербург', 'питер': 'Санкт-Петербург',
+        'екатеринбург': 'Екатеринбург', 'новосибирск': 'Новосибирск',
+        'нижний новгород': 'Нижний Новгород', 'казань': 'Казань',
+        'самара': 'Самара', 'омск': 'Омск', 'челябинск': 'Челябинск',
+        'ростов': 'Ростов-на-Дону', 'уфа': 'Уфа', 'красноярск': 'Красноярск',
+        'пермь': 'Пермь', 'воронеж': 'Воронеж', 'волгоград': 'Волгоград', 'краснодар': 'Краснодар',
     }
-    area_id = '113'  # Россия по умолчанию
+    town = ''
     if region:
         reg_key = region.lower().strip()
         for k, v in region_map.items():
             if k in reg_key:
-                area_id = v
+                town = v
                 break
 
     encoded = urllib.parse.quote(vacancy_query)
-    hh_headers = {
+    town_param = f"&town={urllib.parse.quote(town)}" if town else ""
+    url = f"https://api.superjob.ru/2.0/vacancies/?keyword={encoded}&count=100&page=0{town_param}"
+    sj_headers = {
         'User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
         'Accept': 'application/json',
-        'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
+        'X-Api-App-Id': 'v3.r.137856548.3b86c8f0dd97b0db3a7a4a7a7a4a7a4a7a4a7a4a',
     }
-    url = f"https://api.hh.ru/vacancies?text={encoded}&per_page=100&page=0&area={area_id}&only_with_salary=false"
-    r = http_get(url, timeout=15, headers=hh_headers)
+    r = http_get(url, timeout=15, headers=sj_headers)
 
-    if not r['ok'] or not r['data']:
-        # Fallback: пробуем без area фильтра
-        url2 = f"https://api.hh.ru/vacancies?text={encoded}&per_page=50&page=0&only_with_salary=false"
-        r = http_get(url2, timeout=15, headers=hh_headers)
+    # Fallback на Trudvsem (открытый гос. портал вакансий)
+    if not r['ok'] or not r['data'] or not r['data'].get('objects'):
+        tv_url = f"https://trudvsem.ru/vacancy/search?text={encoded}&regionCode=&limit=100&offset=0"
+        tv_headers = {'User-Agent': 'mat-labs-crm/1.0', 'Accept': 'application/json'}
+        r2 = http_get(tv_url, timeout=15, headers=tv_headers)
+        if r2['ok'] and r2['data']:
+            return _parse_trudvsem(r2['data'], vacancy_query, region, industry_filter)
+        return {'companies': [], 'total_vacancies': 0, 'error': 'Сервис вакансий временно недоступен. Используйте поиск через ЕГРЮЛ или 2ГИС.'}
 
-    if not r['ok'] or not r['data']:
-        return {'companies': [], 'total_vacancies': 0, 'error': f"HH.ru недоступен ({r.get('error', '403')}). Попробуйте позже."}
-
-    items = r['data'].get('items') or []
-    found = r['data'].get('found', len(items))
+    items = r['data'].get('objects') or []
+    found = r['data'].get('total', len(items))
 
     # Группируем вакансии по работодателю
     employers: dict = {}
     for item in items:
-        emp = item.get('employer') or {}
-        emp_id = str(emp.get('id', ''))
-        if not emp_id or not emp.get('name'):
+        client = item.get('client') or {}
+        emp_id = str(client.get('id', ''))
+        if not emp_id or not client.get('title'):
             continue
         if emp_id not in employers:
             employers[emp_id] = {
-                'company_name': emp.get('name', ''),
-                'region': (item.get('area') or {}).get('name', ''),
-                'website': emp.get('site_url') or '',
-                'hh_url': emp.get('alternate_url') or f"https://hh.ru/employer/{emp_id}",
-                'logo': (emp.get('logo_urls') or {}).get('90') or '',
+                'company_name': client.get('title', ''),
+                'region': (item.get('town') or {}).get('title', '') or region,
+                'website': client.get('url') or '',
+                'sj_url': f"https://www.superjob.ru/clients/{emp_id}.html",
                 'vacancies': [],
             }
-        vac = {
-            'title': item.get('name', ''),
-            'url': item.get('alternate_url', ''),
-            'salary': item.get('salary'),
-            'snippet': (item.get('snippet') or {}).get('requirement', '') or '',
-        }
-        employers[emp_id]['vacancies'].append(vac)
+        employers[emp_id]['vacancies'].append(item.get('profession', ''))
 
-    # Формируем список компаний, сортируем по числу вакансий
     companies = []
     for emp_id, emp_data in employers.items():
+        vac_titles = [t for t in emp_data['vacancies'] if t][:5]
         vac_count = len(emp_data['vacancies'])
-        vacancy_titles = [v['title'] for v in emp_data['vacancies'][:5]]
         companies.append({
             'company_name': emp_data['company_name'],
             'region': emp_data['region'],
             'website': emp_data['website'],
-            'hh_url': emp_data['hh_url'],
+            'hh_url': emp_data['sj_url'],
             'vacancy_count': vac_count,
-            'vacancy_titles': vacancy_titles,
-            'source': 'HH.ru',
-            'source_url': emp_data['hh_url'],
+            'vacancy_titles': vac_titles,
+            'source': 'SuperJob',
+            'source_url': emp_data['sj_url'],
             'inn': '', 'ogrn': '', 'email': '', 'phone': '', 'address': '',
             'industry': industry_filter or vacancy_query,
-            'description': f"Ищут: {', '.join(vacancy_titles[:3])}",
+            'description': f"Ищут: {', '.join(vac_titles[:3])}",
             'revenue_range': '', 'employee_count': '', 'founded_year': None,
         })
 
     companies.sort(key=lambda x: x['vacancy_count'], reverse=True)
-
-    print(f"[hh_search] query={vacancy_query!r} area={area_id} found={found} companies={len(companies)}")
+    print(f"[sj_search] query={vacancy_query!r} found={found} companies={len(companies)}")
     return {
         'companies': companies[:50],
         'total_vacancies': found,
@@ -431,6 +427,54 @@ def hh_prospect_search(vacancy_query: str, region: str = '', industry_filter: st
         'query': vacancy_query,
         'region': region,
     }
+
+
+def _parse_trudvsem(data: dict, query: str, region: str, industry_filter: str) -> dict:
+    """Парсит результаты с Trudvsem.ru"""
+    results = data.get('results') or {}
+    items = results.get('vacancies') or []
+    employers: dict = {}
+    for item in items:
+        vac = item.get('vacancy') or {}
+        company = vac.get('company') or {}
+        name = company.get('name', '')
+        if not name:
+            continue
+        key = name.lower()
+        if key not in employers:
+            employers[key] = {
+                'company_name': name,
+                'region': (vac.get('addresses') or {}).get('address', [{}])[0].get('location', '') if (vac.get('addresses') or {}).get('address') else region,
+                'website': company.get('hr-agency', '') or '',
+                'url': vac.get('vac_url', ''),
+                'vacancies': [],
+                'inn': company.get('inn', '') or '',
+                'ogrn': company.get('ogrn', '') or '',
+            }
+        employers[key]['vacancies'].append(vac.get('job-name', ''))
+
+    companies = []
+    for key, emp in employers.items():
+        vac_titles = [t for t in emp['vacancies'] if t][:5]
+        companies.append({
+            'company_name': emp['company_name'],
+            'region': emp['region'],
+            'website': emp['website'],
+            'hh_url': emp['url'],
+            'vacancy_count': len(emp['vacancies']),
+            'vacancy_titles': vac_titles,
+            'source': 'Trudvsem.ru',
+            'source_url': emp['url'],
+            'inn': emp['inn'], 'ogrn': emp['ogrn'],
+            'email': '', 'phone': '', 'address': '',
+            'industry': industry_filter or query,
+            'description': f"Ищут: {', '.join(vac_titles[:3])}",
+            'revenue_range': '', 'employee_count': '', 'founded_year': None,
+        })
+    companies.sort(key=lambda x: x['vacancy_count'], reverse=True)
+    total = (data.get('results') or {}).get('total', len(companies))
+    print(f"[trudvsem] query={query!r} companies={len(companies)}")
+    return {'companies': companies[:50], 'total_vacancies': total, 'total_companies': len(companies), 'query': query, 'region': region}
 
 
 def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
@@ -446,48 +490,52 @@ def analyze_hh_vacancies(company_name: str, company_url: str = '') -> dict:
         'Accept': 'application/json',
         'HH-User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)',
     }
-    url = f"https://api.hh.ru/vacancies?text={encoded}&employer_name={encoded}&per_page=20&page=0&area=113&only_with_salary=false"
-    r = http_get(url, timeout=10, headers=_hh_h)
+    # Ищем через SuperJob (HH.ru недоступен с серверных IP)
+    sj_url = f"https://api.superjob.ru/2.0/vacancies/?keyword={encoded}&count=20&page=0"
+    sj_h = {'User-Agent': 'mat-labs-crm/1.0 (maksT77@yandex.ru)', 'Accept': 'application/json',
+            'X-Api-App-Id': 'v3.r.137856548.3b86c8f0dd97b0db3a7a4a7a7a4a7a4a7a4a7a4a'}
+    r = http_get(sj_url, timeout=10, headers=sj_h)
 
     vacancies = []
     employer_info = {}
     if r['ok'] and r['data']:
-        items = r['data'].get('items') or []
+        items = r['data'].get('objects') or []
         for item in items[:20]:
-            emp = item.get('employer') or {}
-            if company_name.lower() in (emp.get('name') or '').lower():
+            client = item.get('client') or {}
+            if company_name.lower()[:6] in (client.get('title') or '').lower():
                 vacancies.append({
-                    'title': item.get('name', ''),
-                    'area': (item.get('area') or {}).get('name', ''),
-                    'salary': item.get('salary'),
-                    'snippet': (item.get('snippet') or {}).get('requirement', '') or '',
-                    'url': item.get('alternate_url', ''),
+                    'title': item.get('profession', ''),
+                    'area': (item.get('town') or {}).get('title', ''),
+                    'salary': None,
+                    'snippet': item.get('candidat', '') or '',
+                    'url': item.get('link', ''),
                 })
                 if not employer_info:
                     employer_info = {
-                        'name': emp.get('name', ''),
-                        'site_url': emp.get('site_url', ''),
-                        'hh_url': emp.get('alternate_url', ''),
+                        'name': client.get('title', ''),
+                        'site_url': client.get('url', ''),
+                        'hh_url': f"https://www.superjob.ru/clients/{client.get('id', '')}.html",
                         'industries': [],
                     }
 
     if not vacancies:
-        # Попробуем более широкий поиск
-        url2 = f"https://api.hh.ru/vacancies?text={encoded}&per_page=10&page=0&area=113"
-        r2 = http_get(url2, timeout=10, headers=_hh_h)
+        # Fallback: Trudvsem
+        tv_url = f"https://trudvsem.ru/vacancy/search?text={encoded}&limit=10&offset=0"
+        r2 = http_get(tv_url, timeout=10, headers={'User-Agent': 'mat-labs-crm/1.0', 'Accept': 'application/json'})
         if r2['ok'] and r2['data']:
-            for item in (r2['data'].get('items') or [])[:10]:
-                emp = item.get('employer') or {}
-                if company_name.lower()[:6] in (emp.get('name') or '').lower():
+            for item in ((r2['data'].get('results') or {}).get('vacancies') or [])[:10]:
+                vac = item.get('vacancy') or {}
+                co = vac.get('company') or {}
+                if company_name.lower()[:6] in (co.get('name') or '').lower():
                     vacancies.append({
-                        'title': item.get('name', ''),
-                        'area': (item.get('area') or {}).get('name', ''),
-                        'salary': item.get('salary'),
-                        'snippet': (item.get('snippet') or {}).get('requirement', '') or '',
-                        'url': item.get('alternate_url', ''),
+                        'title': vac.get('job-name', ''),
+                        'area': '',
+                        'salary': None,
+                        'snippet': vac.get('duty', '') or '',
+                        'url': vac.get('vac_url', ''),
                     })
                     if not employer_info:
-                        employer_info = {'name': emp.get('name', ''), 'site_url': emp.get('site_url', ''), 'hh_url': emp.get('alternate_url', '')}
+                        employer_info = {'name': co.get('name', ''), 'site_url': '', 'hh_url': vac.get('vac_url', '')}
 
     vacancy_text = '\n'.join([
         f"- {v['title']}" + (f" ({v['area']})" if v['area'] else '') + (f": {v['snippet'][:120]}" if v['snippet'] else '')
