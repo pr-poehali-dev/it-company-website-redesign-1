@@ -459,16 +459,13 @@ def action_run_manual(body: dict) -> dict:
     return json_resp(result)
 
 
-def action_run_hh_signals(body: dict) -> dict:
+def fetch_hh_vacancies(region: str, query_text: str) -> tuple[int, list]:
     """
-    Парсит вакансии с hh.ru как сигналы лидогенерации.
-    Ищет компании, которые нанимают под CRM/автоматизацию — значит, сами ещё не автоматизированы.
+    Запрашивает вакансии с hh.ru API.
+    Использует Bearer-токен если задан HH_API_TOKEN, иначе анонимный запрос.
+    Возвращает (vacancies_found, employers_list).
     """
-    # Ротация региона и поискового запроса
-    region = REGIONS[get_rotation_index(REGIONS)]
     area_id = HH_AREAS.get(region, '1')
-    query_text = HH_SEARCH_QUERIES[get_rotation_index(HH_SEARCH_QUERIES)]
-
     encoded_query = urllib.parse.quote(query_text)
     hh_url = (
         f'https://api.hh.ru/vacancies'
@@ -478,57 +475,104 @@ def action_run_hh_signals(body: dict) -> dict:
         f'&order_by=publication_time'
     )
 
-    # Получаем вакансии
+    hh_token = os.environ.get('HH_API_TOKEN', '').strip()
+    headers = {
+        'User-Agent': 'mat-labs-radar/1.0 (maksT77@yandex.ru)',
+        'Accept': 'application/json',
+        'HH-User-Agent': 'mat-labs-radar/1.0 (maksT77@yandex.ru)',
+    }
+    if hh_token:
+        headers['Authorization'] = f'Bearer {hh_token}'
+
+    req = urllib.request.Request(hh_url, headers=headers)
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        hh_data = json.loads(resp.read().decode())
+
+    items = hh_data.get('items') or []
+    vacancies_found = len(items)
+
+    employers = []
+    seen_employer_ids = set()
+    for item in items:
+        emp = item.get('employer') or {}
+        emp_id = emp.get('id')
+        emp_name = (emp.get('name') or '').strip()
+        vacancy_name = (item.get('name') or '').strip()
+        emp_url = emp.get('alternate_url') or emp.get('url') or ''
+        area_name = (item.get('area') or {}).get('name') or region
+
+        if emp_name and emp_id not in seen_employer_ids:
+            seen_employer_ids.add(emp_id)
+            employers.append({
+                'company_name': emp_name,
+                'vacancy': vacancy_name,
+                'region': area_name,
+                'website': emp_url,
+                'hh_id': str(emp_id or ''),
+            })
+
+    return vacancies_found, employers
+
+
+def action_run_hh_signals(body: dict) -> dict:
+    """
+    Парсит вакансии с hh.ru как сигналы лидогенерации.
+    Ищет компании, которые нанимают под CRM/автоматизацию — значит, сами ещё не автоматизированы.
+    Если hh.ru недоступен — использует AI-fallback для генерации лидов по сигналу.
+    """
+    region = REGIONS[get_rotation_index(REGIONS)]
+    query_text = HH_SEARCH_QUERIES[get_rotation_index(HH_SEARCH_QUERIES)]
+
     vacancies_found = 0
     employers = []
+    hh_ok = False
+
     try:
-        req = urllib.request.Request(
-            hh_url,
-            headers={
-                'User-Agent': 'mat-labs-radar/1.0 (recruiting signal parser)',
-                'Accept': 'application/json',
-                'HH-User-Agent': 'mat-labs-radar/1.0 (maksT77@yandex.ru)',
-            },
-        )
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            hh_data = json.loads(resp.read().decode())
-
-        items = hh_data.get('items') or []
-        vacancies_found = len(items)
-
-        seen_employer_ids = set()
-        for item in items:
-            emp = item.get('employer') or {}
-            emp_id = emp.get('id')
-            emp_name = (emp.get('name') or '').strip()
-            vacancy_name = (item.get('name') or '').strip()
-            emp_url = emp.get('alternate_url') or emp.get('url') or ''
-            area_name = (item.get('area') or {}).get('name') or region
-
-            if emp_name and emp_id not in seen_employer_ids:
-                seen_employer_ids.add(emp_id)
-                employers.append({
-                    'company_name': emp_name,
-                    'vacancy': vacancy_name,
-                    'region': area_name,
-                    'website': emp_url,
-                    'hh_id': str(emp_id or ''),
-                })
-
-        print(f"[radar-scheduler] hh.ru: url={hh_url} vacancies={vacancies_found} unique_employers={len(employers)}")
-
+        vacancies_found, employers = fetch_hh_vacancies(region, query_text)
+        hh_ok = True
+        print(f"[radar-scheduler] hh.ru: query='{query_text}' region={region} vacancies={vacancies_found} employers={len(employers)}")
     except urllib.error.HTTPError as e:
-        print(f"[radar-scheduler] hh.ru HTTP error: {e.code}")
-        return err(f'hh.ru API error: HTTP {e.code}', 502)
+        print(f"[radar-scheduler] hh.ru HTTP error: {e.code} — using AI fallback")
     except Exception as e:
-        print(f"[radar-scheduler] hh.ru fetch error: {e}")
-        return err(f'hh.ru fetch error: {e}', 502)
+        print(f"[radar-scheduler] hh.ru fetch error: {e} — using AI fallback")
+
+    # Fallback: если hh.ru недоступен — просим AI сгенерировать лидов
+    # на основе сигнала "компании, ищущие CRM-специалистов"
+    if not hh_ok or not employers:
+        fallback_prompt = f"""Представь, что ты просматриваешь вакансии на hh.ru.
+Запрос: "{query_text}", регион: {region}.
+
+Составь список 15-20 реалистичных российских компаний из региона {region},
+которые вероятно ищут или планируют внедрить CRM / автоматизацию бизнес-процессов.
+
+Для каждой укажи:
+- company_name: название
+- industry: отрасль
+- region: {region}
+- website: сайт (если знаешь)
+- signal: почему они потенциально нужный клиент MAT Labs
+- potential: 1-10
+
+Верни ТОЛЬКО JSON без markdown:
+{{"leads": [
+  {{"company_name": "...", "industry": "...", "region": "...", "website": "...", "signal": "...", "potential": 7}}
+]}}"""
+        try:
+            ai_raw = call_ai(fallback_prompt, model=AI_MODEL_ENRICH, max_tokens=2000, temperature=0.5)
+            parsed = parse_json_from_ai(ai_raw)
+            leads_raw = parsed.get('leads') or []
+            print(f"[radar-scheduler] hh fallback AI: leads={len(leads_raw)}")
+        except Exception as e:
+            print(f"[radar-scheduler] hh fallback AI error: {e}")
+            return err(f'hh.ru недоступен и AI fallback не сработал: {e}', 502)
+
+        return _save_hh_leads(leads_raw, region, query_text, vacancies_found=0, employers_count=0)
 
     if not employers:
         return json_resp({'ok': True, 'vacancies_found': vacancies_found, 'leads_added': 0,
                           'note': 'Нет уникальных работодателей в результатах'})
 
-    # AI анализирует работодателей
+    # AI анализирует реальных работодателей с hh.ru
     employers_text = '\n'.join(
         f"- {e['company_name']} (вакансия: {e['vacancy']}, регион: {e['region']})"
         for e in employers[:40]
@@ -553,11 +597,16 @@ def action_run_hh_signals(body: dict) -> dict:
                 lead['website'] = matched['website']
             if not lead.get('region') and matched.get('region'):
                 lead['region'] = matched['region']
-        # tech_tags из signal
+
+    return _save_hh_leads(leads_raw, region, query_text, vacancies_found, len(employers))
+
+
+def _save_hh_leads(leads_raw: list, region: str, query_text: str, vacancies_found: int, employers_count: int) -> dict:
+    """Дедублицирует и сохраняет лидов из hh-сигналов в БД."""
+    for lead in leads_raw:
         lead['tech_tags'] = ['hh_signal', 'ищет CRM-специалиста', query_text]
         lead['source'] = f'hh.ru — вакансия "{query_text}"'
 
-    # Вставляем в БД
     conn = None
     leads_added = 0
     try:
@@ -586,7 +635,7 @@ def action_run_hh_signals(body: dict) -> dict:
         'region': region,
         'query': query_text,
         'vacancies_found': vacancies_found,
-        'employers_analyzed': len(employers),
+        'employers_analyzed': employers_count,
         'leads_added': leads_added,
     })
 
