@@ -18,11 +18,16 @@ export default function NavBar({ scrolled, menuOpen, setMenuOpen, scrollTo }: Na
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "glass border-b border-white/10 py-3" : "py-5"}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="w-9 h-9 rounded-lg btn-gradient flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-lg btn-gradient flex items-center justify-center cursor-pointer"
+            onClick={() => navigate("/")}
+            onDoubleClick={() => navigate("/admin")}
+            title=""
+          >
             <span className="relative z-10 text-white font-oswald font-bold text-sm">МЛ</span>
           </div>
-          <span className="font-oswald font-bold text-xl tracking-wider gradient-text">МАТ-Лабс</span>
+          <span className="font-oswald font-bold text-xl tracking-wider gradient-text cursor-pointer" onClick={() => navigate("/")}>МАТ-Лабс</span>
         </div>
 
         <div className="hidden lg:flex items-center gap-1">
