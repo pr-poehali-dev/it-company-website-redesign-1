@@ -1,11 +1,26 @@
 {
   "tests": [
     {
-      "name": "Options preflight",
+      "name": "OPTIONS preflight",
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": {"key": "string"},
+      "bodyMatcher": "none"
+    },
+    {
+      "name": "Login with empty fields returns 400",
+      "method": "POST",
+      "path": "/",
+      "body": {"username": "", "password": ""},
+      "expectedStatus": 400,
+      "bodyMatcher": "none"
+    },
+    {
+      "name": "Login with wrong credentials returns 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"username": "hacker_test_xyz", "password": "wrong_pass_xyz"},
+      "expectedStatus": 401,
       "bodyMatcher": "none"
     }
   ]

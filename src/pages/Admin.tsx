@@ -13,8 +13,28 @@ import { AUTH_URL, BLOG_URL, Post, PostForm, emptyPost } from "./admin/types";
 
 type Section = "blog" | "tenders" | "prospects" | "requests" | "agent" | "automation" | "funnel";
 
+function getStoredToken(): string {
+  return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
+}
+
+function storeToken(token: string, remember: boolean) {
+  if (remember) {
+    localStorage.setItem("admin_token", token);
+    sessionStorage.removeItem("admin_token");
+  } else {
+    sessionStorage.setItem("admin_token", token);
+    localStorage.removeItem("admin_token");
+  }
+}
+
+function clearStoredToken() {
+  localStorage.removeItem("admin_token");
+  sessionStorage.removeItem("admin_token");
+}
+
 export default function Admin() {
-  const [token, setToken] = useState(() => sessionStorage.getItem("admin_token") || "");
+  const [token, setToken] = useState(() => getStoredToken());
+  const [tokenVerified, setTokenVerified] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -30,9 +50,21 @@ export default function Admin() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const isAuth = Boolean(token);
+  const isAuth = Boolean(token) && tokenVerified;
 
-  async function login() {
+  useEffect(() => {
+    const stored = getStoredToken();
+    if (!stored) { setTokenVerified(true); return; }
+    fetch(`${AUTH_URL}/check`, { headers: { "X-Session-Token": stored } })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.ok) { clearStoredToken(); setToken(""); }
+        setTokenVerified(true);
+      })
+      .catch(() => setTokenVerified(true));
+  }, []);
+
+  async function login(remember: boolean) {
     setLoginLoading(true);
     setLoginError("");
     try {
@@ -43,8 +75,9 @@ export default function Admin() {
       });
       const data = await res.json();
       if (!res.ok) { setLoginError(data.error || "Ошибка входа"); return; }
-      sessionStorage.setItem("admin_token", data.token);
+      storeToken(data.token, remember);
       setToken(data.token);
+      setTokenVerified(true);
     } catch {
       setLoginError("Ошибка соединения");
     } finally {
@@ -53,8 +86,15 @@ export default function Admin() {
   }
 
   async function logout() {
-    sessionStorage.removeItem("admin_token");
+    try {
+      await fetch(`${AUTH_URL}/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
+      });
+    } catch { /* silent */ }
+    clearStoredToken();
     setToken("");
+    setTokenVerified(true);
   }
 
   async function loadPosts() {
@@ -115,6 +155,14 @@ export default function Admin() {
     await fetch(`${BLOG_URL}/${id}`, { method: "DELETE", headers: { "X-Session-Token": token } });
     setDeleteId(null);
     await loadPosts();
+  }
+
+  if (!tokenVerified) {
+    return (
+      <div className="min-h-screen bg-[#080812] flex items-center justify-center">
+        <Icon name="Loader2" size={32} className="text-violet-400 animate-spin" />
+      </div>
+    );
   }
 
   if (!isAuth) {
