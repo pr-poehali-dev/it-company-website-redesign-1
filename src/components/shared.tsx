@@ -207,6 +207,7 @@ export const portfolio = [
   { title: "RoomScan AI", category: "ИИ / Недвижимость", desc: "ИИ-инструмент для сканирования и планировки помещений с автоматическим расчётом площади и материалов", tech: ["AI", "React", "ML"], color: "from-orange-600 to-amber-600", url: "https://roomscan-ai.ru" },
   { title: "SoloFly", category: "Авиация / Обучение", desc: "Платформа для пилотов-любителей и учлётов: маршруты, документация, обучение и сообщество частной авиации", tech: ["React", "Python", "PostgreSQL"], color: "from-sky-600 to-blue-700", url: "https://solofly.ru" },
   { title: "СмартМаш", category: "ПО для станкостроения", desc: "Российская цифровая платформа для станкостроения: проектирование, управление программами ЧПУ, мониторинг оборудования и полный жизненный цикл изделий", tech: ["React", "Python", "PostgreSQL"], color: "from-slate-600 to-zinc-700", url: "https://smartmach.ru" },
+  { title: "АгроПорт", category: "ИИ / Агробизнес", desc: "AI-платформа мониторинга и прогнозирования агрорынка России: прогнозы цен на зерновые, спутниковый NDVI-мониторинг посевов и карта рисков по 23 регионам", tech: ["AI", "React", "Python"], color: "from-green-600 to-lime-600", url: "https://agroport-ai.ru" },
 ];
 
 export const technologies = [
