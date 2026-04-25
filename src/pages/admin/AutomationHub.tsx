@@ -241,13 +241,9 @@ function TabEmailer() {
 }
 
 function TabFollowup() {
-  const [scheduleLoading, setScheduleLoading] = useState(false);
-  const [scheduleResult, setScheduleResult] = useState<{ scheduled: number } | null>(null);
-  const [scheduleError, setScheduleError] = useState("");
-
-  const [runLoading, setRunLoading] = useState(false);
-  const [runResult, setRunResult] = useState<{ processed: number; sent: number; errors: unknown[] } | null>(null);
-  const [runError, setRunError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ scheduled: number; processed: number; sent: number; errors: unknown[] } | null>(null);
+  const [error, setError] = useState("");
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [tasksLoading, setTasksLoading] = useState(true);
@@ -271,43 +267,33 @@ function TabFollowup() {
 
   useEffect(() => { loadTasks(); }, [loadTasks]);
 
-  async function schedule() {
-    setScheduleLoading(true);
-    setScheduleError("");
-    setScheduleResult(null);
+  async function runFollowup() {
+    setLoading(true);
+    setError("");
+    setResult(null);
     try {
-      const res = await fetch(FOLLOWUP_URL, {
+      const r1 = await fetch(FOLLOWUP_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "schedule_followups" }),
       });
-      const data = await res.json();
-      if (data.ok) setScheduleResult({ scheduled: data.scheduled });
-      else setScheduleError(data.error ?? "Ошибка");
-    } catch {
-      setScheduleError("Ошибка соединения");
-    } finally {
-      setScheduleLoading(false);
-    }
-  }
-
-  async function runNow() {
-    setRunLoading(true);
-    setRunError("");
-    setRunResult(null);
-    try {
-      const res = await fetch(FOLLOWUP_URL, {
+      const d1 = await r1.json();
+      const r2 = await fetch(FOLLOWUP_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "run_followups" }),
       });
-      const data = await res.json();
-      if (data.ok) { setRunResult({ processed: data.processed, sent: data.sent, errors: data.errors ?? [] }); loadTasks(); }
-      else setRunError(data.error ?? "Ошибка");
+      const d2 = await r2.json();
+      if (d2.ok) {
+        setResult({ scheduled: d1.scheduled ?? 0, processed: d2.processed ?? 0, sent: d2.sent ?? 0, errors: d2.errors ?? [] });
+        loadTasks();
+      } else {
+        setError(d2.error ?? "Ошибка");
+      }
     } catch {
-      setRunError("Ошибка соединения");
+      setError("Ошибка соединения");
     } finally {
-      setRunLoading(false);
+      setLoading(false);
     }
   }
 
@@ -319,29 +305,24 @@ function TabFollowup() {
   return (
     <div className="space-y-6">
       <div className="glass border border-white/10 rounded-2xl p-6">
-        <SectionTitle icon="RefreshCw">Управление follow-up</SectionTitle>
+        <SectionTitle icon="RefreshCw">Follow-up рассылка</SectionTitle>
         <InfoBlock>
           Автоматические повторные касания с лидами, у которых нет активности более 3 дней.
           Письма генерируются AI с новым углом подачи — не повтор первого письма.
         </InfoBlock>
         <div className="flex flex-wrap gap-3">
-          <ActionBtn onClick={schedule} loading={scheduleLoading} icon="CalendarPlus" variant="ghost">
-            Запланировать follow-up
-          </ActionBtn>
-          <ActionBtn onClick={runNow} loading={runLoading} icon="Play">
-            Запустить обработку
+          <ActionBtn onClick={runFollowup} loading={loading} icon="Play">
+            Запустить follow-up
           </ActionBtn>
         </div>
         <div className="flex flex-wrap gap-3 mt-3">
-          {scheduleResult && <ResultOk>Создано задач: <strong>{scheduleResult.scheduled}</strong></ResultOk>}
-          {scheduleError && <ResultErr>{scheduleError}</ResultErr>}
-          {runResult && (
+          {result && (
             <ResultOk>
-              Обработано: <strong>{runResult.processed}</strong>, отправлено: <strong>{runResult.sent}</strong>
-              {runResult.errors.length > 0 && <span className="text-yellow-300 ml-2">| Ошибок: {runResult.errors.length}</span>}
+              Запланировано: <strong>{result.scheduled}</strong> · отправлено: <strong>{result.sent}</strong>
+              {result.errors.length > 0 && <span className="text-yellow-300 ml-2">| Ошибок: {result.errors.length}</span>}
             </ResultOk>
           )}
-          {runError && <ResultErr>{runError}</ResultErr>}
+          {error && <ResultErr>{error}</ResultErr>}
         </div>
       </div>
 
@@ -398,9 +379,6 @@ function TabFollowup() {
 }
 
 function TabRadar() {
-  const [scheduledLoading, setScheduledLoading] = useState(false);
-  const [scheduledResult, setScheduledResult] = useState<{ ok: boolean; region?: string; industry?: string; found?: number; inserted?: number; skipped?: number; error?: string } | null>(null);
-
   const [hhLoading, setHhLoading] = useState(false);
   const [hhResult, setHhResult] = useState<{ ok: boolean; vacancies_found?: number; leads_added?: number; query?: string; error?: string } | null>(null);
 
@@ -431,25 +409,6 @@ function TabRadar() {
   }, []);
 
   useEffect(() => { loadHistory(); }, [loadHistory]);
-
-  async function runScheduled() {
-    setScheduledLoading(true);
-    setScheduledResult(null);
-    try {
-      const res = await fetch(RADAR_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "run_scheduled" }),
-      });
-      const data = await res.json();
-      setScheduledResult(data);
-      if (data.ok) loadHistory();
-    } catch {
-      setScheduledResult({ ok: false, error: "Ошибка соединения" });
-    } finally {
-      setScheduledLoading(false);
-    }
-  }
 
   async function runHh() {
     setHhLoading(true);
@@ -510,14 +469,11 @@ function TabRadar() {
       <div className="glass border border-white/10 rounded-2xl p-6">
         <SectionTitle icon="Radar">Запуск радара</SectionTitle>
         <InfoBlock>
-          Ротация регионов и отраслей по дням. Каждый запуск AI ищет 20–30 новых компаний
-          и добавляет их в CRM после дедупликации по ИНН и названию.
+          Каждый запуск AI ищет 20–30 новых компаний по регионам и отраслям, добавляет в CRM с дедупликацией.
+          Ночной авто-запуск происходит через статус-бар выше — здесь ручной контроль.
         </InfoBlock>
         <div className="flex flex-wrap gap-3 mb-4">
-          <ActionBtn onClick={runScheduled} loading={scheduledLoading} icon="Clock">
-            Ночной запуск (авто)
-          </ActionBtn>
-          <ActionBtn onClick={runHh} loading={hhLoading} icon="Briefcase" variant="ghost">
+          <ActionBtn onClick={runHh} loading={hhLoading} icon="Briefcase">
             Сигналы hh.ru
           </ActionBtn>
           <button
@@ -531,11 +487,6 @@ function TabRadar() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {scheduledResult && (
-            scheduledResult.ok
-              ? <ResultOk>Найдено: <strong>{scheduledResult.found}</strong> · Добавлено: <strong>{scheduledResult.inserted}</strong> · Пропущено: {scheduledResult.skipped}</ResultOk>
-              : <ResultErr>{scheduledResult.error}</ResultErr>
-          )}
           {hhResult && (
             hhResult.ok
               ? <ResultOk>Вакансий: <strong>{hhResult.vacancies_found}</strong> · Лидов добавлено: <strong>{hhResult.leads_added}</strong></ResultOk>
@@ -742,35 +693,38 @@ function CronStatusBar() {
   const [running, setRunning] = useState(false);
   const [lastResult, setLastResult] = useState<{ emails_sent?: number; radar_inserted?: number; followups_sent?: number } | null>(null);
 
-  const checkAndRun = useCallback(async () => {
+  const runCycle = useCallback(async () => {
+    if (running) return;
+    setRunning(true);
+    try {
+      const r = await fetch(CRON_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+      const rd = await r.json();
+      setLastRun(rd.started_at ?? new Date().toISOString());
+      setLastResult(rd);
+      setIsDue(false);
+    } finally {
+      setRunning(false);
+    }
+  }, [running]);
+
+  const checkStatus = useCallback(async () => {
     try {
       const res = await fetch(CRON_URL, { method: "GET" });
       const data = await res.json();
       setLastRun(data.last_run ?? null);
       setIsDue(data.is_due ?? false);
       setLastResult(data.last_result ?? null);
-      if (data.is_due && !running) {
-        setRunning(true);
-        try {
-          const r = await fetch(CRON_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
-          const rd = await r.json();
-          setLastRun(rd.started_at ?? new Date().toISOString());
-          setLastResult(rd);
-          setIsDue(false);
-        } finally {
-          setRunning(false);
-        }
-      }
+      if (data.is_due && !running) runCycle();
     } catch {
       // silent
     }
-  }, [running]);
+  }, [running, runCycle]);
 
   useEffect(() => {
-    checkAndRun();
-    const timer = setInterval(checkAndRun, CHECK_INTERVAL_MS);
+    checkStatus();
+    const timer = setInterval(checkStatus, CHECK_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [checkAndRun]);
+  }, [checkStatus]);
 
   return (
     <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border text-xs transition-all ${
@@ -791,7 +745,7 @@ function CronStatusBar() {
         {running
           ? "Агент работает: радар → письма → follow-up..."
           : isDue
-          ? "Готов к запуску"
+          ? "Готов к запуску — нажми ▶"
           : `Последний запуск: ${fmtAgo(lastRun)}`}
       </span>
       {!running && lastResult && (
@@ -803,8 +757,8 @@ function CronStatusBar() {
       )}
       {!running && (
         <button
-          onClick={checkAndRun}
-          title="Запустить сейчас"
+          onClick={runCycle}
+          title="Запустить полный цикл сейчас"
           className="ml-2 opacity-50 hover:opacity-100 transition-opacity"
         >
           <Icon name="Play" size={12} />
