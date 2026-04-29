@@ -31,24 +31,46 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const wb = XLSX.read(ev.target?.result, { type: "binary" });
+        const data = ev.target?.result;
+        if (!data) { setError("Не удалось прочитать файл"); return; }
+
+        let wb: XLSX.WorkBook;
+        if (file.name.toLowerCase().endsWith(".csv")) {
+          const text = new TextDecoder("utf-8").decode(data as ArrayBuffer);
+          wb = XLSX.read(text, { type: "string" });
+        } else {
+          wb = XLSX.read(new Uint8Array(data as ArrayBuffer), { type: "array" });
+        }
+
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
-        if (raw.length < 2) { setError("Файл пустой или содержит только заголовки"); return; }
-        const headers = (raw[0] as string[]).map(h => String(h).trim()).filter(Boolean);
+        const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+
+        // Пропускаем пустые строки в начале
+        let startIdx = 0;
+        while (startIdx < raw.length && (raw[startIdx] as string[]).every(c => !String(c).trim())) startIdx++;
+        if (raw.length - startIdx < 2) { setError("Файл пустой или содержит только заголовки"); return; }
+
+        const headers = (raw[startIdx] as string[]).map(h => String(h).trim()).filter(Boolean);
         const rows: Record<string, string>[] = [];
-        for (let i = 1; i < raw.length; i++) {
+        for (let i = startIdx + 1; i < raw.length; i++) {
           const r = raw[i] as string[];
           const obj: Record<string, string> = {};
-          headers.forEach((h, idx) => { if (r[idx] != null && String(r[idx]).trim()) obj[h] = String(r[idx]).trim(); });
+          headers.forEach((h, idx) => {
+            const val = String(r[idx] ?? "").trim();
+            if (val) obj[h] = val;
+          });
           if (Object.keys(obj).length > 0) rows.push(obj);
         }
+        if (rows.length === 0) { setError("Не найдено строк с данными"); return; }
         setRawHeaders(headers);
         setRawRows(rows);
         setStage("preview");
-      } catch { setError("Не удалось прочитать файл. Попробуйте xlsx, xls или csv."); }
+      } catch (e) {
+        console.error("Excel parse error:", e);
+        setError("Не удалось прочитать файл. Попробуйте xlsx, xls или csv.");
+      }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
     e.target.value = "";
   }
 
