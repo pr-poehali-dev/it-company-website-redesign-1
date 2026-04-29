@@ -218,6 +218,7 @@ export default function ProspectModule({ token }: { token: string }) {
           showProjectForm={showProjectForm}
           newProject={newProject}
           addingProject={addingProject}
+          token={token}
           onFilterProject={setFilterProject}
           onFilterStatus={setFilterStatus}
           onFilterPriority={setFilterPriority}
@@ -226,6 +227,7 @@ export default function ProspectModule({ token }: { token: string }) {
           onNewProjectChange={setNewProject}
           onCreateProject={createProject}
           onSelectProspect={selectProspect}
+          onImportDone={loadProspects}
           onAddNew={() => {
             setEditProspect({ status: "new", priority: "medium", source: "manual", project_id: filterProject ? Number(filterProject) : null });
             setIsNewEdit(true);

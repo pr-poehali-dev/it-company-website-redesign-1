@@ -13,6 +13,15 @@
       "expectedStatus": 401,
       "expectedBody": { "error": "Не авторизован" },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST bulk_create (unauth)",
+      "method": "POST",
+      "path": "/",
+      "body": { "action": "bulk_create", "contacts": [] },
+      "expectedStatus": 401,
+      "expectedBody": { "error": "Не авторизован" },
+      "bodyMatcher": "partial"
     }
   ]
 }

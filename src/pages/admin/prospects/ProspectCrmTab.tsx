@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { Project, Prospect, STATUSES, PRIORITIES, statusInfo, priorityInfo, scoreBg } from "./types";
+import ExcelImport from "./ExcelImport";
 
 interface Props {
   projects: Project[];
@@ -14,6 +15,7 @@ interface Props {
   showProjectForm: boolean;
   newProject: { name: string; description: string; color: string };
   addingProject: boolean;
+  token: string;
   onFilterProject: (v: string) => void;
   onFilterStatus: (v: string) => void;
   onFilterPriority: (v: string) => void;
@@ -23,15 +25,17 @@ interface Props {
   onCreateProject: () => void;
   onSelectProspect: (p: Prospect) => void;
   onAddNew: () => void;
+  onImportDone: () => void;
 }
 
 export default function ProspectCrmTab({
   projects, prospects, statusStats, totalProspects, loading,
   filterProject, filterStatus, filterPriority, filterSearch,
   showProjectForm, newProject, addingProject,
+  token,
   onFilterProject, onFilterStatus, onFilterPriority, onFilterSearch,
   onToggleProjectForm, onNewProjectChange, onCreateProject,
-  onSelectProspect, onAddNew,
+  onSelectProspect, onAddNew, onImportDone,
 }: Props) {
   return (
     <div className="space-y-4">
@@ -91,6 +95,7 @@ export default function ProspectCrmTab({
           <option value="">Все приоритеты</option>
           {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
         </select>
+        <ExcelImport token={token} projects={projects} onDone={onImportDone} />
         <button onClick={onAddNew}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all">
           <Icon name="Plus" size={14} /> Добавить

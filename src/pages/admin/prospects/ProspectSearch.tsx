@@ -42,7 +42,7 @@ export default function ProspectSearch({ token, projects, onAdd }: Props) {
     onAdd(r, targetProject ? Number(targetProject) : undefined);
   }
 
-  const QUICK = ["обработка металлов", "машиностроение", "нефтегазовая отрасль",
+  const QUICK = ["сельхозпроизводители", "агропромышленный комплекс", "обработка металлов", "машиностроение", "нефтегазовая отрасль",
     "строительство", "логистика", "розничная торговля", "производство"];
 
   return (

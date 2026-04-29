@@ -1189,12 +1189,63 @@ def handler(event: dict, context) -> dict:
         'detail': f'/{params.get("id", "")}' if params.get('id') else '/',
         'activity': f'/{body.get("prospect_id", "")}/activity' if body.get('prospect_id') else '/activity',
         'agent_act': '/agent_act',
+        'bulk_create': '/bulk_create',
     }
     if action and path in ('/', ''):
         path = action_to_path.get(action, '/' + action)
         # action=delete → форсируем DELETE-метод
         if action == 'delete':
             method = 'DELETE'
+
+    # /prospects/bulk_create — массовый импорт из Excel
+    if path.endswith('/bulk_create'):
+        if method != 'POST':
+            return err('Только POST')
+        contacts = body.get('contacts', [])
+        if not contacts or not isinstance(contacts, list):
+            return err('Не передан список контактов')
+        conn = get_db()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        imported = 0
+        skipped = 0
+        for d in contacts:
+            if not d.get('company_name', '').strip():
+                skipped += 1
+                continue
+            inn = (d.get('inn') or '').strip()
+            if inn:
+                cur.execute(f"SELECT id FROM {S}.prospects WHERE inn=%s", (inn,))
+                if cur.fetchone():
+                    skipped += 1
+                    continue
+            cur.execute(f"""
+                INSERT INTO {S}.prospects (
+                    project_id, company_name, inn, ogrn, industry, description,
+                    website, email, phone, address, region,
+                    source, source_url, revenue_range, employee_count, founded_year,
+                    status, priority, note, next_action, next_action_date,
+                    ai_score, ai_summary, ai_reasons
+                ) VALUES (
+                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                ) RETURNING id
+            """, (
+                d.get('project_id'), d.get('company_name', '').strip(),
+                inn, d.get('ogrn', ''), d.get('industry', ''), d.get('description', ''),
+                d.get('website', ''), d.get('email', ''), d.get('phone', ''),
+                d.get('address', ''), d.get('region', ''),
+                d.get('source', 'manual'), '', '', '', None,
+                'new', 'medium', d.get('note', ''), '', None,
+                None, '', [],
+            ))
+            prospect_id = cur.fetchone()['id']
+            cur.execute(
+                f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content) VALUES (%s, %s, %s)",
+                (prospect_id, 'note', 'Добавлено через импорт Excel')
+            )
+            imported += 1
+        conn.commit()
+        conn.close()
+        return json_resp({'imported': imported, 'skipped': skipped})
 
     # /prospects/search — поиск по источникам
     if path.endswith('/search'):
