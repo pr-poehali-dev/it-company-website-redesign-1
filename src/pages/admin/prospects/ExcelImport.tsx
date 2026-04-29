@@ -143,21 +143,40 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
 
   async function doImport() {
     const rows = mappedRows.length ? mappedRows : rawRows;
-    if (!rows.length) return;
+    if (!rows.length) { setError("Нет данных для импорта"); return; }
     setLoading(true); setError("");
     try {
-      const contacts = rows.map(r => ({ ...r, source: "manual", project_id: targetProject ? Number(targetProject) : null }));
+      // Нормализуем: оставляем только допустимые поля CRM
+      const ALLOWED = ["company_name","inn","ogrn","phone","email","website","region","address","industry","description","note","revenue_range","employee_count"];
+      const contacts = rows.map(r => {
+        const c: Record<string, string | number | null> = { source: "manual", project_id: targetProject ? Number(targetProject) : null };
+        ALLOWED.forEach(f => { if (r[f]) c[f] = r[f]; });
+        // Если company_name всё ещё не задан — берём первое значение строки
+        if (!c["company_name"]) {
+          const first = Object.values(r).find(v => v?.trim?.());
+          if (first) c["company_name"] = first;
+        }
+        return c;
+      }).filter(c => c["company_name"]);
+
+      if (!contacts.length) { setError("Не удалось определить названия компаний. Проверьте что в файле есть колонка с названием."); setLoading(false); return; }
+
+      console.log("bulk_create contacts sample:", contacts.slice(0, 2));
+
       const res = await fetch(`${PROSPECTS_URL}/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Token": token },
         body: JSON.stringify({ action: "bulk_create", contacts }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка импорта"); return; }
+      console.log("bulk_create response:", res.status, data);
+      if (!res.ok) { setError(`Ошибка ${res.status}: ${data.error || JSON.stringify(data)}`); return; }
       setResult({ imported: data.imported || 0, skipped: data.skipped || 0 });
       setStage("done");
       onDone();
-    } catch { setError("Ошибка соединения"); }
+    } catch (e) {
+      setError("Ошибка соединения: " + String(e).slice(0, 100));
+    }
     finally { setLoading(false); }
   }
 
