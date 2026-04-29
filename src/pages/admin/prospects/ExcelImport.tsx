@@ -28,32 +28,46 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
     if (!file) return;
     setFileName(file.name);
     setResult(null); setError(""); setMappedRows([]); setMappingInfo({});
+
     const reader = new FileReader();
+    reader.onerror = () => setError("Не удалось прочитать файл");
     reader.onload = (ev) => {
+      // Сбрасываем input только после чтения
+      e.target.value = "";
       try {
-        const data = ev.target?.result;
-        if (!data) { setError("Не удалось прочитать файл"); return; }
+        const data = ev.target?.result as ArrayBuffer;
+        if (!data) { setError("Файл пустой"); return; }
 
         let wb: XLSX.WorkBook;
-        if (file.name.toLowerCase().endsWith(".csv")) {
-          const text = new TextDecoder("utf-8").decode(data as ArrayBuffer);
+        const name = file.name.toLowerCase();
+        if (name.endsWith(".csv")) {
+          // CSV — пробуем UTF-8, затем Windows-1251
+          let text = new TextDecoder("utf-8").decode(data);
+          if (text.includes("")) text = new TextDecoder("windows-1251").decode(data);
           wb = XLSX.read(text, { type: "string" });
         } else {
-          wb = XLSX.read(new Uint8Array(data as ArrayBuffer), { type: "array" });
+          wb = XLSX.read(data, { type: "array" });
         }
 
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+        const sheetName = wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+        const raw: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false }) as string[][];
 
-        // Пропускаем пустые строки в начале
+        // Найти первую непустую строку (заголовки)
         let startIdx = 0;
-        while (startIdx < raw.length && (raw[startIdx] as string[]).every(c => !String(c).trim())) startIdx++;
-        if (raw.length - startIdx < 2) { setError("Файл пустой или содержит только заголовки"); return; }
+        while (startIdx < raw.length && raw[startIdx].every(c => !String(c ?? "").trim())) startIdx++;
 
-        const headers = (raw[startIdx] as string[]).map(h => String(h).trim()).filter(Boolean);
+        if (startIdx >= raw.length - 1) {
+          setError("Файл пустой или содержит только заголовки");
+          return;
+        }
+
+        const headers = raw[startIdx].map(h => String(h ?? "").trim()).filter(Boolean);
+        if (headers.length === 0) { setError("Не найдены заголовки колонок"); return; }
+
         const rows: Record<string, string>[] = [];
         for (let i = startIdx + 1; i < raw.length; i++) {
-          const r = raw[i] as string[];
+          const r = raw[i];
           const obj: Record<string, string> = {};
           headers.forEach((h, idx) => {
             const val = String(r[idx] ?? "").trim();
@@ -61,17 +75,18 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
           });
           if (Object.keys(obj).length > 0) rows.push(obj);
         }
-        if (rows.length === 0) { setError("Не найдено строк с данными"); return; }
+
+        if (rows.length === 0) { setError("Строки с данными не найдены"); return; }
+
         setRawHeaders(headers);
         setRawRows(rows);
         setStage("preview");
-      } catch (e) {
-        console.error("Excel parse error:", e);
-        setError("Не удалось прочитать файл. Попробуйте xlsx, xls или csv.");
+      } catch (err) {
+        console.error("Excel parse error:", err);
+        setError("Ошибка чтения файла: " + String(err).slice(0, 100));
       }
     };
     reader.readAsArrayBuffer(file);
-    e.target.value = "";
   }
 
   async function doAiMapping() {
