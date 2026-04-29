@@ -121,13 +121,20 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
       if (!res.ok || data.error) { setError(data.error || "Ошибка маппинга"); setLoading(false); return; }
       const mapping: Record<string, string> = data.mapping || {};
       setMappingInfo(mapping);
+
       const converted = rawRows.map(row => {
         const out: Record<string, string> = {};
         Object.entries(mapping).forEach(([srcCol, targetField]) => {
           if (targetField && row[srcCol] != null) out[targetField] = row[srcCol];
         });
+        // Если company_name не замаплен — берём первую непустую колонку
+        if (!out["company_name"]) {
+          const firstVal = Object.values(row).find(v => v?.trim());
+          if (firstVal) out["company_name"] = firstVal;
+        }
         return out;
       }).filter(r => r["company_name"]);
+
       setMappedRows(converted);
       setStage("mapping");
     } catch { setError("Ошибка соединения"); }
@@ -316,9 +323,9 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
                 {stage === "done" ? "Закрыть" : "Отмена"}
               </button>
               {stage === "mapping" && (
-                <button onClick={doImport} disabled={loading || !mappedRows.length}
+                <button onClick={doImport} disabled={loading || (mappedRows.length === 0 && rawRows.length === 0)}
                   className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2">
-                  {loading ? <><Icon name="Loader2" size={14} className="animate-spin" /> Загружаю...</> : <><Icon name="Upload" size={14} /> Загрузить {mappedRows.length}</>}
+                  {loading ? <><Icon name="Loader2" size={14} className="animate-spin" /> Загружаю...</> : <><Icon name="Upload" size={14} /> Загрузить {mappedRows.length || rawRows.length}</>}
                 </button>
               )}
             </div>
