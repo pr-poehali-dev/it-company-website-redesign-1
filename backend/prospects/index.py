@@ -1190,12 +1190,74 @@ def handler(event: dict, context) -> dict:
         'activity': f'/{body.get("prospect_id", "")}/activity' if body.get('prospect_id') else '/activity',
         'agent_act': '/agent_act',
         'bulk_create': '/bulk_create',
+        'ai_map_columns': '/ai_map_columns',
     }
     if action and path in ('/', ''):
         path = action_to_path.get(action, '/' + action)
         # action=delete → форсируем DELETE-метод
         if action == 'delete':
             method = 'DELETE'
+
+    # /prospects/ai_map_columns — ИИ-маппинг колонок из любого файла
+    if path.endswith('/ai_map_columns'):
+        if method != 'POST':
+            return err('Только POST')
+        headers = body.get('headers', [])
+        sample = body.get('sample', [])
+        if not headers:
+            return err('Не переданы заголовки')
+        api_key = os.environ.get('POLZA_AI_API_KEY', '')
+        if not api_key:
+            return err('Нет ключа ИИ')
+        target_fields = {
+            'company_name': 'название компании, наименование, организация, фирма',
+            'inn': 'ИНН, идентификационный номер',
+            'phone': 'телефон, мобильный, контакт, номер',
+            'email': 'email, почта, электронная почта',
+            'website': 'сайт, url, веб-сайт',
+            'region': 'регион, город, субъект, область',
+            'address': 'адрес, местонахождение',
+            'industry': 'отрасль, сфера деятельности, ОКВЭД, вид деятельности',
+            'note': 'заметка, комментарий, примечание',
+        }
+        sample_str = json.dumps(sample[:3], ensure_ascii=False)
+        prompt = f"""Ты — эксперт по обработке данных. Тебе нужно сопоставить колонки из загруженного файла с полями CRM.
+
+Колонки в файле: {json.dumps(headers, ensure_ascii=False)}
+
+Примеры данных (первые строки):
+{sample_str}
+
+Целевые поля CRM и их смысл:
+{json.dumps(target_fields, ensure_ascii=False)}
+
+Задача: для каждой колонки из файла определи, какому полю CRM она соответствует.
+Если колонка не подходит ни к одному полю — оставь значение пустой строкой "".
+Каждое поле CRM должно быть использовано не более одного раза.
+
+Верни ТОЛЬКО JSON без markdown — объект где ключ это название колонки из файла, значение — название поля CRM:
+{{"Колонка из файла": "поле_crm_или_пусто", ...}}"""
+        try:
+            req_body = json.dumps({
+                'model': 'gpt-4o-mini',
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.1,
+                'max_tokens': 400,
+            }).encode()
+            req = urllib.request.Request(
+                AI_URL, data=req_body,
+                headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'},
+                method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode())
+            text = data['choices'][0]['message']['content'].strip()
+            text = re.sub(r'^```(?:json)?\s*', '', text)
+            text = re.sub(r'\s*```$', '', text)
+            mapping = json.loads(text)
+            return json_resp({'mapping': mapping})
+        except Exception as e:
+            return err(f'Ошибка ИИ: {str(e)[:120]}')
 
     # /prospects/bulk_create — массовый импорт из Excel
     if path.endswith('/bulk_create'):
