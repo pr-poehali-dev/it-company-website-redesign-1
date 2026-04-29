@@ -49,16 +49,30 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
           wb = XLSX.read(data, { type: "array" });
         }
 
-        const sheetName = wb.SheetNames[0];
-        const ws = wb.Sheets[sheetName];
-        const raw: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false }) as string[][];
+        // Ищем лист с данными — пробуем все листы, берём тот где больше строк с данными
+        let bestRaw: string[][] = [];
+        let bestSheetName = wb.SheetNames[0];
 
-        // Найти первую непустую строку (заголовки)
+        for (const sName of wb.SheetNames) {
+          const ws = wb.Sheets[sName];
+          const r: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false }) as string[][];
+          // Считаем непустые строки
+          const nonEmpty = r.filter(row => row.some(c => String(c ?? "").trim()));
+          if (nonEmpty.length > bestRaw.filter(row => row.some(c => String(c ?? "").trim())).length) {
+            bestRaw = r;
+            bestSheetName = sName;
+          }
+        }
+
+        const raw = bestRaw;
+        console.log("Выбран лист:", bestSheetName, "строк:", raw.length);
+
+        // Найти первую строку где 2+ непустых ячейки (заголовки)
         let startIdx = 0;
-        while (startIdx < raw.length && raw[startIdx].every(c => !String(c ?? "").trim())) startIdx++;
+        while (startIdx < raw.length && raw[startIdx].filter(c => String(c ?? "").trim()).length < 2) startIdx++;
 
         if (startIdx >= raw.length - 1) {
-          setError("Файл пустой или содержит только заголовки");
+          setError("Файл пустой или не содержит табличных данных");
           return;
         }
 
@@ -77,9 +91,8 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
         }
 
         if (rows.length === 0) {
-          // Показываем диагностику: что вообще прочитали
-          const firstFew = raw.slice(0, 5).map(r => (r as string[]).join(" | ")).join("\n");
-          setError(`Строки с данными не найдены.\n\nПервые строки файла:\n${firstFew || "(пусто)"}\n\nЛистов в файле: ${wb.SheetNames.join(", ")}`);
+          const firstFew = raw.slice(startIdx, startIdx + 5).map(r => r.join(" | ")).join("\n");
+          setError(`Строки с данными не найдены.\n\nИспользован лист: ${bestSheetName}\nПервые строки:\n${firstFew || "(пусто)"}`);
           return;
         }
 
