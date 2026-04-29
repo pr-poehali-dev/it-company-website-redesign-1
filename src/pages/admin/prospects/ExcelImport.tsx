@@ -76,14 +76,19 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
           if (Object.keys(obj).length > 0) rows.push(obj);
         }
 
-        if (rows.length === 0) { setError("Строки с данными не найдены"); return; }
+        if (rows.length === 0) {
+          // Показываем диагностику: что вообще прочитали
+          const firstFew = raw.slice(0, 5).map(r => (r as string[]).join(" | ")).join("\n");
+          setError(`Строки с данными не найдены.\n\nПервые строки файла:\n${firstFew || "(пусто)"}\n\nЛистов в файле: ${wb.SheetNames.join(", ")}`);
+          return;
+        }
 
         setRawHeaders(headers);
         setRawRows(rows);
         setStage("preview");
       } catch (err) {
         console.error("Excel parse error:", err);
-        setError("Ошибка чтения файла: " + String(err).slice(0, 100));
+        setError("Ошибка чтения файла: " + String(err).slice(0, 150));
       }
     };
     reader.readAsArrayBuffer(file);
@@ -289,7 +294,7 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
               </div>
             )}
 
-            {error && <p className="text-red-400 text-xs">{error}</p>}
+            {error && <pre className="text-red-400 text-xs whitespace-pre-wrap break-words font-sans">{error}</pre>}
 
             {/* Кнопки */}
             <div className="flex gap-3">
