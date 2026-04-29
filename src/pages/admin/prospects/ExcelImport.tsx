@@ -161,17 +161,23 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
 
       if (!contacts.length) { setError("Не удалось определить названия компаний. Проверьте что в файле есть колонка с названием."); setLoading(false); return; }
 
-      console.log("bulk_create contacts sample:", contacts.slice(0, 2));
-
-      const res = await fetch(`${PROSPECTS_URL}/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Token": token },
-        body: JSON.stringify({ action: "bulk_create", contacts }),
-      });
-      const data = await res.json();
-      console.log("bulk_create response:", res.status, data);
-      if (!res.ok) { setError(`Ошибка ${res.status}: ${data.error || JSON.stringify(data)}`); return; }
-      setResult({ imported: data.imported || 0, skipped: data.skipped || 0 });
+      // Разбиваем на батчи по 50 контактов (лимит запроса ~3.5MB)
+      const BATCH = 50;
+      let totalImported = 0;
+      let totalSkipped = 0;
+      for (let i = 0; i < contacts.length; i += BATCH) {
+        const batch = contacts.slice(i, i + BATCH);
+        const res = await fetch(`${PROSPECTS_URL}/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Session-Token": token },
+          body: JSON.stringify({ action: "bulk_create", contacts: batch }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setError(`Ошибка ${res.status}: ${data.error || JSON.stringify(data)}`); return; }
+        totalImported += data.imported || 0;
+        totalSkipped += data.skipped || 0;
+      }
+      setResult({ imported: totalImported, skipped: totalSkipped });
       setStage("done");
       onDone();
     } catch (e) {
