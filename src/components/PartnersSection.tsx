@@ -32,9 +32,18 @@ export default function PartnersSection() {
                   Официальный партнёр
                 </div>
                 <h3 className="font-oswald text-2xl font-bold text-white mb-2">Лемана Про</h3>
-                <p className="text-white/60 text-sm leading-relaxed">
+                <p className="text-white/60 text-sm leading-relaxed mb-4">
                   Крупнейшая российская сеть строительных гипермаркетов. Совместно реализуем проекты по автоматизации бизнес-процессов и внедрению AI-решений.
                 </p>
+                <a
+                  href="https://lemana.pro"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-amber-300 hover:text-amber-200 text-sm font-medium transition-colors duration-200 group"
+                >
+                  Перейти на сайт Лемана Про
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                </a>
               </div>
             </div>
           </div>
