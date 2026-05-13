@@ -100,50 +100,52 @@ export default function NavBar({ scrolled, menuOpen, setMenuOpen, scrollTo }: Na
       </div>
 
       {menuOpen && (
-        <div className="lg:hidden glass border-t border-white/10 mt-2 mx-4 rounded-2xl p-4">
-          {navLinks.map(link => {
-            if (link.href === "#services") {
+        <div className="lg:hidden fixed inset-0 z-40 bg-[#080812]/95 backdrop-blur-xl flex flex-col pt-20 px-6 pb-8 overflow-y-auto">
+          <div className="flex flex-col gap-1 flex-1">
+            {navLinks.map(link => {
+              if (link.href === "#services") {
+                return (
+                  <div key={link.href}>
+                    <button
+                      onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
+                      className="w-full text-left px-4 py-4 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-all duration-200 text-base flex items-center justify-between"
+                    >
+                      {link.label}
+                      <Icon name="ChevronDown" size={16} className={`transition-transform duration-200 ${mobileServicesOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {mobileServicesOpen && (
+                      <div className="ml-4 mb-2 space-y-1">
+                        {services.map((s, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { navigate(`/services/${s.slug}`); setMenuOpen(false); setMobileServicesOpen(false); }}
+                            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 transition-all text-left"
+                          >
+                            <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${s.color} flex items-center justify-center shrink-0`}>
+                              <Icon name={s.icon} size={14} className="text-white" />
+                            </div>
+                            <span className="text-sm text-white/70">{s.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
               return (
-                <div key={link.href}>
-                  <button
-                    onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
-                    className="w-full text-left px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-all duration-200 text-sm flex items-center justify-between"
-                  >
-                    {link.label}
-                    <Icon name="ChevronDown" size={14} className={`transition-transform duration-200 ${mobileServicesOpen ? "rotate-180" : ""}`} />
-                  </button>
-                  {mobileServicesOpen && (
-                    <div className="ml-4 mb-2 space-y-1">
-                      {services.map((s, i) => (
-                        <button
-                          key={i}
-                          onClick={() => { navigate(`/services/${s.slug}`); setMenuOpen(false); setMobileServicesOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-all text-left"
-                        >
-                          <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${s.color} flex items-center justify-center shrink-0`}>
-                            <Icon name={s.icon} size={12} className="text-white" />
-                          </div>
-                          <span className="text-sm text-white/70">{s.title}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <button
+                  key={link.href}
+                  onClick={() => { scrollTo(link.href); setMenuOpen(false); }}
+                  className="w-full text-left px-4 py-4 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-all duration-200 text-base"
+                >
+                  {link.label}
+                </button>
               );
-            }
-            return (
-              <button
-                key={link.href}
-                onClick={() => scrollTo(link.href)}
-                className="w-full text-left px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-all duration-200 text-sm"
-              >
-                {link.label}
-              </button>
-            );
-          })}
+            })}
+          </div>
           <button
-            onClick={() => scrollTo("#contacts")}
-            className="btn-gradient w-full mt-3 py-3 rounded-xl text-sm font-semibold text-white"
+            onClick={() => { scrollTo("#contacts"); setMenuOpen(false); }}
+            className="btn-gradient w-full mt-6 py-4 rounded-xl text-base font-semibold text-white"
           >
             <span>Связаться с нами</span>
           </button>
