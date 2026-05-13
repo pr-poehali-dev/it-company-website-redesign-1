@@ -6,6 +6,7 @@ import AudienceSection from "@/components/AudienceSection";
 import ProblemSection from "@/components/ProblemSection";
 import ProcessSection from "@/components/ProcessSection";
 import FinalCtaSection from "@/components/FinalCtaSection";
+import PartnersSection from "@/components/PartnersSection";
 
 interface BottomSectionsProps {
   scrollTo: (href: string) => void;
@@ -20,6 +21,7 @@ export default function BottomSections({ scrollTo }: BottomSectionsProps) {
       <TechnologiesSection scrollTo={scrollTo} />
       <BlogSection />
       <FaqSection />
+      <PartnersSection />
       <FinalCtaSection scrollTo={scrollTo} />
       <ContactsSection scrollTo={scrollTo} />
     </>
