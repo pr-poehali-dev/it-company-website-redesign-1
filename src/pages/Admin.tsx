@@ -9,7 +9,7 @@ import ContactRequests from "./admin/ContactRequests";
 import AgentModule from "./admin/AgentModule";
 import AutomationHub from "./admin/AutomationHub";
 import FunnelDashboard from "./admin/FunnelDashboard";
-import { AUTH_URL, BLOG_URL, Post, PostForm, emptyPost } from "./admin/types";
+import { AUTH_URL, BLOG_URL, GENERATE_PDF_URL, Post, PostForm, emptyPost } from "./admin/types";
 
 type Section = "blog" | "tenders" | "prospects" | "requests" | "agent" | "automation" | "funnel";
 
@@ -49,6 +49,7 @@ export default function Admin() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const isAuth = Boolean(token) && tokenVerified;
 
@@ -82,6 +83,23 @@ export default function Admin() {
       setLoginError("Ошибка соединения");
     } finally {
       setLoginLoading(false);
+    }
+  }
+
+  async function downloadPdf() {
+    setPdfLoading(true);
+    try {
+      const res = await fetch(GENERATE_PDF_URL);
+      const data = await res.json();
+      if (data.url) {
+        const a = document.createElement("a");
+        a.href = data.url;
+        a.download = "MAT-Labs-Strategy-365.pdf";
+        a.target = "_blank";
+        a.click();
+      }
+    } finally {
+      setPdfLoading(false);
     }
   }
 
@@ -224,6 +242,17 @@ export default function Admin() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={downloadPdf}
+            disabled={pdfLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600/20 border border-violet-500/30 text-violet-300 hover:bg-violet-600/30 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {pdfLoading
+              ? <Icon name="Loader2" size={14} className="animate-spin" />
+              : <Icon name="FileDown" size={14} />
+            }
+            <span className="hidden sm:block">{pdfLoading ? "Генерация..." : "Стратегия PDF"}</span>
+          </button>
           <a href="/" target="_blank" rel="noreferrer" className="text-white/40 hover:text-white text-sm transition-colors flex items-center gap-1">
             <Icon name="ExternalLink" size={14} />
             <span className="hidden sm:block">Сайт</span>
