@@ -9,6 +9,7 @@ export const navLinks = [
   { label: "О компании", href: "#about" },
   { label: "Услуги", href: "#services" },
   { label: "Портфолио", href: "#portfolio" },
+  { label: "Калькулятор", href: "#calculator" },
   { label: "Технологии", href: "#technologies" },
   { label: "Карьера", href: "#career" },
   { label: "Блог", href: "#blog" },
