@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Generate PDF and return URL",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": { "url": "string" },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
