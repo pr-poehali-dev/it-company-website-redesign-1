@@ -91,13 +91,22 @@ export default function Admin() {
     try {
       const res = await fetch(GENERATE_PDF_URL);
       const data = await res.json();
-      if (data.url) {
-        const a = document.createElement("a");
-        a.href = data.url;
-        a.download = "MAT-Labs-Strategy-365.pdf";
-        a.target = "_blank";
-        a.click();
+      if (!data.url) return;
+
+      const pdfRes = await fetch(data.url, { cache: "no-store" });
+      const blob = await pdfRes.blob();
+      if (blob.size < 1000) {
+        window.open(data.url, "_blank");
+        return;
       }
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "MAT-Labs-Strategy-3-years.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } finally {
       setPdfLoading(false);
     }
