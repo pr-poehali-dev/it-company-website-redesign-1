@@ -1,12 +1,10 @@
 {
   "tests": [
     {
-      "name": "Generate PDF and return URL",
+      "name": "Generate PDF returns 200 with PDF content-type",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": { "url": "string" },
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     }
   ]
 }

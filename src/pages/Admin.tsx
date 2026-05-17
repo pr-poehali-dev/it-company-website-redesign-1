@@ -89,16 +89,8 @@ export default function Admin() {
   async function downloadPdf() {
     setPdfLoading(true);
     try {
-      const res = await fetch(GENERATE_PDF_URL);
-      const data = await res.json();
-      if (!data.url) return;
-
-      const pdfRes = await fetch(data.url, { cache: "no-store" });
-      const blob = await pdfRes.blob();
-      if (blob.size < 1000) {
-        window.open(data.url, "_blank");
-        return;
-      }
+      const res = await fetch(GENERATE_PDF_URL, { cache: "no-store" });
+      const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
