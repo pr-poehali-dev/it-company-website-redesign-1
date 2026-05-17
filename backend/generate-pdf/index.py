@@ -14,6 +14,45 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, PageBreak
 )
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase.pdfmetrics import registerFontFamily
+
+
+# ─── Регистрация кириллического шрифта ─────────────────────────────────────
+FONT_REGULAR = "Helvetica"
+FONT_BOLD = "Helvetica-Bold"
+
+_FONT_CANDIDATES = [
+    ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+    ("/usr/share/fonts/dejavu/DejaVuSans.ttf",
+     "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"),
+    ("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"),
+    ("/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf",
+     "/usr/share/fonts/liberation-sans/LiberationSans-Bold.ttf"),
+    ("/usr/share/fonts/google-noto/NotoSans-Regular.ttf",
+     "/usr/share/fonts/google-noto/NotoSans-Bold.ttf"),
+]
+
+for reg_path, bold_path in _FONT_CANDIDATES:
+    if os.path.exists(reg_path) and os.path.exists(bold_path):
+        try:
+            pdfmetrics.registerFont(TTFont("AppFont", reg_path))
+            pdfmetrics.registerFont(TTFont("AppFont-Bold", bold_path))
+            registerFontFamily(
+                "AppFont",
+                normal="AppFont",
+                bold="AppFont-Bold",
+                italic="AppFont",
+                boldItalic="AppFont-Bold",
+            )
+            FONT_REGULAR = "AppFont"
+            FONT_BOLD = "AppFont-Bold"
+            break
+        except Exception:
+            continue
 
 
 # ─── Цвета бренда ───────────────────────────────────────────────────────────
@@ -35,50 +74,50 @@ def make_styles():
     styles = getSampleStyleSheet()
 
     styles.add(ParagraphStyle("Cover_Title",
-        fontName="Helvetica-Bold", fontSize=30, leading=38,
+        fontName=FONT_BOLD, fontSize=30, leading=38,
         textColor=WHITE, alignment=TA_LEFT, spaceAfter=6))
     styles.add(ParagraphStyle("Cover_Sub",
-        fontName="Helvetica", fontSize=14, leading=20,
+        fontName=FONT_REGULAR, fontSize=14, leading=20,
         textColor=CYAN_LT, alignment=TA_LEFT, spaceAfter=4))
     styles.add(ParagraphStyle("Cover_Date",
-        fontName="Helvetica", fontSize=10, leading=14,
+        fontName=FONT_REGULAR, fontSize=10, leading=14,
         textColor=GREY, alignment=TA_LEFT))
     styles.add(ParagraphStyle("Section_Title",
-        fontName="Helvetica-Bold", fontSize=17, leading=22,
+        fontName=FONT_BOLD, fontSize=17, leading=22,
         textColor=VIOLET_LT, spaceBefore=14, spaceAfter=8))
     styles.add(ParagraphStyle("Sub_Title",
-        fontName="Helvetica-Bold", fontSize=13, leading=18,
+        fontName=FONT_BOLD, fontSize=13, leading=18,
         textColor=CYAN_LT, spaceBefore=12, spaceAfter=5))
     styles.add(ParagraphStyle("Sub2_Title",
-        fontName="Helvetica-Bold", fontSize=11, leading=15,
+        fontName=FONT_BOLD, fontSize=11, leading=15,
         textColor=WHITE, spaceBefore=8, spaceAfter=3))
     styles.add(ParagraphStyle("Body",
-        fontName="Helvetica", fontSize=10, leading=14,
+        fontName=FONT_REGULAR, fontSize=10, leading=14,
         textColor=colors.HexColor("#CBD5E1"), spaceAfter=4))
     styles.add(ParagraphStyle("Body_Bold",
-        fontName="Helvetica-Bold", fontSize=10, leading=14,
+        fontName=FONT_BOLD, fontSize=10, leading=14,
         textColor=WHITE, spaceAfter=4))
     styles.add(ParagraphStyle("Body_Small",
-        fontName="Helvetica", fontSize=9, leading=12,
+        fontName=FONT_REGULAR, fontSize=9, leading=12,
         textColor=colors.HexColor("#94A3B8"), spaceAfter=3))
     styles.add(ParagraphStyle("BulletItem",
-        fontName="Helvetica", fontSize=10, leading=14,
+        fontName=FONT_REGULAR, fontSize=10, leading=14,
         textColor=colors.HexColor("#CBD5E1"),
         leftIndent=14, spaceAfter=2))
     styles.add(ParagraphStyle("Footer",
-        fontName="Helvetica", fontSize=8, leading=11,
+        fontName=FONT_REGULAR, fontSize=8, leading=11,
         textColor=GREY, alignment=TA_CENTER))
     styles.add(ParagraphStyle("Metric_Label",
-        fontName="Helvetica", fontSize=9, leading=12,
+        fontName=FONT_REGULAR, fontSize=9, leading=12,
         textColor=GREY, alignment=TA_CENTER))
     styles.add(ParagraphStyle("Metric_Value",
-        fontName="Helvetica-Bold", fontSize=22, leading=26,
+        fontName=FONT_BOLD, fontSize=22, leading=26,
         textColor=CYAN_LT, alignment=TA_CENTER))
     styles.add(ParagraphStyle("Product_Name",
-        fontName="Helvetica-Bold", fontSize=12, leading=15,
+        fontName=FONT_BOLD, fontSize=12, leading=15,
         textColor=WHITE, spaceAfter=2))
     styles.add(ParagraphStyle("Product_Cat",
-        fontName="Helvetica-Bold", fontSize=8, leading=10,
+        fontName=FONT_BOLD, fontSize=8, leading=10,
         textColor=VIOLET_LT, spaceAfter=4))
 
     return styles
@@ -100,13 +139,13 @@ def colored_table(data, col_widths, header_bg=VIOLET, row_bg=GREY_CARD, alt_bg=G
     style = TableStyle([
         ("BACKGROUND",    (0, 0), (-1, 0), header_bg),
         ("TEXTCOLOR",     (0, 0), (-1, 0), WHITE),
-        ("FONTNAME",      (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME",      (0, 0), (-1, 0), FONT_BOLD),
         ("FONTSIZE",      (0, 0), (-1, 0), font_size),
         ("ALIGN",         (0, 0), (-1, -1), "LEFT"),
         ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
         ("ROWBACKGROUNDS",(0, 1), (-1, -1), [row_bg, alt_bg]),
         ("TEXTCOLOR",     (0, 1), (-1, -1), colors.HexColor("#CBD5E1")),
-        ("FONTNAME",      (0, 1), (-1, -1), "Helvetica"),
+        ("FONTNAME",      (0, 1), (-1, -1), FONT_REGULAR),
         ("FONTSIZE",      (0, 1), (-1, -1), font_size),
         ("GRID",          (0, 0), (-1, -1), 0.3, colors.HexColor("#2D2F50")),
         ("TOPPADDING",    (0, 0), (-1, -1), 5),
@@ -127,7 +166,7 @@ def kpi_block(title, text, bg_header, bg_body, styles):
         ("BACKGROUND", (0, 0), (-1, 0), bg_header),
         ("BACKGROUND", (0, 1), (-1, 1), bg_body),
         ("TEXTCOLOR",  (0, 0), (-1, -1), WHITE),
-        ("FONTNAME",   (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME",   (0, 0), (-1, 0), FONT_BOLD),
         ("FONTSIZE",   (0, 0), (-1, -1), 9),
         ("TOPPADDING",    (0, 0), (-1, -1), 6),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
