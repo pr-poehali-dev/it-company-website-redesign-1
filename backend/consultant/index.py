@@ -9,11 +9,15 @@ Actions:
 
 import json
 import os
+import re
 import smtplib
+import secrets
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 import requests
+import psycopg2
+from psycopg2.extras import Json
 
 PROVIDER_BASE_URL = "https://api.polza.ai/api/v1"
 DEFAULT_MODEL = "openai/gpt-4o"
@@ -58,7 +62,8 @@ SYSTEM_PROMPT = """Ты — Алекс, профессиональный IT-ко
 - Задавай по 1-2 вопроса за раз, не перегружай клиента
 - Не выдумывай цены — скажи, что менеджер уточнит стоимость после изучения ТЗ
 - Если клиент не знает что-то — помоги сформулировать
-- Когда уверен, что собрал достаточно данных для ТЗ, заверши сообщение фразой: [ГОТОВ К ОТПРАВКЕ ТЗ]
+- ⚠️ КРИТИЧНО: ОБЯЗАТЕЛЬНО получи от клиента email ИЛИ телефон до отправки ТЗ. Без контактов менеджер не сможет связаться. Если клиент пытается отправить ТЗ без контактов — вежливо попроси email или телефон.
+- Когда уверен, что собрал достаточно данных для ТЗ И есть контакты (email или телефон), заверши сообщение фразой: [ГОТОВ К ОТПРАВКЕ ТЗ]
 
 ## Формат ТЗ (когда будешь его составлять)
 Структурируй ТЗ чётко по разделам:
@@ -192,6 +197,62 @@ def send_email(brief_text: str, client_name: str) -> None:
         server.sendmail(ADMIN_EMAIL, ADMIN_EMAIL, msg.as_bytes())
 
 
+EMAIL_RE = re.compile(r"[\w\.\-+]+@[\w\.\-]+\.[A-Za-z]{2,}")
+PHONE_RE = re.compile(r"(?:\+7|7|8)[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d[\s\-\(\)]*\d")
+
+
+def extract_contacts(messages: list) -> dict:
+    """Достаёт email/телефон из всех сообщений пользователя в диалоге."""
+    text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
+    email_match = EMAIL_RE.search(text)
+    phone_match = PHONE_RE.search(text)
+    return {
+        "email": email_match.group(0) if email_match else None,
+        "phone": phone_match.group(0) if phone_match else None,
+    }
+
+
+def db_connect():
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
+
+def upsert_chat(session_id: str, messages: list, contacts: dict,
+                client_name: str, client_company: str,
+                brief: str, is_sent: bool, ip: str, user_agent: str) -> None:
+    """Сохраняет или обновляет диалог в БД (даже неполный — чтобы не терять контакты)."""
+    conn = db_connect()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM consultant_chats WHERE session_id = %s", (session_id,))
+    row = cur.fetchone()
+    if row:
+        cur.execute(
+            """UPDATE consultant_chats
+               SET messages = %s, client_name = COALESCE(NULLIF(%s,''), client_name),
+                   client_email = COALESCE(%s, client_email),
+                   client_phone = COALESCE(%s, client_phone),
+                   client_company = COALESCE(NULLIF(%s,''), client_company),
+                   brief = COALESCE(%s, brief),
+                   is_sent = is_sent OR %s,
+                   updated_at = CURRENT_TIMESTAMP
+               WHERE session_id = %s""",
+            (Json(messages), client_name or "", contacts.get("email"),
+             contacts.get("phone"), client_company or "", brief, is_sent, session_id)
+        )
+    else:
+        cur.execute(
+            """INSERT INTO consultant_chats
+               (session_id, client_name, client_email, client_phone, client_company,
+                messages, brief, is_sent, ip, user_agent)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+            (session_id, client_name or None, contacts.get("email"),
+             contacts.get("phone"), client_company or None,
+             Json(messages), brief, is_sent, ip, user_agent)
+        )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
 def handler(event: dict, context) -> dict:
     """Консультант МАТ-Лабс — AI-чат для выявления потребностей и формирования ТЗ."""
     method = event.get("httpMethod", "POST")
@@ -209,6 +270,14 @@ def handler(event: dict, context) -> dict:
         return cors_response(400, {"error": "Неверный JSON"})
 
     messages = body.get("messages", [])
+    session_id = body.get("session_id") or secrets.token_hex(16)
+    client_name = (body.get("client_name") or "").strip()
+    client_company = (body.get("client_company") or "").strip()
+    contacts = extract_contacts(messages)
+
+    headers = event.get("headers") or {}
+    ip = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp", "")
+    user_agent = headers.get("User-Agent") or headers.get("user-agent") or ""
 
     if action == "chat":
         if not messages:
@@ -217,10 +286,20 @@ def handler(event: dict, context) -> dict:
             reply = chat_with_gpt(messages)
             ready_to_send = "[ГОТОВ К ОТПРАВКЕ ТЗ]" in reply
             clean_reply = reply.replace("[ГОТОВ К ОТПРАВКЕ ТЗ]", "").strip()
+
+            full_messages = messages + [{"role": "assistant", "content": clean_reply}]
+            try:
+                upsert_chat(session_id, full_messages, contacts, client_name,
+                            client_company, None, False, ip, user_agent)
+            except Exception:
+                pass
+
             return cors_response(200, {
                 "success": True,
                 "content": clean_reply,
                 "ready_to_send": ready_to_send,
+                "session_id": session_id,
+                "has_contacts": bool(contacts.get("email") or contacts.get("phone")),
             })
         except Exception as e:
             return cors_response(500, {"error": str(e)})
@@ -228,14 +307,29 @@ def handler(event: dict, context) -> dict:
     elif action == "send_brief":
         if not messages:
             return cors_response(400, {"error": "messages обязателен"})
+
+        if not contacts.get("email") and not contacts.get("phone"):
+            return cors_response(400, {
+                "error": "Для отправки ТЗ нужно оставить email или телефон. Напишите их в чате — и я отправлю заявку.",
+                "need_contacts": True,
+            })
+
         try:
             brief = generate_brief(messages)
-            client_name = body.get("client_name", "Неизвестный клиент")
-            send_email(brief, client_name)
+            display_name = client_name or "Неизвестный клиент"
+            send_email(brief, display_name)
+
+            try:
+                upsert_chat(session_id, messages, contacts, client_name,
+                            client_company, brief, True, ip, user_agent)
+            except Exception:
+                pass
+
             return cors_response(200, {
                 "success": True,
                 "message": "ТЗ успешно отправлено администратору",
                 "brief": brief,
+                "session_id": session_id,
             })
         except Exception as e:
             return cors_response(500, {"error": str(e)})

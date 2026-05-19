@@ -11,6 +11,15 @@ interface Message {
 
 type Stage = "chat" | "sending" | "sent";
 
+function getSessionId() {
+  let id = localStorage.getItem("consultant_session");
+  if (!id) {
+    id = `s_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem("consultant_session", id);
+  }
+  return id;
+}
+
 export default function Consultant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -18,6 +27,7 @@ export default function Consultant() {
   const [stage, setStage] = useState<Stage>("chat");
   const [readyToSend, setReadyToSend] = useState(false);
   const [brief, setBrief] = useState("");
+  const [sessionId] = useState(() => getSessionId());
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,7 +63,7 @@ export default function Consultant() {
       const res = await fetch(`${API_URL}?action=chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ messages: newMessages, session_id: sessionId }),
       });
       const data = await res.json();
       if (data.success) {
@@ -79,12 +89,19 @@ export default function Consultant() {
       const res = await fetch(`${API_URL}?action=send_brief`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages, client_name: clientName }),
+        body: JSON.stringify({ messages, client_name: clientName, session_id: sessionId }),
       });
       const data = await res.json();
       if (data.success) {
         setBrief(data.brief);
         setStage("sent");
+      } else if (data.need_contacts) {
+        setStage("chat");
+        setReadyToSend(false);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: data.error || "Пожалуйста, оставьте ваш email или телефон, чтобы наш менеджер мог с вами связаться." },
+        ]);
       } else {
         setStage("chat");
         alert("Ошибка отправки: " + data.error);

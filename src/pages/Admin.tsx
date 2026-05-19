@@ -6,12 +6,13 @@ import AdminPostEditor from "./admin/AdminPostEditor";
 import TenderSearch from "./admin/TenderSearch";
 import ProspectModule from "./admin/ProspectModule";
 import ContactRequests from "./admin/ContactRequests";
+import ConsultantChats from "./admin/ConsultantChats";
 import AgentModule from "./admin/AgentModule";
 import AutomationHub from "./admin/AutomationHub";
 import FunnelDashboard from "./admin/FunnelDashboard";
 import { AUTH_URL, BLOG_URL, GENERATE_PDF_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "blog" | "tenders" | "prospects" | "requests" | "agent" | "automation" | "funnel";
+type Section = "blog" | "tenders" | "prospects" | "requests" | "chats" | "agent" | "automation" | "funnel";
 
 function getStoredToken(): string {
   return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
@@ -201,6 +202,7 @@ export default function Admin() {
     { id: "tenders", label: "Тендеры", icon: "Search" },
     { id: "prospects", label: "Клиенты", icon: "Users" },
     { id: "requests", label: "Заявки", icon: "Mail" },
+    { id: "chats", label: "Диалоги", icon: "MessagesSquare" },
     { id: "agent", label: "AI-агент", icon: "BrainCircuit" },
     { id: "automation", label: "Автоматизация", icon: "Zap" },
     { id: "funnel", label: "Воронка", icon: "BarChart2" },
@@ -306,6 +308,11 @@ export default function Admin() {
         {/* REQUESTS SECTION */}
         {section === "requests" && (
           <ContactRequests token={token} />
+        )}
+
+        {/* CONSULTANT CHATS SECTION */}
+        {section === "chats" && (
+          <ConsultantChats token={token} />
         )}
 
         {/* AI-AGENT SECTION */}
