@@ -211,6 +211,7 @@ export const portfolio = [
   { title: "АгроПорт", category: "ИИ / Агробизнес", desc: "AI-платформа мониторинга и прогнозирования агрорынка России: прогнозы цен на зерновые, спутниковый NDVI-мониторинг посевов и карта рисков по 23 регионам", tech: ["AI", "React", "Python"], color: "from-green-600 to-lime-600", url: "https://agroport-ai.ru" },
   { title: "MAIL-KA", category: "Email-маркетинг / ИИ", desc: "Российская платформа для email-рассылок с AI-копирайтером, визуальными автоматизациями и omnichannel-каналами: Email, SMS, Telegram, Push", tech: ["AI", "React", "Python"], color: "from-blue-600 to-indigo-700", url: "https://mail-ka.ru" },
   { title: "MAT-AD", category: "Реклама / ИИ", desc: "Сервис для рекламных специалистов: ИИ-генерация объявлений, работа с фидами и шаблонами — автоматизация рутинных задач в настройке кампаний", tech: ["AI", "React", "Python"], color: "from-rose-600 to-orange-600", url: "https://mat-ad.ru" },
+  { title: "УЧИСЬПРО", category: "EdTech / Обучение", desc: "Образовательная платформа для обучения и развития: курсы, материалы и инструменты для эффективного освоения новых профессий и навыков", tech: ["React", "Python", "PostgreSQL"], color: "from-fuchsia-600 to-purple-700", url: "https://учисьпро.рф" },
 ];
 
 export const technologies = [
