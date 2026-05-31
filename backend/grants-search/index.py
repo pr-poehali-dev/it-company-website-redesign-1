@@ -148,6 +148,65 @@ def _ai_call(prompt: str, api_key: str, max_tokens: int = 2500) -> dict:
         return {'ok': False, 'error': str(e)[:200]}
 
 
+def ai_chat(messages: list, api_key: str, grant: dict | None = None) -> dict:
+    """Чат-помощник по заполнению грантовых заявок. Возвращает текстовый ответ."""
+    grant_ctx = ''
+    if grant:
+        grant_ctx = f"""
+
+КОНТЕКСТ — ГРАНТ, ПО КОТОРОМУ ИДЁТ РАБОТА:
+- Название: {grant.get('name', '')}
+- Грантодатель: {grant.get('fund', '')}
+- Размер: {grant.get('amount_fmt', '')}
+- Категория: {grant.get('category', '')}
+- Срок подачи: {grant.get('deadline', '')}
+- Описание: {grant.get('description', '')}
+- Наш продукт под этот грант: {grant.get('matched_product', '')}
+"""
+
+    system_prompt = f"""Ты — опытный грант-менеджер и эксперт по подготовке заявок на гранты,
+субсидии и конкурсы для IT-компаний в России. Ты знаешь все нюансы создания и функционирования
+проектов: ФСИ, РФРИТ, Сколково, Минцифры, Росмолодёжь, Минпромторг, Минсельхоз, НТИ,
+президентские гранты, региональные ФРП.
+
+Твоя задача — помогать заполнять заявку: формулировать разделы (актуальность проблемы,
+новизна, цели и задачи, план-график, бюджет, ожидаемые результаты, KPI, команда),
+давать готовые формулировки, проверять тексты, объяснять требования и критерии оценки.
+
+ПРОФИЛЬ КОМПАНИИ, ОТ ИМЕНИ КОТОРОЙ ПОДАЁТСЯ ЗАЯВКА:
+{COMPANY_PROFILE}
+{grant_ctx}
+Правила ответа:
+- Пиши по-деловому, конкретно и по-русски.
+- Давай практичные готовые формулировки, которые можно вставить в заявку.
+- Если данных не хватает — задавай уточняющие вопросы.
+- Опирайся на реальные требования российских грантодателей, не выдумывай факты.
+- Структурируй ответ заголовками и списками, где это уместно."""
+
+    chat_messages = [{'role': 'system', 'content': system_prompt}]
+    for m in messages[-12:]:
+        role = 'assistant' if m.get('role') == 'assistant' else 'user'
+        chat_messages.append({'role': role, 'content': str(m.get('content', ''))[:4000]})
+
+    payload = json.dumps({
+        'model': 'gpt-4o',
+        'messages': chat_messages,
+        'temperature': 0.6,
+        'max_tokens': 2000,
+    }).encode('utf-8')
+    req = urllib.request.Request(AI_URL, data=payload, headers={
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=40) as r:
+            result = json.loads(r.read().decode('utf-8'))
+            reply = result['choices'][0]['message']['content'].strip()
+            return {'ok': True, 'reply': reply}
+    except Exception as e:
+        return {'ok': False, 'error': str(e)[:200]}
+
+
 def ai_search_grants(query: str, api_key: str) -> dict:
     """ИИ подбирает релевантные гранты/конкурсы под продукты МАТ-Лабс."""
     prompt = f"""Ты эксперт по грантам, субсидиям и конкурсам для IT-компаний в России (2026 год).
@@ -292,6 +351,20 @@ def handler(event: dict, context) -> dict:
         if not result['ok']:
             return resp(500, {'error': f"Ошибка анализа: {result['error']}"})
         return resp(200, {'analysis': result['analysis']})
+
+    # ── POST /chat — чат-помощник по заполнению заявки ──
+    if method == 'POST' and path.endswith('/chat'):
+        messages = body.get('messages') or []
+        grant = body.get('grant')
+        if not messages:
+            return resp(400, {'error': 'Пустое сообщение'})
+        api_key = os.environ.get('POLZA_AI_API_KEY', '')
+        if not api_key:
+            return resp(500, {'error': 'Не настроен ключ ИИ'})
+        result = ai_chat(messages, api_key, grant)
+        if not result['ok']:
+            return resp(500, {'error': f"Ошибка ИИ-чата: {result['error']}"})
+        return resp(200, {'reply': result['reply']})
 
     # ── POST /save — сохранить грант ──
     if method == 'POST' and path.endswith('/save'):

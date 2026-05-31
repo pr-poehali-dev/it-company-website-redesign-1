@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import GrantCard from "./grant/GrantCard";
+import GrantChat from "./grant/GrantChat";
 import { GRANTS_URL, QUICK, Grant, Fund, SavedGrant, GrantAnalysis, Tab } from "./grant/types";
 
 export default function GrantSearch({ token }: { token: string }) {
@@ -21,6 +22,7 @@ export default function GrantSearch({ token }: { token: string }) {
   useEffect(() => {
     if (tab === "funds" && funds.length === 0) loadFunds();
     if (tab === "saved") loadSaved();
+    if (tab === "chat" && saved.length === 0) loadSaved();
   }, [tab]);
 
   async function loadFunds() {
@@ -101,6 +103,7 @@ export default function GrantSearch({ token }: { token: string }) {
 
   const TABS: { id: Tab; label: string; icon: string; badge?: number }[] = [
     { id: "search", label: "ИИ-поиск грантов", icon: "Sparkles" },
+    { id: "chat", label: "Помощник по заявкам", icon: "MessageSquareText" },
     { id: "funds", label: "Каталог фондов", icon: "Library", badge: funds.length || undefined },
     { id: "saved", label: "Избранное", icon: "Bookmark", badge: saved.length || undefined },
   ];
@@ -200,6 +203,9 @@ export default function GrantSearch({ token }: { token: string }) {
           )}
         </>
       )}
+
+      {/* CHAT ASSISTANT */}
+      {tab === "chat" && <GrantChat token={token} savedGrants={saved} />}
 
       {/* FUNDS CATALOG */}
       {tab === "funds" && (

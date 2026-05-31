@@ -49,7 +49,12 @@ export interface GrantAnalysis {
   conclusion: string;
 }
 
-export type Tab = "search" | "funds" | "saved";
+export type Tab = "search" | "funds" | "saved" | "chat";
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export const QUICK = [
   "гранты на EdTech и образование",
