@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { GRANTS_URL, ChatMessage, Grant, SavedGrant } from "./types";
+import { exportApplicationToWord } from "./exportWord";
 
 const SUGGESTIONS = [
   "Помоги сформулировать актуальность проблемы",
@@ -96,6 +97,16 @@ export default function GrantChat({
             </option>
           ))}
         </select>
+        {messages.some((m) => m.role === "assistant") && (
+          <button
+            onClick={() => exportApplicationToWord(messages, grantCtx?.name)}
+            className="flex items-center gap-1.5 text-xs text-emerald-300 hover:text-emerald-200 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-lg transition-all"
+            title="Скачать ответы помощника в Word"
+          >
+            <Icon name="FileDown" size={15} />
+            Скачать заявку
+          </button>
+        )}
         {messages.length > 0 && (
           <button
             onClick={() => {
