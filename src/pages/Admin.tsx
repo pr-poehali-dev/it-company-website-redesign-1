@@ -4,6 +4,7 @@ import AdminLogin from "./admin/AdminLogin";
 import AdminPostList from "./admin/AdminPostList";
 import AdminPostEditor from "./admin/AdminPostEditor";
 import TenderSearch from "./admin/TenderSearch";
+import GrantSearch from "./admin/GrantSearch";
 import ProspectModule from "./admin/ProspectModule";
 import ContactRequests from "./admin/ContactRequests";
 import ConsultantChats from "./admin/ConsultantChats";
@@ -12,7 +13,7 @@ import AutomationHub from "./admin/AutomationHub";
 import FunnelDashboard from "./admin/FunnelDashboard";
 import { AUTH_URL, BLOG_URL, GENERATE_PDF_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "blog" | "tenders" | "prospects" | "requests" | "chats" | "agent" | "automation" | "funnel";
+type Section = "blog" | "tenders" | "grants" | "prospects" | "requests" | "chats" | "agent" | "automation" | "funnel";
 
 function getStoredToken(): string {
   return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
@@ -200,6 +201,7 @@ export default function Admin() {
   const NAV: { id: Section; label: string; icon: string; badge?: number }[] = [
     { id: "blog", label: "Статьи блога", icon: "FileText", badge: posts.length || undefined },
     { id: "tenders", label: "Тендеры", icon: "Search" },
+    { id: "grants", label: "Гранты", icon: "Award" },
     { id: "prospects", label: "Клиенты", icon: "Users" },
     { id: "requests", label: "Заявки", icon: "Mail" },
     { id: "chats", label: "Диалоги", icon: "MessagesSquare" },
@@ -298,6 +300,11 @@ export default function Admin() {
         {/* TENDERS SECTION */}
         {section === "tenders" && (
           <TenderSearch token={token} />
+        )}
+
+        {/* GRANTS SECTION */}
+        {section === "grants" && (
+          <GrantSearch token={token} />
         )}
 
         {/* PROSPECTS SECTION */}

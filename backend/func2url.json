@@ -1,4 +1,5 @@
 {
+  "grants-search": "https://functions.poehali.dev/cd9f10b6-bd2b-4156-afc1-6aeb89fdbe43",
   "consultant-chats": "https://functions.poehali.dev/f0747f71-9739-46f1-af1f-3098ffe23389",
   "generate-pdf": "https://functions.poehali.dev/912caa89-550a-4162-bcae-62b802f92d07",
   "cron-runner": "https://functions.poehali.dev/e57ad53d-52a4-4403-b952-a44b6a2f496d",
