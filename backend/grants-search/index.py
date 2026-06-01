@@ -302,13 +302,15 @@ def handler(event: dict, context) -> dict:
     method = event.get('httpMethod', 'GET')
     path = event.get('path', '/')
     body = json.loads(event.get('body') or '{}')
+    params = event.get('queryStringParameters') or {}
+    action = (body.get('action') or params.get('action') or '').strip()
 
     # ── GET /funds — каталог проверенных фондов ──
-    if method == 'GET' and path.endswith('/funds'):
+    if method == 'GET' and (action == 'funds' or path.endswith('/funds')):
         return resp(200, {'funds': GRANT_FUNDS})
 
     # ── GET /saved — избранные гранты ──
-    if method == 'GET' and path.endswith('/saved'):
+    if method == 'GET' and (action == 'saved' or path.endswith('/saved')):
         conn = get_conn()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute("SELECT * FROM saved_grants ORDER BY created_at DESC")
@@ -316,44 +318,8 @@ def handler(event: dict, context) -> dict:
         conn.close()
         return resp(200, {'saved': [dict(r) for r in rows]})
 
-    # ── POST / — ИИ-поиск грантов ──
-    if method == 'POST' and (path == '/' or path.endswith('/grants-search')):
-        query = (body.get('query') or '').strip()
-        if not query:
-            return resp(400, {'error': 'Введите запрос — например «гранты на EdTech» или «импортозамещение ПО»'})
-        api_key = os.environ.get('POLZA_AI_API_KEY', '')
-        if not api_key:
-            return resp(500, {'error': 'Не настроен ключ ИИ'})
-        result = ai_search_grants(query, api_key)
-        if not result['ok']:
-            return resp(500, {'error': f"Ошибка ИИ-поиска: {result['error']}"})
-
-        # пометить уже сохранённые
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("SELECT external_id, source FROM saved_grants")
-        saved_set = {(r[0], r[1]) for r in cur.fetchall()}
-        conn.close()
-        for g in result['grants']:
-            g['source'] = 'ИИ-подбор'
-            g['saved'] = (str(g.get('id')), 'ИИ-подбор') in saved_set
-        return resp(200, {'grants': result['grants'], 'funds': GRANT_FUNDS})
-
-    # ── POST /analyze — ИИ-анализ гранта ──
-    if method == 'POST' and path.endswith('/analyze'):
-        grant = body.get('grant')
-        if not grant:
-            return resp(400, {'error': 'Не передан грант'})
-        api_key = os.environ.get('POLZA_AI_API_KEY', '')
-        if not api_key:
-            return resp(500, {'error': 'Не настроен ключ ИИ'})
-        result = ai_analyze_grant(grant, api_key)
-        if not result['ok']:
-            return resp(500, {'error': f"Ошибка анализа: {result['error']}"})
-        return resp(200, {'analysis': result['analysis']})
-
     # ── POST /chat — чат-помощник по заполнению заявки ──
-    if method == 'POST' and path.endswith('/chat'):
+    if method == 'POST' and (action == 'chat' or path.endswith('/chat')):
         messages = body.get('messages') or []
         grant = body.get('grant')
         if not messages:
@@ -366,8 +332,21 @@ def handler(event: dict, context) -> dict:
             return resp(500, {'error': f"Ошибка ИИ-чата: {result['error']}"})
         return resp(200, {'reply': result['reply']})
 
+    # ── POST /analyze — ИИ-анализ гранта ──
+    if method == 'POST' and (action == 'analyze' or path.endswith('/analyze')):
+        grant = body.get('grant')
+        if not grant:
+            return resp(400, {'error': 'Не передан грант'})
+        api_key = os.environ.get('POLZA_AI_API_KEY', '')
+        if not api_key:
+            return resp(500, {'error': 'Не настроен ключ ИИ'})
+        result = ai_analyze_grant(grant, api_key)
+        if not result['ok']:
+            return resp(500, {'error': f"Ошибка анализа: {result['error']}"})
+        return resp(200, {'analysis': result['analysis']})
+
     # ── POST /save — сохранить грант ──
-    if method == 'POST' and path.endswith('/save'):
+    if method == 'POST' and (action == 'save' or path.endswith('/save')):
         g = body.get('grant') or {}
         analysis = body.get('analysis')
         ext_id = str(g.get('id') or g.get('external_id') or '')
@@ -394,7 +373,7 @@ def handler(event: dict, context) -> dict:
         return resp(200, {'ok': True})
 
     # ── DELETE /save — убрать из избранного ──
-    if method == 'DELETE' and path.endswith('/save'):
+    if method == 'DELETE' and (action == 'unsave' or path.endswith('/save')):
         ext_id = str(body.get('external_id') or '')
         source = body.get('source') or 'ИИ-подбор'
         conn = get_conn()
@@ -405,7 +384,7 @@ def handler(event: dict, context) -> dict:
         return resp(200, {'ok': True})
 
     # ── POST /note — заметка ──
-    if method == 'POST' and path.endswith('/note'):
+    if method == 'POST' and (action == 'note' or path.endswith('/note')):
         gid = body.get('id')
         note = body.get('note', '')
         conn = get_conn()
@@ -414,5 +393,28 @@ def handler(event: dict, context) -> dict:
         conn.commit()
         conn.close()
         return resp(200, {'ok': True})
+
+    # ── POST / — ИИ-поиск грантов ──
+    if method == 'POST' and (action == 'search' or path == '/' or path.endswith('/grants-search')):
+        query = (body.get('query') or '').strip()
+        if not query:
+            return resp(400, {'error': 'Введите запрос — например «гранты на EdTech» или «импортозамещение ПО»'})
+        api_key = os.environ.get('POLZA_AI_API_KEY', '')
+        if not api_key:
+            return resp(500, {'error': 'Не настроен ключ ИИ'})
+        result = ai_search_grants(query, api_key)
+        if not result['ok']:
+            return resp(500, {'error': f"Ошибка ИИ-поиска: {result['error']}"})
+
+        # пометить уже сохранённые
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT external_id, source FROM saved_grants")
+        saved_set = {(r[0], r[1]) for r in cur.fetchall()}
+        conn.close()
+        for g in result['grants']:
+            g['source'] = 'ИИ-подбор'
+            g['saved'] = (str(g.get('id')), 'ИИ-подбор') in saved_set
+        return resp(200, {'grants': result['grants'], 'funds': GRANT_FUNDS})
 
     return resp(404, {'error': 'Маршрут не найден'})

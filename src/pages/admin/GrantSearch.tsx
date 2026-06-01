@@ -26,13 +26,13 @@ export default function GrantSearch({ token }: { token: string }) {
   }, [tab]);
 
   async function loadFunds() {
-    const r = await fetch(`${GRANTS_URL}/funds`, { headers: { "X-Session-Token": token } });
+    const r = await fetch(`${GRANTS_URL}?action=funds`, { headers: { "X-Session-Token": token } });
     const d = await r.json();
     setFunds(d.funds || []);
   }
 
   async function loadSaved() {
-    const r = await fetch(`${GRANTS_URL}/saved`, { headers: { "X-Session-Token": token } });
+    const r = await fetch(`${GRANTS_URL}?action=saved`, { headers: { "X-Session-Token": token } });
     const d = await r.json();
     setSaved((d.saved || []).map((x: Record<string, unknown>) => ({ ...x, saved: true })));
   }
@@ -46,10 +46,10 @@ export default function GrantSearch({ token }: { token: string }) {
     setSelected(null);
     setAnalysis(null);
     try {
-      const r = await fetch(`${GRANTS_URL}/`, {
+      const r = await fetch(GRANTS_URL, {
         method: "POST",
         headers,
-        body: JSON.stringify({ query: sq }),
+        body: JSON.stringify({ action: "search", query: sq }),
       });
       const d = await r.json();
       if (!r.ok) {
@@ -70,10 +70,10 @@ export default function GrantSearch({ token }: { token: string }) {
     setAnalysis(null);
     setAnalyzing(true);
     try {
-      const r = await fetch(`${GRANTS_URL}/analyze`, {
+      const r = await fetch(GRANTS_URL, {
         method: "POST",
         headers,
-        body: JSON.stringify({ grant: g }),
+        body: JSON.stringify({ action: "analyze", grant: g }),
       });
       const d = await r.json();
       if (r.ok) setAnalysis(d.analysis);
@@ -84,18 +84,18 @@ export default function GrantSearch({ token }: { token: string }) {
 
   async function toggleSave(g: Grant) {
     if (g.saved) {
-      await fetch(`${GRANTS_URL}/save`, {
+      await fetch(GRANTS_URL, {
         method: "DELETE",
         headers,
-        body: JSON.stringify({ external_id: g.id, source: g.source || "ИИ-подбор" }),
+        body: JSON.stringify({ action: "unsave", external_id: g.id, source: g.source || "ИИ-подбор" }),
       });
       setGrants((p) => p.map((x) => (x.id === g.id ? { ...x, saved: false } : x)));
       if (tab === "saved") setSaved((p) => p.filter((x) => x.external_id !== g.id));
     } else {
-      await fetch(`${GRANTS_URL}/save`, {
+      await fetch(GRANTS_URL, {
         method: "POST",
         headers,
-        body: JSON.stringify({ grant: g, analysis: selected?.id === g.id ? analysis : null }),
+        body: JSON.stringify({ action: "save", grant: g, analysis: selected?.id === g.id ? analysis : null }),
       });
       setGrants((p) => p.map((x) => (x.id === g.id ? { ...x, saved: true } : x)));
     }

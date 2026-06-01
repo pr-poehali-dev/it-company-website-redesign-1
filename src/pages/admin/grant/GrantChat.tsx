@@ -43,6 +43,7 @@ export default function GrantChat({
     setLoading(true);
 
     const body = JSON.stringify({
+      action: "chat",
       messages: next,
       grant: grantCtx
         ? {
@@ -61,7 +62,7 @@ export default function GrantChat({
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 55000);
       try {
-        return await fetch(`${GRANTS_URL}/chat`, {
+        return await fetch(GRANTS_URL, {
           method: "POST",
           headers,
           signal: controller.signal,
