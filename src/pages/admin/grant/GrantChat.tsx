@@ -41,28 +41,47 @@ export default function GrantChat({
     setInput("");
     setError("");
     setLoading(true);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 55000);
+
+    const body = JSON.stringify({
+      messages: next,
+      grant: grantCtx
+        ? {
+            name: grantCtx.name,
+            fund: grantCtx.fund,
+            amount_fmt: grantCtx.amount_fmt,
+            category: grantCtx.category,
+            deadline: grantCtx.deadline,
+            description: grantCtx.description,
+            matched_product: grantCtx.matched_product,
+          }
+        : undefined,
+    });
+
+    async function attempt() {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 55000);
+      try {
+        return await fetch(`${GRANTS_URL}/chat`, {
+          method: "POST",
+          headers,
+          signal: controller.signal,
+          body,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
     try {
-      const r = await fetch(`${GRANTS_URL}/chat`, {
-        method: "POST",
-        headers,
-        signal: controller.signal,
-        body: JSON.stringify({
-          messages: next,
-          grant: grantCtx
-            ? {
-                name: grantCtx.name,
-                fund: grantCtx.fund,
-                amount_fmt: grantCtx.amount_fmt,
-                category: grantCtx.category,
-                deadline: grantCtx.deadline,
-                description: grantCtx.description,
-                matched_product: grantCtx.matched_product,
-              }
-            : undefined,
-        }),
-      });
+      let r: Response;
+      try {
+        r = await attempt();
+      } catch (e) {
+        // Разовый сбой сети — пробуем ещё раз через секунду (таймаут не повторяем)
+        if (e instanceof DOMException && e.name === "AbortError") throw e;
+        await new Promise((res) => setTimeout(res, 1000));
+        r = await attempt();
+      }
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
         setError(d.error || `Ошибка сервера (${r.status})`);
@@ -80,7 +99,6 @@ export default function GrantChat({
         setError("Не удалось связаться с помощником. Проверьте интернет и попробуйте ещё раз");
       }
     } finally {
-      clearTimeout(timer);
       setLoading(false);
     }
   }
