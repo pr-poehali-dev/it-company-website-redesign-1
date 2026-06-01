@@ -189,7 +189,7 @@ def ai_chat(messages: list, api_key: str, grant: dict | None = None) -> dict:
         chat_messages.append({'role': role, 'content': str(m.get('content', ''))[:3000]})
 
     payload = json.dumps({
-        'model': 'gpt-4o-mini',
+        'model': 'gpt-4o',
         'messages': chat_messages,
         'temperature': 0.6,
         'max_tokens': 1500,
