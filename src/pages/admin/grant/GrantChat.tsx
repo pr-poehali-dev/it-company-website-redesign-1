@@ -41,10 +41,13 @@ export default function GrantChat({
     setInput("");
     setError("");
     setLoading(true);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 55000);
     try {
       const r = await fetch(`${GRANTS_URL}/chat`, {
         method: "POST",
         headers,
+        signal: controller.signal,
         body: JSON.stringify({
           messages: next,
           grant: grantCtx
@@ -60,15 +63,24 @@ export default function GrantChat({
             : undefined,
         }),
       });
-      const d = await r.json();
+      const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setError(d.error || "Ошибка чата");
+        setError(d.error || `Ошибка сервера (${r.status})`);
+        return;
+      }
+      if (!d.reply) {
+        setError("Помощник не вернул ответ, попробуйте переформулировать вопрос");
         return;
       }
       setMessages((p) => [...p, { role: "assistant", content: d.reply }]);
-    } catch {
-      setError("Ошибка соединения");
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") {
+        setError("Ответ готовится слишком долго. Сформулируйте вопрос короче и попробуйте снова");
+      } else {
+        setError("Не удалось связаться с помощником. Проверьте интернет и попробуйте ещё раз");
+      }
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }

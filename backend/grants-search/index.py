@@ -184,15 +184,15 @@ def ai_chat(messages: list, api_key: str, grant: dict | None = None) -> dict:
 - Структурируй ответ заголовками и списками, где это уместно."""
 
     chat_messages = [{'role': 'system', 'content': system_prompt}]
-    for m in messages[-12:]:
+    for m in messages[-8:]:
         role = 'assistant' if m.get('role') == 'assistant' else 'user'
-        chat_messages.append({'role': role, 'content': str(m.get('content', ''))[:4000]})
+        chat_messages.append({'role': role, 'content': str(m.get('content', ''))[:3000]})
 
     payload = json.dumps({
-        'model': 'gpt-4o',
+        'model': 'gpt-4o-mini',
         'messages': chat_messages,
         'temperature': 0.6,
-        'max_tokens': 2000,
+        'max_tokens': 1500,
     }).encode('utf-8')
     req = urllib.request.Request(AI_URL, data=payload, headers={
         'Authorization': f'Bearer {api_key}',
