@@ -59,9 +59,16 @@ export default function Admin() {
     const stored = getStoredToken();
     if (!stored) { setTokenVerified(true); return; }
     fetch(`${AUTH_URL}/check`, { headers: { "X-Session-Token": stored } })
-      .then(r => r.json())
-      .then(data => {
-        if (!data.ok) { clearStoredToken(); setToken(""); }
+      .then(async r => {
+        if (r.status === 401 || r.status === 403) {
+          clearStoredToken();
+          setToken("");
+          setTokenVerified(true);
+          return;
+        }
+        if (!r.ok) { setTokenVerified(true); return; }
+        const data = await r.json();
+        if (data.ok === false) { clearStoredToken(); setToken(""); }
         setTokenVerified(true);
       })
       .catch(() => setTokenVerified(true));
