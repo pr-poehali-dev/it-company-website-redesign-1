@@ -3,65 +3,58 @@
 
   <url>
     <loc>https://mat-labs.ru/</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://mat-labs.ru/services/razrabotka-po</loc>
-    <lastmod>2026-04-22</lastmod>
+    <loc>https://mat-labs.ru/services/ai-avtomatizaciya</loc>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://mat-labs.ru/services/oblachnye-resheniya</loc>
-    <lastmod>2026-04-22</lastmod>
+    <loc>https://mat-labs.ru/services/sayty-i-lending</loc>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://mat-labs.ru/services/ii-i-ml</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://mat-labs.ru/services/kiberbezopasnost</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://mat-labs.ru/services/analitika-dannyh</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://mat-labs.ru/services/mobilnye-prilozheniya</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://mat-labs.ru/consultant</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-06-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://mat-labs.ru/blog/</loc>
-    <lastmod>2026-04-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
 
 </urlset>
