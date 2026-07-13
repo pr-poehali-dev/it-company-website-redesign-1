@@ -11,9 +11,10 @@ import ConsultantChats from "./admin/ConsultantChats";
 import AgentModule from "./admin/AgentModule";
 import AutomationHub from "./admin/AutomationHub";
 import FunnelDashboard from "./admin/FunnelDashboard";
+import SalesPlan from "./admin/SalesPlan";
 import { AUTH_URL, BLOG_URL, GENERATE_PDF_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "blog" | "tenders" | "grants" | "prospects" | "requests" | "chats" | "agent" | "automation" | "funnel";
+type Section = "plan" | "blog" | "tenders" | "grants" | "prospects" | "requests" | "chats" | "agent" | "automation" | "funnel";
 
 function getStoredToken(): string {
   return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
@@ -41,7 +42,7 @@ export default function Admin() {
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  const [section, setSection] = useState<Section>("blog");
+  const [section, setSection] = useState<Section>("plan");
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
@@ -206,6 +207,7 @@ export default function Admin() {
   }
 
   const NAV: { id: Section; label: string; icon: string; badge?: number }[] = [
+    { id: "plan", label: "План продаж", icon: "Rocket" },
     { id: "blog", label: "Статьи блога", icon: "FileText", badge: posts.length || undefined },
     { id: "tenders", label: "Тендеры", icon: "Search" },
     { id: "grants", label: "Гранты", icon: "Award" },
@@ -277,6 +279,11 @@ export default function Admin() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+
+        {/* SALES PLAN SECTION */}
+        {section === "plan" && (
+          <SalesPlan />
+        )}
 
         {/* BLOG SECTION */}
         {section === "blog" && (
