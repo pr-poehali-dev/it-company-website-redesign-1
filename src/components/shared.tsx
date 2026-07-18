@@ -212,6 +212,7 @@ export const portfolio = [
   { title: "MAIL-KA", category: "Email-маркетинг / ИИ", desc: "Российская платформа для email-рассылок с AI-копирайтером, визуальными автоматизациями и omnichannel-каналами: Email, SMS, Telegram, Push", tech: ["AI", "React", "Python"], color: "from-blue-600 to-indigo-700", url: "https://mail-ka.ru" },
   { title: "MAT-AD", category: "Реклама / ИИ", desc: "Сервис для рекламных специалистов: ИИ-генерация объявлений, работа с фидами и шаблонами — автоматизация рутинных задач в настройке кампаний", tech: ["AI", "React", "Python"], color: "from-rose-600 to-orange-600", url: "https://mat-ad.ru" },
   { title: "УЧИСЬПРО", category: "EdTech / ИИ-репетитор", desc: "ИИ-репетитор, который доводит до 90+ баллов на экзамене: голосовой ассистент за 5 минут диагностики находит пробелы и ведёт ученика по персональному маршруту до результата — 24/7, без записи и ожидания", tech: ["AI", "Voice AI", "React", "Python"], color: "from-fuchsia-600 to-purple-700", url: "https://учисьпро.рф" },
+  { title: "Грант AI", category: "ИИ / Гранты и субсидии", desc: "AI-платформа для поиска грантов, субсидий и конкурсов: умный подбор подходящих программ под ваш проект и помощь в подготовке заявок на финансирование", tech: ["AI", "React", "Python"], color: "from-teal-600 to-emerald-700", url: "https://grant-ai.ru" },
 ];
 
 export const technologies = [
