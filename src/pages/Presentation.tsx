@@ -1,4 +1,7 @@
+import { useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import Icon from "@/components/ui/icon";
 import { services, portfolio, technologies } from "@/components/shared";
 
@@ -47,8 +50,41 @@ const Kicker = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default function Presentation() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!rootRef.current || downloading) return;
+    setDownloading(true);
+    try {
+      const slides = Array.from(rootRef.current.querySelectorAll<HTMLElement>(".slide"));
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+
+      for (let i = 0; i < slides.length; i++) {
+        const canvas = await html2canvas(slides[i], {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+        });
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+        const imgW = pageW;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        const y = imgH < pageH ? (pageH - imgH) / 2 : 0;
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, y, imgW, Math.min(imgH, pageH));
+      }
+      pdf.save("Презентация-МАТ-Лабс.pdf");
+    } catch (e) {
+      window.print();
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <div className="bg-white text-slate-900 min-h-screen">
+    <div ref={rootRef} className="bg-white text-slate-900 min-h-screen">
       <Helmet>
         <title>Презентация — ООО МАТ-Лабс</title>
         <meta name="robots" content="noindex" />
@@ -63,14 +99,27 @@ export default function Presentation() {
         }
       `}</style>
 
-      {/* Floating print button */}
-      <button
-        onClick={() => window.print()}
-        className="no-print fixed bottom-6 right-6 z-50 btn-gradient px-5 py-3 rounded-2xl font-semibold text-white flex items-center gap-2 shadow-lg glow-purple"
-      >
-        <Icon name="Download" size={18} />
-        Скачать PDF
-      </button>
+      {/* Floating action buttons */}
+      <div className="no-print fixed bottom-6 right-6 z-50 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <button
+          onClick={() => window.print()}
+          className="glass border border-slate-300 bg-white/90 backdrop-blur px-5 py-3 rounded-2xl font-semibold text-slate-700 flex items-center justify-center gap-2 shadow-lg hover:bg-white transition-all"
+        >
+          <Icon name="Printer" size={18} />
+          Печать
+        </button>
+        <button
+          onClick={handleDownloadPdf}
+          disabled={downloading}
+          className="btn-gradient px-5 py-3 rounded-2xl font-semibold text-white flex items-center justify-center gap-2 shadow-lg glow-purple disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {downloading ? (
+            <><Icon name="Loader2" size={18} className="animate-spin" />Готовим PDF…</>
+          ) : (
+            <><Icon name="Download" size={18} />Скачать PDF</>
+          )}
+        </button>
+      </div>
 
       {/* SLIDE 1 — TITLE */}
       <section className="slide relative min-h-screen w-full flex items-center justify-center px-8 md:px-20 py-16 overflow-hidden">
