@@ -49,6 +49,28 @@ const Kicker = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+const PortfolioCard = ({ p }: { p: (typeof portfolio)[number] }) => (
+  <a href={p.url} target="_blank" rel="noopener noreferrer" className="p-card rounded-2xl p-5 flex flex-col hover:ring-2 hover:ring-violet-300 transition-all">
+    <div className="flex items-center gap-3 mb-3">
+      <img src={p.icon} alt={p.title} className={`w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 bg-gradient-to-br ${p.color} flex-shrink-0`} />
+      <div className="min-w-0">
+        <h3 className="font-oswald text-lg font-bold text-slate-900 leading-tight truncate">{p.title}</h3>
+        <span className="text-[11px] text-slate-400">{p.category}</span>
+      </div>
+    </div>
+    <p className="text-xs text-slate-500 flex-1 mb-3 leading-relaxed">{p.desc}</p>
+    <div className="flex flex-wrap gap-1.5 mb-3">
+      {p.tech.map((t, k) => (
+        <span key={k} className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{t}</span>
+      ))}
+    </div>
+    <div className="flex items-center gap-1 text-xs text-violet-600 font-medium mt-auto">
+      <Icon name="ExternalLink" size={12} />
+      {p.url.replace(/^https?:\/\//, "")}
+    </div>
+  </a>
+);
+
 export default function Presentation() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
@@ -82,12 +104,18 @@ export default function Presentation() {
 
       for (let i = 0; i < slides.length; i++) {
         const el = slides[i];
+        // Небольшая пауза для стабильной отрисовки каждого слайда
+        await new Promise((r) => setTimeout(r, 120));
+        const rect = el.getBoundingClientRect();
+        const slideHeight = Math.ceil(rect.height);
         const canvas = await html2canvas(el, {
           scale: 2,
           useCORS: true,
           backgroundColor: "#ffffff",
           windowWidth: 1280,
+          windowHeight: slideHeight,
           width: 1280,
+          height: slideHeight,
           scrollX: 0,
           scrollY: 0,
         });
@@ -287,7 +315,7 @@ export default function Presentation() {
         </div>
       </Slide>
 
-      {/* SLIDE 5 — ECOSYSTEM / PORTFOLIO */}
+      {/* SLIDE 5 — ECOSYSTEM / PORTFOLIO (часть 1) */}
       <Slide>
         <Kicker>Экосистема продуктов</Kicker>
         <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4 max-w-4xl">
@@ -298,26 +326,21 @@ export default function Presentation() {
           Это подтверждает нашу экспертизу на реальных, живых сервисах.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {portfolio.map((p, i) => (
-            <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="p-card rounded-2xl p-5 flex flex-col hover:ring-2 hover:ring-violet-300 transition-all">
-              <div className="flex items-center gap-3 mb-3">
-                <img src={p.icon} alt={p.title} loading="lazy" className={`w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 bg-gradient-to-br ${p.color} flex-shrink-0`} />
-                <div className="min-w-0">
-                  <h3 className="font-oswald text-lg font-bold text-slate-900 leading-tight truncate">{p.title}</h3>
-                  <span className="text-[11px] text-slate-400">{p.category}</span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-500 flex-1 mb-3 leading-relaxed">{p.desc}</p>
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {p.tech.map((t, k) => (
-                  <span key={k} className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{t}</span>
-                ))}
-              </div>
-              <div className="flex items-center gap-1 text-xs text-violet-600 font-medium mt-auto">
-                <Icon name="ExternalLink" size={12} />
-                {p.url.replace(/^https?:\/\//, "")}
-              </div>
-            </a>
+          {portfolio.slice(0, 6).map((p, i) => (
+            <PortfolioCard key={i} p={p} />
+          ))}
+        </div>
+      </Slide>
+
+      {/* SLIDE 5b — ECOSYSTEM / PORTFOLIO (часть 2) */}
+      <Slide>
+        <Kicker>Экосистема продуктов</Kicker>
+        <h2 className="font-oswald text-3xl md:text-4xl font-bold mb-10 max-w-4xl">
+          И ещё проекты нашей команды
+        </h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {portfolio.slice(6).map((p, i) => (
+            <PortfolioCard key={i} p={p} />
           ))}
         </div>
       </Slide>
