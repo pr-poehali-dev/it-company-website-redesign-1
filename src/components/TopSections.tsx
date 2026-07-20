@@ -313,9 +313,11 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
               <AnimatedSection key={i}>
                 <a href={p.url} target="_blank" rel="noopener noreferrer" className="block h-full">
                   <div className="glass neon-border rounded-2xl p-6 card-hover group cursor-pointer h-full">
-                    <div className={`h-2 w-full rounded-full bg-gradient-to-r ${p.color} mb-5`} />
-                    <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${p.color} text-white font-medium`}>{p.category}</span>
-                    <h3 className="font-oswald text-lg font-semibold mt-3 mb-2 text-white">{p.title}</h3>
+                    <div className="flex items-center gap-3 mb-4">
+                      <img src={p.icon} alt={p.title} loading="lazy" className={`w-12 h-12 rounded-xl object-cover ring-1 ring-white/10 bg-gradient-to-br ${p.color} flex-shrink-0`} />
+                      <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${p.color} text-white font-medium`}>{p.category}</span>
+                    </div>
+                    <h3 className="font-oswald text-lg font-semibold mb-2 text-white">{p.title}</h3>
                     <p className="text-white/50 text-sm leading-relaxed mb-4">{p.desc}</p>
                     <div className="flex items-center justify-between mt-auto">
                       <div className="flex gap-2 flex-wrap">

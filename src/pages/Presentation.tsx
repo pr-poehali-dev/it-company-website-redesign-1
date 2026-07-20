@@ -205,20 +205,25 @@ export default function Presentation() {
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {portfolio.map((p, i) => (
-            <div key={i} className="p-card rounded-2xl p-5 flex flex-col">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-oswald text-lg font-bold text-slate-900">{p.title}</h3>
-                <span className={`text-[10px] whitespace-nowrap px-2 py-0.5 rounded-full bg-gradient-to-r ${p.color} text-white`}>
-                  {p.category}
-                </span>
+            <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="p-card rounded-2xl p-5 flex flex-col hover:ring-2 hover:ring-violet-300 transition-all">
+              <div className="flex items-center gap-3 mb-3">
+                <img src={p.icon} alt={p.title} loading="lazy" className={`w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 bg-gradient-to-br ${p.color} flex-shrink-0`} />
+                <div className="min-w-0">
+                  <h3 className="font-oswald text-lg font-bold text-slate-900 leading-tight truncate">{p.title}</h3>
+                  <span className="text-[11px] text-slate-400">{p.category}</span>
+                </div>
               </div>
               <p className="text-xs text-slate-500 flex-1 mb-3 leading-relaxed">{p.desc}</p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mb-3">
                 {p.tech.map((t, k) => (
                   <span key={k} className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{t}</span>
                 ))}
               </div>
-            </div>
+              <div className="flex items-center gap-1 text-xs text-violet-600 font-medium mt-auto">
+                <Icon name="ExternalLink" size={12} />
+                {p.url.replace(/^https?:\/\//, "")}
+              </div>
+            </a>
           ))}
         </div>
       </Slide>
