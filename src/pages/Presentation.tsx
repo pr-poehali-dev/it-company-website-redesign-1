@@ -36,24 +36,25 @@ const Slide = ({ children, className = "" }: { children: React.ReactNode; classN
 );
 
 const Kicker = ({ children }: { children: React.ReactNode }) => (
-  <div className="inline-block glass px-4 py-1.5 rounded-full text-sm text-violet-300 border border-violet-500/30 mb-6">
+  <div className="inline-block px-4 py-1.5 rounded-full text-sm text-violet-700 bg-violet-50 border border-violet-200 mb-6 font-medium">
     {children}
   </div>
 );
 
 export default function Presentation() {
   return (
-    <div className="bg-[#080812] text-white min-h-screen">
+    <div className="bg-white text-slate-900 min-h-screen">
       <Helmet>
         <title>Презентация — ООО МАТ-Лабс</title>
         <meta name="robots" content="noindex" />
       </Helmet>
 
       <style>{`
+        .p-card { background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         @media print {
           .no-print { display: none !important; }
           .slide { min-height: auto !important; page-break-after: always; padding-top: 40px; padding-bottom: 40px; }
-          body, .bg-\\[\\#080812\\] { background: #080812 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body, .bg-white { background: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
 
@@ -67,17 +68,17 @@ export default function Presentation() {
       </button>
 
       {/* SLIDE 1 — TITLE */}
-      <Slide className="items-center text-center bg-gradient-to-b from-violet-950/30 to-transparent">
+      <Slide className="items-center text-center bg-gradient-to-b from-violet-50 to-transparent">
         <div className="w-16 h-16 rounded-2xl btn-gradient flex items-center justify-center mx-auto mb-8">
           <span className="font-oswald font-bold text-2xl text-white">МЛ</span>
         </div>
         <h1 className="font-oswald text-5xl md:text-7xl font-bold mb-6">
           ООО <span className="gradient-text">МАТ-Лабс</span>
         </h1>
-        <p className="text-xl md:text-2xl text-white/70 max-w-3xl mb-4">
+        <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mb-4">
           Автоматизируем бизнес-процессы и увеличиваем поток заявок с помощью искусственного интеллекта
         </p>
-        <p className="text-white/40 max-w-2xl">
+        <p className="text-slate-400 max-w-2xl">
           Больше заявок, меньше ручной работы, прозрачные процессы — результат виден уже через 7–14 дней
         </p>
       </Slide>
@@ -88,16 +89,16 @@ export default function Presentation() {
         <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6 max-w-4xl">
           IT-компания полного цикла: от идеи до работающего продукта
         </h2>
-        <p className="text-lg text-white/60 max-w-3xl mb-12">
+        <p className="text-lg text-slate-600 max-w-3xl mb-12">
           Мы помогаем компаниям снизить ручную работу, ускорить обработку клиентов и зарабатывать больше.
           Разрабатываем сайты, внедряем AI и строим аналитику — и создаём собственные цифровые продукты,
           которые уже работают на рынке.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {stats.map((s, i) => (
-            <div key={i} className="glass neon-border rounded-2xl p-6 text-center">
+            <div key={i} className="p-card rounded-2xl p-6 text-center">
               <div className="font-oswald text-4xl font-bold gradient-text mb-2">{s.value}</div>
-              <div className="text-sm text-white/50">{s.label}</div>
+              <div className="text-sm text-slate-500">{s.label}</div>
             </div>
           ))}
         </div>
@@ -111,32 +112,32 @@ export default function Presentation() {
         </h2>
         <div className="grid md:grid-cols-2 gap-10">
           <div>
-            <div className="flex items-center gap-2 text-rose-400 mb-5 font-semibold">
+            <div className="flex items-center gap-2 text-rose-600 mb-5 font-semibold">
               <Icon name="AlertTriangle" size={20} /> Проблемы бизнеса
             </div>
             <div className="space-y-4">
               {problems.map((p, i) => (
-                <div key={i} className="glass border border-rose-500/15 rounded-xl p-5 flex gap-4">
-                  <Icon name={p.icon} size={22} className="text-rose-400 flex-shrink-0 mt-1" />
+                <div key={i} className="bg-rose-50 border border-rose-200 rounded-xl p-5 flex gap-4">
+                  <Icon name={p.icon} size={22} className="text-rose-500 flex-shrink-0 mt-1" />
                   <div>
-                    <div className="font-semibold text-white mb-1">{p.title}</div>
-                    <div className="text-sm text-white/50">{p.desc}</div>
+                    <div className="font-semibold text-slate-900 mb-1">{p.title}</div>
+                    <div className="text-sm text-slate-500">{p.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-2 text-emerald-400 mb-5 font-semibold">
+            <div className="flex items-center gap-2 text-emerald-600 mb-5 font-semibold">
               <Icon name="CheckCircle2" size={20} /> Наши решения
             </div>
             <div className="space-y-4">
               {solutions.map((s, i) => (
-                <div key={i} className="glass border border-emerald-500/15 rounded-xl p-5 flex gap-4">
-                  <Icon name={s.icon} size={22} className="text-emerald-400 flex-shrink-0 mt-1" />
+                <div key={i} className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex gap-4">
+                  <Icon name={s.icon} size={22} className="text-emerald-500 flex-shrink-0 mt-1" />
                   <div>
-                    <div className="font-semibold text-white mb-1">{s.title}</div>
-                    <div className="text-sm text-white/50">{s.desc}</div>
+                    <div className="font-semibold text-slate-900 mb-1">{s.title}</div>
+                    <div className="text-sm text-slate-500">{s.desc}</div>
                   </div>
                 </div>
               ))}
@@ -153,12 +154,12 @@ export default function Presentation() {
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {services.map((s, i) => (
-            <div key={i} className="glass neon-border rounded-2xl p-6 flex flex-col">
+            <div key={i} className="p-card rounded-2xl p-6 flex flex-col">
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-4`}>
                 <Icon name={s.icon} size={22} className="text-white" />
               </div>
-              <h3 className="font-oswald text-xl font-bold text-white mb-2">{s.title}</h3>
-              <p className="text-sm text-white/50 flex-1 mb-4">{s.desc}</p>
+              <h3 className="font-oswald text-xl font-bold text-slate-900 mb-2">{s.title}</h3>
+              <p className="text-sm text-slate-500 flex-1 mb-4">{s.desc}</p>
               <div className={`text-sm font-semibold border rounded-lg px-3 py-1.5 w-fit ${s.tagColor}`}>
                 {s.price}
               </div>
@@ -173,23 +174,23 @@ export default function Presentation() {
         <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4 max-w-4xl">
           {portfolio.length} собственных продуктов, которые уже работают
         </h2>
-        <p className="text-white/50 max-w-3xl mb-10">
+        <p className="text-slate-500 max-w-3xl mb-10">
           Мы не только делаем проекты на заказ — мы создаём и развиваем собственные цифровые продукты.
           Это подтверждает нашу экспертизу на реальных, живых сервисах.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {portfolio.map((p, i) => (
-            <div key={i} className="glass border border-white/10 rounded-2xl p-5 flex flex-col">
+            <div key={i} className="p-card rounded-2xl p-5 flex flex-col">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-oswald text-lg font-bold text-white">{p.title}</h3>
+                <h3 className="font-oswald text-lg font-bold text-slate-900">{p.title}</h3>
                 <span className={`text-[10px] whitespace-nowrap px-2 py-0.5 rounded-full bg-gradient-to-r ${p.color} text-white`}>
                   {p.category}
                 </span>
               </div>
-              <p className="text-xs text-white/50 flex-1 mb-3 leading-relaxed">{p.desc}</p>
+              <p className="text-xs text-slate-500 flex-1 mb-3 leading-relaxed">{p.desc}</p>
               <div className="flex flex-wrap gap-1.5">
                 {p.tech.map((t, k) => (
-                  <span key={k} className="text-[10px] text-white/40 bg-white/5 px-2 py-0.5 rounded">{t}</span>
+                  <span key={k} className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{t}</span>
                 ))}
               </div>
             </div>
@@ -205,17 +206,17 @@ export default function Presentation() {
         </h2>
         <div className="grid md:grid-cols-5 gap-4">
           {workflow.map((w, i) => (
-            <div key={i} className="glass neon-border rounded-2xl p-5">
+            <div key={i} className="p-card rounded-2xl p-5">
               <div className="font-oswald text-3xl font-bold gradient-text mb-3">{w.step}</div>
-              <div className="font-semibold text-white mb-2">{w.title}</div>
-              <div className="text-xs text-white/50 leading-relaxed">{w.desc}</div>
+              <div className="font-semibold text-slate-900 mb-2">{w.title}</div>
+              <div className="text-xs text-slate-500 leading-relaxed">{w.desc}</div>
             </div>
           ))}
         </div>
-        <div className="mt-10 glass border border-emerald-500/20 rounded-2xl p-6 flex items-center gap-4 max-w-2xl">
-          <Icon name="Gift" size={26} className="text-emerald-400 flex-shrink-0" />
-          <p className="text-white/70">
-            <span className="text-white font-semibold">Первый разбор — бесплатно.</span> Покажем, что и как можно
+        <div className="mt-10 bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center gap-4 max-w-2xl">
+          <Icon name="Gift" size={26} className="text-emerald-500 flex-shrink-0" />
+          <p className="text-slate-600">
+            <span className="text-slate-900 font-semibold">Первый разбор — бесплатно.</span> Покажем, что и как можно
             автоматизировать в вашем бизнесе, без обязательств.
           </p>
         </div>
@@ -229,11 +230,11 @@ export default function Presentation() {
         </h2>
         <div className="flex flex-wrap gap-3">
           {technologies.map((t, i) => (
-            <div key={i} className="glass border border-white/10 rounded-xl px-5 py-3 flex items-center gap-3">
+            <div key={i} className="p-card rounded-xl px-5 py-3 flex items-center gap-3">
               <span className="text-2xl">{t.icon}</span>
               <div>
-                <div className="font-semibold text-white text-sm">{t.name}</div>
-                <div className="text-xs text-white/40">{t.category}</div>
+                <div className="font-semibold text-slate-900 text-sm">{t.name}</div>
+                <div className="text-xs text-slate-400">{t.category}</div>
               </div>
             </div>
           ))}
@@ -241,38 +242,38 @@ export default function Presentation() {
       </Slide>
 
       {/* SLIDE 8 — CONTACTS / CTA */}
-      <Slide className="items-center text-center bg-gradient-to-t from-violet-950/30 to-transparent">
+      <Slide className="items-center text-center bg-gradient-to-t from-violet-50 to-transparent">
         <h2 className="font-oswald text-4xl md:text-6xl font-bold mb-6">
           Обсудим ваш <span className="gradient-text">проект?</span>
         </h2>
-        <p className="text-lg text-white/60 max-w-2xl mb-10">
+        <p className="text-lg text-slate-600 max-w-2xl mb-10">
           Расскажите о своих задачах — подготовим бесплатный разбор и покажем, как автоматизация
           принесёт вам больше заявок и меньше рутины.
         </p>
         <div className="grid sm:grid-cols-2 gap-4 mb-8 w-full max-w-2xl">
-          <a href="tel:+79277486868" className="glass neon-border rounded-2xl p-6 flex items-center gap-4 hover:border-violet-500/50 transition-all">
-            <div className="w-11 h-11 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Icon name="Phone" size={20} className="text-cyan-400" />
+          <a href="tel:+79277486868" className="p-card rounded-2xl p-6 flex items-center gap-4 hover:border-violet-500/50 transition-all">
+            <div className="w-11 h-11 bg-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Icon name="Phone" size={20} className="text-cyan-600" />
             </div>
             <div className="text-left">
-              <div className="text-xs text-white/40">Телефон</div>
-              <div className="text-white font-semibold">+7 (927) 748-68-68</div>
+              <div className="text-xs text-slate-400">Телефон</div>
+              <div className="text-slate-900 font-semibold">+7 (927) 748-68-68</div>
             </div>
           </a>
-          <a href="mailto:maksT77@yandex.ru" className="glass neon-border rounded-2xl p-6 flex items-center gap-4 hover:border-violet-500/50 transition-all">
-            <div className="w-11 h-11 bg-pink-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Icon name="Mail" size={20} className="text-pink-400" />
+          <a href="mailto:maksT77@yandex.ru" className="p-card rounded-2xl p-6 flex items-center gap-4 hover:border-violet-500/50 transition-all">
+            <div className="w-11 h-11 bg-pink-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Icon name="Mail" size={20} className="text-pink-600" />
             </div>
             <div className="text-left">
-              <div className="text-xs text-white/40">Email</div>
-              <div className="text-white font-semibold">maksT77@yandex.ru</div>
+              <div className="text-xs text-slate-400">Email</div>
+              <div className="text-slate-900 font-semibold">maksT77@yandex.ru</div>
             </div>
           </a>
         </div>
         <a href="https://mat-labs.ru" className="btn-gradient px-8 py-4 rounded-2xl font-semibold text-white text-lg glow-purple inline-flex items-center gap-2">
           Перейти на сайт mat-labs.ru <Icon name="ArrowRight" size={20} />
         </a>
-        <p className="text-white/30 text-sm mt-10">© 2026 ООО МАТ-Лабс. Все права защищены</p>
+        <p className="text-slate-400 text-sm mt-10">© 2026 ООО МАТ-Лабс. Все права защищены</p>
       </Slide>
     </div>
   );
