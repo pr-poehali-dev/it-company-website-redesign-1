@@ -2,6 +2,11 @@ import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import { services, portfolio, technologies } from "@/components/shared";
 
+const IMG_HERO = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/fe63940b-c7be-4f2d-b4f3-7deca4d6794e.jpg";
+const IMG_AUTOMATION = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/65b16de8-4d39-4397-95d7-4a042ff7df40.jpg";
+const IMG_ANALYTICS = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/712f5769-495c-40d3-b8b5-d5a7b7bf3d07.jpg";
+const IMG_PARTNERSHIP = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/735b25a2-6fe9-45b6-a943-2f4f7d75c5cf.jpg";
+
 const stats = [
   { value: "12+", label: "Запущенных продуктов" },
   { value: "7–14", label: "Дней до первого результата" },
@@ -78,38 +83,51 @@ export default function Presentation() {
         <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mb-4">
           Автоматизируем бизнес-процессы и увеличиваем поток заявок с помощью искусственного интеллекта
         </p>
-        <p className="text-slate-400 max-w-2xl">
+        <p className="text-slate-400 max-w-2xl mb-10">
           Больше заявок, меньше ручной работы, прозрачные процессы — результат виден уже через 7–14 дней
         </p>
+        <div className="w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl ring-1 ring-violet-200">
+          <img src={IMG_HERO} alt="Футуристичный офис МАТ-Лабс" className="w-full h-[280px] md:h-[420px] object-cover" />
+        </div>
       </Slide>
 
       {/* SLIDE 2 — ABOUT + STATS */}
       <Slide>
         <Kicker>О компании</Kicker>
-        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6 max-w-4xl">
-          IT-компания полного цикла: от идеи до работающего продукта
-        </h2>
-        <p className="text-lg text-slate-600 max-w-3xl mb-12">
-          Мы помогаем компаниям снизить ручную работу, ускорить обработку клиентов и зарабатывать больше.
-          Разрабатываем сайты, внедряем AI и строим аналитику — и создаём собственные цифровые продукты,
-          которые уже работают на рынке.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          {stats.map((s, i) => (
-            <div key={i} className="p-card rounded-2xl p-6 text-center">
-              <div className="font-oswald text-4xl font-bold gradient-text mb-2">{s.value}</div>
-              <div className="text-sm text-slate-500">{s.label}</div>
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6">
+              IT-компания полного цикла: от идеи до работающего продукта
+            </h2>
+            <p className="text-lg text-slate-600 mb-10">
+              Мы помогаем компаниям снизить ручную работу, ускорить обработку клиентов и зарабатывать больше.
+              Разрабатываем сайты, внедряем AI и строим аналитику — и создаём собственные цифровые продукты,
+              которые уже работают на рынке.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {stats.map((s, i) => (
+                <div key={i} className="p-card rounded-2xl p-5 text-center">
+                  <div className="font-oswald text-3xl font-bold gradient-text mb-1">{s.value}</div>
+                  <div className="text-sm text-slate-500">{s.label}</div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+          <div className="rounded-3xl overflow-hidden shadow-2xl ring-1 ring-violet-200">
+            <img src={IMG_PARTNERSHIP} alt="Партнёрство человека и AI" className="w-full h-[320px] md:h-[480px] object-cover" />
+          </div>
         </div>
       </Slide>
 
       {/* SLIDE 3 — PROBLEM / SOLUTION */}
       <Slide>
         <Kicker>Зачем это бизнесу</Kicker>
-        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-10 max-w-4xl">
+        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-8 max-w-4xl">
           Превращаем потери в прибыль
         </h2>
+        <div className="rounded-3xl overflow-hidden shadow-xl ring-1 ring-slate-200 mb-10">
+          <img src={IMG_AUTOMATION} alt="Автоматизация бизнес-процессов" className="w-full h-[160px] md:h-[220px] object-cover" />
+        </div>
         <div className="grid md:grid-cols-2 gap-10">
           <div>
             <div className="flex items-center gap-2 text-rose-600 mb-5 font-semibold">
@@ -213,12 +231,17 @@ export default function Presentation() {
             </div>
           ))}
         </div>
-        <div className="mt-10 bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center gap-4 max-w-2xl">
-          <Icon name="Gift" size={26} className="text-emerald-500 flex-shrink-0" />
-          <p className="text-slate-600">
-            <span className="text-slate-900 font-semibold">Первый разбор — бесплатно.</span> Покажем, что и как можно
-            автоматизировать в вашем бизнесе, без обязательств.
-          </p>
+        <div className="mt-10 grid lg:grid-cols-2 gap-6 items-stretch">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center gap-4">
+            <Icon name="Gift" size={26} className="text-emerald-500 flex-shrink-0" />
+            <p className="text-slate-600">
+              <span className="text-slate-900 font-semibold">Первый разбор — бесплатно.</span> Покажем, что и как можно
+              автоматизировать в вашем бизнесе, без обязательств.
+            </p>
+          </div>
+          <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-slate-200">
+            <img src={IMG_ANALYTICS} alt="Аналитика и дашборды в реальном времени" className="w-full h-full min-h-[140px] object-cover" />
+          </div>
         </div>
       </Slide>
 
@@ -246,10 +269,13 @@ export default function Presentation() {
         <h2 className="font-oswald text-4xl md:text-6xl font-bold mb-6">
           Обсудим ваш <span className="gradient-text">проект?</span>
         </h2>
-        <p className="text-lg text-slate-600 max-w-2xl mb-10">
+        <p className="text-lg text-slate-600 max-w-2xl mb-8">
           Расскажите о своих задачах — подготовим бесплатный разбор и покажем, как автоматизация
           принесёт вам больше заявок и меньше рутины.
         </p>
+        <div className="w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl ring-1 ring-violet-200 mb-10">
+          <img src={IMG_ANALYTICS} alt="Технологичное будущее вашего бизнеса" className="w-full h-[200px] md:h-[260px] object-cover" />
+        </div>
         <div className="grid sm:grid-cols-2 gap-4 mb-8 w-full max-w-2xl">
           <a href="tel:+79277486868" className="p-card rounded-2xl p-6 flex items-center gap-4 hover:border-violet-500/50 transition-all">
             <div className="w-11 h-11 bg-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0">
