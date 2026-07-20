@@ -278,8 +278,19 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                 </button>
               ))}
             </div>
-            <div className="text-white/30 text-sm text-center">
-              © 2026 ООО МАТ-Лабс. Все права защищены
+            <div className="flex flex-col items-center gap-3">
+              <a
+                href="/presentation"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 glass border border-violet-500/30 hover:border-violet-500/60 px-4 py-2 rounded-xl text-sm text-violet-300 hover:text-white transition-all"
+              >
+                <Icon name="Presentation" size={15} />
+                Презентация компании
+              </a>
+              <div className="text-white/30 text-sm text-center">
+                © 2026 ООО МАТ-Лабс. Все права защищены
+              </div>
             </div>
           </div>
         </div>
