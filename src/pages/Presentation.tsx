@@ -54,31 +54,62 @@ export default function Presentation() {
   const [downloading, setDownloading] = useState(false);
 
   const handleDownloadPdf = async () => {
-    if (!rootRef.current || downloading) return;
+    const root = rootRef.current;
+    if (!root || downloading) return;
     setDownloading(true);
+
+    // Фиксируем десктопную ширину, чтобы вёрстка не «плыла» на мобильных
+    root.classList.add("pdf-mode");
+    // Даём браузеру пересчитать layout и подождать подгрузку картинок
+    await new Promise((r) => setTimeout(r, 300));
+    await Promise.all(
+      Array.from(root.querySelectorAll("img")).map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((res) => {
+              img.onload = () => res();
+              img.onerror = () => res();
+            })
+      )
+    );
+
     try {
-      const slides = Array.from(rootRef.current.querySelectorAll<HTMLElement>(".slide"));
-      const pdf = new jsPDF("p", "mm", "a4");
+      const slides = Array.from(root.querySelectorAll<HTMLElement>(".slide"));
+      // Альбомная A4 — под широкие слайды
+      const pdf = new jsPDF("l", "mm", "a4");
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
       for (let i = 0; i < slides.length; i++) {
-        const canvas = await html2canvas(slides[i], {
+        const el = slides[i];
+        const canvas = await html2canvas(el, {
           scale: 2,
           useCORS: true,
           backgroundColor: "#ffffff",
+          windowWidth: 1280,
+          width: 1280,
+          scrollX: 0,
+          scrollY: 0,
         });
-        const imgData = canvas.toDataURL("image/jpeg", 0.92);
-        const imgW = pageW;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        const y = imgH < pageH ? (pageH - imgH) / 2 : 0;
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        // Вписываем слайд целиком в страницу без обрезки, сохраняя пропорции
+        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+        const imgW = canvas.width * ratio;
+        const imgH = canvas.height * ratio;
+        const x = (pageW - imgW) / 2;
+        const y = (pageH - imgH) / 2;
+
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, y, imgW, Math.min(imgH, pageH));
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, pageW, pageH, "F");
+        pdf.addImage(imgData, "JPEG", x, y, imgW, imgH);
       }
       pdf.save("Презентация-МАТ-Лабс.pdf");
     } catch (e) {
       window.print();
     } finally {
+      root.classList.remove("pdf-mode");
       setDownloading(false);
     }
   };
@@ -92,6 +123,20 @@ export default function Presentation() {
 
       <style>{`
         .p-card { background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .pdf-mode { width: 1280px !important; }
+        .pdf-mode .slide {
+          min-height: 0 !important;
+          width: 1280px !important;
+          padding-top: 56px !important;
+          padding-bottom: 56px !important;
+        }
+        .pdf-mode .slide-title {
+          height: 720px !important;
+          min-height: 720px !important;
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        .pdf-mode .no-print { display: none !important; }
         @media print {
           .no-print { display: none !important; }
           .slide { min-height: auto !important; page-break-after: always; padding-top: 40px; padding-bottom: 40px; }
@@ -122,7 +167,7 @@ export default function Presentation() {
       </div>
 
       {/* SLIDE 1 — TITLE */}
-      <section className="slide relative min-h-screen w-full flex items-center justify-center px-8 md:px-20 py-16 overflow-hidden">
+      <section className="slide slide-title relative min-h-screen w-full flex items-center justify-center px-8 md:px-20 py-16 overflow-hidden">
         <img src={IMG_HERO} alt="Футуристичный офис МАТ-Лабс" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0a0618]/90 via-[#160b2e]/80 to-[#0a0618]/90" />
         <div className="absolute inset-0 bg-black/30" />
