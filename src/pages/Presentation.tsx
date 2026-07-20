@@ -73,23 +73,30 @@ export default function Presentation() {
       </button>
 
       {/* SLIDE 1 — TITLE */}
-      <Slide className="items-center text-center bg-gradient-to-b from-violet-50 to-transparent">
-        <div className="w-16 h-16 rounded-2xl btn-gradient flex items-center justify-center mx-auto mb-8">
-          <span className="font-oswald font-bold text-2xl text-white">МЛ</span>
+      <section className="slide relative min-h-screen w-full flex items-center justify-center px-8 md:px-20 py-16 overflow-hidden">
+        <img src={IMG_HERO} alt="Футуристичный офис МАТ-Лабс" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0618]/90 via-[#160b2e]/80 to-[#0a0618]/90" />
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="relative z-10 text-center max-w-5xl">
+          <div className="w-16 h-16 rounded-2xl btn-gradient flex items-center justify-center mx-auto mb-8 shadow-lg glow-purple">
+            <span className="font-oswald font-bold text-2xl text-white">МЛ</span>
+          </div>
+          <div className="inline-block px-4 py-1.5 rounded-full text-sm text-violet-200 bg-white/10 border border-white/20 mb-8 backdrop-blur">
+            ООО «МАТ-Лабс»
+          </div>
+          <h1 className="font-oswald text-4xl md:text-7xl font-bold mb-6 text-white leading-tight">
+            Больше заявок.<br />
+            <span className="gradient-text">Меньше рутины.</span><br />
+            Всё на автопилоте.
+          </h1>
+          <p className="text-lg md:text-2xl text-white/80 max-w-3xl mx-auto mb-4">
+            Автоматизируем бизнес-процессы и увеличиваем поток заявок с помощью искусственного интеллекта
+          </p>
+          <p className="text-white/50 max-w-2xl mx-auto">
+            Прозрачные процессы и первый результат уже через 7–14 дней
+          </p>
         </div>
-        <h1 className="font-oswald text-5xl md:text-7xl font-bold mb-6">
-          ООО <span className="gradient-text">МАТ-Лабс</span>
-        </h1>
-        <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mb-4">
-          Автоматизируем бизнес-процессы и увеличиваем поток заявок с помощью искусственного интеллекта
-        </p>
-        <p className="text-slate-400 max-w-2xl mb-10">
-          Больше заявок, меньше ручной работы, прозрачные процессы — результат виден уже через 7–14 дней
-        </p>
-        <div className="w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl ring-1 ring-violet-200">
-          <img src={IMG_HERO} alt="Футуристичный офис МАТ-Лабс" className="w-full h-[280px] md:h-[420px] object-cover" />
-        </div>
-      </Slide>
+      </section>
 
       {/* SLIDE 2 — ABOUT + STATS */}
       <Slide>
