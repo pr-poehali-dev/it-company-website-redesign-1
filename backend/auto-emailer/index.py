@@ -492,6 +492,7 @@ def action_batch_send(body: dict) -> dict:
     ids = [r[0] for r in rows]
     sent = 0
     errors = []
+    details = []
 
     for idx, pid in enumerate(ids):
         if idx > 0:
@@ -504,11 +505,55 @@ def action_batch_send(body: dict) -> dict:
             pass
         if result.get('statusCode', 500) == 200 and body_data.get('ok'):
             sent += 1
+            details.append({
+                'prospect_id': pid, 'ok': True,
+                'sent_to': body_data.get('sent_to', ''),
+                'subject': body_data.get('subject', ''),
+            })
         else:
-            errors.append({'prospect_id': pid, 'error': body_data.get('error', 'unknown error')})
+            err_msg = body_data.get('error', 'unknown error')
+            errors.append({'prospect_id': pid, 'error': err_msg})
+            details.append({'prospect_id': pid, 'ok': False, 'error': err_msg})
 
     print(f"[auto-emailer] batch_send done: sent={sent} errors={len(errors)} total={len(ids)}")
-    return json_resp({'ok': True, 'sent': sent, 'errors': errors})
+    return json_resp({'ok': True, 'sent': sent, 'total': len(ids), 'errors': errors, 'details': details})
+
+
+def action_sent_log(body: dict) -> dict:
+    """Возвращает журнал отправленных писем: кому, тема, когда."""
+    limit = int(body.get('limit') or 50)
+    limit = max(1, min(limit, 200))
+    conn = None
+    try:
+        conn = get_db()
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT a.id, a.content AS subject, a.created_at,
+                       p.id AS prospect_id, p.company_name, p.email
+                FROM {S}.prospect_activities a
+                JOIN {S}.prospects p ON p.id = a.prospect_id
+                WHERE a.activity_type = 'email_sent'
+                ORDER BY a.created_at DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            rows = cur.fetchall()
+            cols = [d[0] for d in cur.description]
+            items = [dict(zip(cols, r)) for r in rows]
+
+            cur.execute(
+                f"SELECT COUNT(*) FROM {S}.prospect_activities WHERE activity_type = 'email_sent'"
+            )
+            total = cur.fetchone()[0]
+        return json_resp({'ok': True, 'total': total, 'items': items})
+    except Exception as e:
+        print(f"[auto-emailer] sent_log error: {e}")
+        return err(str(e), 500)
+    finally:
+        if conn:
+            conn.close()
 
 
 # ── Главный обработчик ────────────────────────────────────────────────────────
@@ -540,5 +585,7 @@ def handler(event: dict, context) -> dict:
         return action_analyze_site(body)
     elif action == 'batch_send':
         return action_batch_send(body)
+    elif action == 'sent_log':
+        return action_sent_log(body)
     else:
-        return err(f'Неизвестный action: {action!r}. Доступны: send_intro, analyze_site, batch_send', 400)
+        return err(f'Неизвестный action: {action!r}. Доступны: send_intro, analyze_site, batch_send, sent_log', 400)
