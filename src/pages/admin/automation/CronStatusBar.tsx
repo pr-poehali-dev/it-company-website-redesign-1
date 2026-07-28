@@ -29,11 +29,10 @@ export default function CronStatusBar() {
       setLastRun(data.last_run ?? null);
       setIsDue(data.is_due ?? false);
       setLastResult(data.last_result ?? null);
-      if (data.is_due && !running) runCycle();
     } catch {
       // silent
     }
-  }, [running, runCycle]);
+  }, []);
 
   useEffect(() => {
     checkStatus();
