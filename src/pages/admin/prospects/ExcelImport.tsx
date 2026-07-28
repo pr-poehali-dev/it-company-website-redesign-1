@@ -202,9 +202,9 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass border border-white/10 hover:border-green-500/40 text-white/70 hover:text-white text-sm transition-all">
-        <Icon name="FileSpreadsheet" size={14} className="text-green-400" />
-        Импорт Excel
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-all shadow-lg shadow-green-900/30">
+        <Icon name="FileSpreadsheet" size={14} className="text-white" />
+        Импорт из Excel
       </button>
 
       {open && (
