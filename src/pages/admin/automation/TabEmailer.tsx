@@ -2,7 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { AUTO_EMAILER_URL, ActionBtn, InfoBlock, ResultErr, ResultOk, SectionTitle } from "./automation-ui";
 
-export default function TabEmailer() {
+export default function TabEmailer({ token }: { token: string }) {
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchResult, setBatchResult] = useState<{ sent: number; errors: unknown[] } | null>(null);
   const [batchError, setBatchError] = useState("");
@@ -18,7 +18,7 @@ export default function TabEmailer() {
     try {
       const res = await fetch(AUTO_EMAILER_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
         body: JSON.stringify({ action: "batch_send" }),
       });
       const data = await res.json();
@@ -39,7 +39,7 @@ export default function TabEmailer() {
     try {
       const res = await fetch(AUTO_EMAILER_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
         body: JSON.stringify({ action: "send_intro", prospect_id: id }),
       });
       const data = await res.json();

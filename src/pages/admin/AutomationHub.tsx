@@ -14,7 +14,7 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: "analyze", label: "Анализ сайтов", icon: "Globe" },
 ];
 
-export default function AutomationHub({ token: _token }: { token: string }) {
+export default function AutomationHub({ token }: { token: string }) {
   const [activeTab, setActiveTab] = useState<Tab>("emailer");
 
   return (
@@ -50,10 +50,10 @@ export default function AutomationHub({ token: _token }: { token: string }) {
         ))}
       </div>
 
-      {activeTab === "emailer" && <TabEmailer />}
+      {activeTab === "emailer" && <TabEmailer token={token} />}
       {activeTab === "followup" && <TabFollowup />}
       {activeTab === "radar" && <TabRadar />}
-      {activeTab === "analyze" && <TabAnalyze />}
+      {activeTab === "analyze" && <TabAnalyze token={token} />}
     </div>
   );
 }

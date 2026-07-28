@@ -2,7 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { AUTO_EMAILER_URL, ActionBtn, InfoBlock, ResultErr, SectionTitle } from "./automation-ui";
 
-export default function TabAnalyze() {
+export default function TabAnalyze({ token }: { token: string }) {
   const [analyzeId, setAnalyzeId] = useState("");
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [analyzeResult, setAnalyzeResult] = useState<{ ok: boolean; site_analysis?: string; site_pain_points?: string; error?: string } | null>(null);
@@ -15,7 +15,7 @@ export default function TabAnalyze() {
     try {
       const res = await fetch(AUTO_EMAILER_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
         body: JSON.stringify({ action: "analyze_site", prospect_id: id }),
       });
       const data = await res.json();

@@ -1,1 +1,1 @@
-{"tests": [{"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200}]}
+{"tests": [{"name": "CORS OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200}, {"name": "Требует авторизацию", "method": "POST", "path": "/", "body": {"action": "send_intro", "prospect_id": 1}, "expectedStatus": 401}]}

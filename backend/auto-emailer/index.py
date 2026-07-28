@@ -6,12 +6,19 @@ Actions (POST body):
 - analyze_site — только парсинг + AI-анализ сайта, без отправки письма
 - batch_send   — пакетная отправка для всех новых лидов без письма (до 20 штук)
 """
+import hashlib
+import hmac
 import json
 import os
 import re
+import smtplib
+import time
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.utils import formataddr
 
 import psycopg2
 import psycopg2.extras
@@ -25,6 +32,11 @@ AI_MODEL = 'gpt-4o-mini'
 
 UNISENDER_URL = 'https://go1.unisender.ru/ru/transactional/api/v1/email/send.json'
 UNISENDER_URL_FALLBACK = 'https://go2.unisender.ru/ru/transactional/api/v1/email/send.json'
+
+SMTP_HOST = 'smtp.yandex.ru'
+SMTP_PORT = 465
+SENDER_EMAIL_MAKST = 'maksT77@yandex.ru'
+SENDER_NAME_MAKST = 'Максим Тюрин | MAT Labs'
 
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -67,6 +79,27 @@ ANALYZE_PROMPT_TEMPLATE = """Проанализируй сайт компани�
 
 def get_db():
     return psycopg2.connect(os.environ['DATABASE_URL'])
+
+
+def auth_check(event) -> bool:
+    """Пропускает запрос при валидном токене админки (HMAC на ADMIN_TOKEN_SECRET)
+    или при верном X-Cron-Secret (вызов из ночного cron-runner)."""
+    headers = event.get('headers') or {}
+
+    # 1. Внутренний вызов из cron-runner
+    cron_secret = os.environ.get('CRON_SECRET', '')
+    cron_hdr = headers.get('x-cron-secret') or headers.get('X-Cron-Secret') or ''
+    if cron_secret and cron_hdr and hmac.compare_digest(cron_hdr, cron_secret):
+        return True
+
+    # 2. Сессионный токен админки
+    token = headers.get('x-session-token') or headers.get('X-Session-Token') or ''
+    secret = os.environ.get('ADMIN_TOKEN_SECRET', '')
+    if not token or not secret or '.' not in token:
+        return False
+    raw_token, sig = token.rsplit('.', 1)
+    expected_sig = hmac.new(secret.encode(), raw_token.encode(), hashlib.sha256).hexdigest()[:16]
+    return hmac.compare_digest(sig, expected_sig)
 
 
 def json_resp(data, status=200):
@@ -154,6 +187,27 @@ def parse_json_from_ai(text: str) -> dict:
     text = re.sub(r'\s*```$', '', text)
     text = text.strip()
     return json.loads(text)
+
+
+def send_via_yandex(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
+    """Отправляет письмо клиенту с maksT77@yandex.ru через SMTP Яндекса."""
+    smtp_password = os.environ.get('SMTP_PASSWORD_MAKST', '')
+    if not smtp_password:
+        raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан')
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = formataddr((SENDER_NAME_MAKST, SENDER_EMAIL_MAKST))
+    msg['To'] = formataddr((to_name, to_email)) if to_name else to_email
+    msg['Reply-To'] = SENDER_EMAIL_MAKST
+    msg.attach(MIMEText(body_html, 'html', 'utf-8'))
+
+    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=25) as server:
+        server.login(SENDER_EMAIL_MAKST, smtp_password)
+        server.sendmail(SENDER_EMAIL_MAKST, [to_email], msg.as_bytes())
+
+    print(f"[auto-emailer] Yandex SMTP sent from={SENDER_EMAIL_MAKST} to={to_email}")
+    return {'success': True, 'from': SENDER_EMAIL_MAKST, 'to': to_email}
 
 
 def send_unisender(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
@@ -311,8 +365,8 @@ def action_send_intro(body: dict) -> dict:
             # 2. Генерация письма
             subject, body_html = do_generate_letter(prospect, site_analysis, site_pain_points)
 
-            # 3. Отправка письма
-            send_unisender(to_email, prospect.get('company_name', ''), subject, body_html)
+            # 3. Отправка письма клиенту с maksT77@yandex.ru
+            send_via_yandex(to_email, prospect.get('company_name', ''), subject, body_html)
 
             now_utc = datetime.now(timezone.utc)
 
@@ -439,7 +493,9 @@ def action_batch_send(body: dict) -> dict:
     sent = 0
     errors = []
 
-    for pid in ids:
+    for idx, pid in enumerate(ids):
+        if idx > 0:
+            time.sleep(1)  # пауза между письмами, чтобы Яндекс не блокировал за частоту
         result = action_send_intro({'prospect_id': pid})
         body_data = {}
         try:
@@ -465,6 +521,9 @@ def handler(event: dict, context) -> dict:
 
     if method != 'POST':
         return err('Method not allowed', 405)
+
+    if not auth_check(event):
+        return err('Не авторизован', 401)
 
     body = {}
     if event.get('body'):

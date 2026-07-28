@@ -33,7 +33,10 @@ def call(url: str, body: dict, timeout: int = 120) -> dict:
     data = json.dumps(body).encode()
     req = urllib.request.Request(
         url, data=data,
-        headers={'Content-Type': 'application/json'},
+        headers={
+            'Content-Type': 'application/json',
+            'X-Cron-Secret': os.environ.get('CRON_SECRET', ''),
+        },
         method='POST',
     )
     try:
