@@ -63,6 +63,67 @@ LETTER_PROMPT_TEMPLATE = """Ты — Максим Тюрин, директор M
 - Подпись: Максим Тюрин, MAT Labs, +7 927 748 6868
 Верни JSON: {{"subject": "тема письма (цепляющая, про боль)", "body_html": "<html письма>"}}"""
 
+UCHISPRO_SUBJECT = 'Автоматизация онлайн-школы: платформа Учисьпро.рф — 2 недели бесплатно'
+
+# Отрасли/ниши, по которым считаем компанию онлайн-школой или репетитором
+EDU_KEYWORDS = [
+    'образован', 'обучен', 'школ', 'репетит', 'курс', 'учеб', 'учебн',
+    'преподав', 'академ', 'edtech', 'колледж', 'лицей', 'тренинг',
+    'подготовк', 'дополнительн', 'языков', 'egэ', 'егэ', 'огэ',
+    'детск', 'развит', 'знани', 'педагог',
+]
+
+
+def build_uchispro_html(company_name: str) -> str:
+    """Фиксированное письмо про Учисьпро.рф. Меняется только обращение."""
+    greeting = f'Здравствуйте, {company_name}!' if company_name else 'Здравствуйте!'
+    return f"""<!DOCTYPE html>
+<html><body style="margin:0;padding:0;background:#f4f4f7;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:24px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+  <tr><td style="background:linear-gradient(135deg,#6d28d9,#4f46e5);padding:28px 32px;">
+    <div style="color:#fff;font-size:22px;font-weight:bold;">Учисьпро.рф</div>
+    <div style="color:#e9d5ff;font-size:14px;margin-top:4px;">Платформа автоматизации обучения</div>
+  </td></tr>
+  <tr><td style="padding:32px;font-size:15px;line-height:1.7;">
+    <p style="margin:0 0 14px;">{greeting}</p>
+    <p style="margin:0 0 14px;">Меня зовут Максим, я представитель компании <b>МАТ-Лабс</b>. И у меня есть отличное предложение о сотрудничестве.</p>
+    <p style="margin:0 0 14px;">У нас есть продукт <b>«Учисьпро.рф»</b>, который автоматизирует рутину, чтобы вы фокусировались на качестве обучения.</p>
+    <p style="margin:0 0 14px;">Если вы ведёте индивидуальные или групповые занятия и чувствуете, что «тонете» в однотипных вопросах, проверке работ и отчётах для родителей — посмотрите на «Учисьпро.рф». Это не просто библиотека курсов, а технологичный инструмент, который закрывает самые трудозатратные задачи репетитора и онлайн-школы.</p>
+    <p style="margin:18px 0 10px;font-weight:bold;">Вот что реально экономит часы вашей работы:</p>
+    <p style="margin:0 0 12px;">✅ <b>Голосовой ИИ-помощник 24/7.</b> Ученик голосом задаёт вопрос — ИИ разбирает типовую ошибку, показывает правило и даёт 2–3 похожих примера. Закрывает 70–80% повторяющихся вопросов без вашего участия.</p>
+    <p style="margin:0 0 12px;">✅ <b>Адаптивные учебные маршруты.</b> Система сама определяет пробелы по истории ответов и строит индивидуальный путь: пропускает освоенные темы и точечно отрабатывает слабые места.</p>
+    <p style="margin:0 0 12px;">✅ <b>Разбор ошибок с классификацией.</b> Не просто «неверно», а тип ошибки + мини-разбор + подборка заданий на отработку.</p>
+    <p style="margin:0 0 12px;">✅ <b>Дашборд прогресса.</b> Вы и родители видите динамику. Отчёт формируется автоматически — не нужно собирать цифры вручную.</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;background:#f5f3ff;border-radius:10px;">
+      <tr><td style="padding:16px 18px;font-size:14px;line-height:1.6;">
+        💡 <b>Для репетиторов:</b> бесплатный пилот на 2 недели для группы до 30 учеников, персональная настройка под предмет (ЕГЭ/ОГЭ, углублённая подготовка, школьные темы).<br><br>
+        💡 <b>Для онлайн-школ:</b> API и выгрузки, чтобы встроить платформу в ваши процессы, и персональный план внедрения.
+      </td></tr>
+    </table>
+    <p style="margin:0 0 14px;">Мы не продаём подписку «вслепую»: цель пилота — показать измеримые эффекты именно в ваших группах — сколько типовых вопросов закрыл ИИ, как изменилось время куратора на проверку, выросла ли доходимость и скорость закрытия пробелов.</p>
+    <p style="margin:0 0 20px;">👉 Если интересно — ответьте на это письмо словом <b>«пилот»</b>. Пришлю доступ, короткий план запуска и примеры отчётов.</p>
+    <table cellpadding="0" cellspacing="0"><tr><td style="background:#6d28d9;border-radius:8px;">
+      <a href="https://учисьпро.рф" style="display:inline-block;padding:12px 28px;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;">Открыть Учисьпро.рф</a>
+    </td></tr></table>
+    <p style="margin:24px 0 0;font-size:14px;color:#6b7280;">С уважением,<br><b style="color:#1f2937;">Максим Тюрин</b>, МАТ-Лабс<br>Тел.: +7 927 748 6868<br>Email: maksT77@yandex.ru</p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>"""
+
+
+def is_education(prospect: dict) -> bool:
+    """Похожа ли компания на онлайн-школу/репетитора по названию и отрасли."""
+    text = ' '.join([
+        str(prospect.get('company_name') or ''),
+        str(prospect.get('industry') or ''),
+        str(prospect.get('description') or ''),
+    ]).lower()
+    return any(kw in text for kw in EDU_KEYWORDS)
+
+
 ANALYZE_PROMPT_TEMPLATE = """Проанализируй сайт компании по следующему тексту со страницы:
 
 {site_text}
@@ -189,12 +250,24 @@ def parse_json_from_ai(text: str) -> dict:
     return json.loads(text)
 
 
-def send_via_yandex(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
-    """Отправляет письмо клиенту с maksT77@yandex.ru через SMTP Яндекса."""
-    smtp_password = os.environ.get('SMTP_PASSWORD_MAKST', '')
-    if not smtp_password:
-        raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан')
+EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$')
 
+
+def clean_email(raw: str) -> str:
+    """Возвращает валидный email или '' если адрес битый.
+    Если в строке несколько адресов через пробел/запятую — берёт первый корректный."""
+    if not raw:
+        return ''
+    for chunk in re.split(r'[\s,;]+', raw.strip()):
+        c = chunk.strip().strip('<>').lower()
+        if EMAIL_RE.match(c):
+            return c
+    return ''
+
+
+def send_via_yandex(to_email: str, to_name: str, subject: str, body_html: str, server=None) -> dict:
+    """Отправляет письмо клиенту с maksT77@yandex.ru через SMTP Яндекса.
+    Если передан открытый server — переиспользует соединение (для пакетной рассылки)."""
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = formataddr((SENDER_NAME_MAKST, SENDER_EMAIL_MAKST))
@@ -202,12 +275,28 @@ def send_via_yandex(to_email: str, to_name: str, subject: str, body_html: str) -
     msg['Reply-To'] = SENDER_EMAIL_MAKST
     msg.attach(MIMEText(body_html, 'html', 'utf-8'))
 
-    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=25) as server:
-        server.login(SENDER_EMAIL_MAKST, smtp_password)
+    if server is not None:
         server.sendmail(SENDER_EMAIL_MAKST, [to_email], msg.as_bytes())
+    else:
+        smtp_password = os.environ.get('SMTP_PASSWORD_MAKST', '')
+        if not smtp_password:
+            raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан')
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=25) as s:
+            s.login(SENDER_EMAIL_MAKST, smtp_password)
+            s.sendmail(SENDER_EMAIL_MAKST, [to_email], msg.as_bytes())
 
     print(f"[auto-emailer] Yandex SMTP sent from={SENDER_EMAIL_MAKST} to={to_email}")
     return {'success': True, 'from': SENDER_EMAIL_MAKST, 'to': to_email}
+
+
+def open_smtp():
+    """Открывает авторизованное SMTP-соединение с Яндексом для пакетной отправки."""
+    smtp_password = os.environ.get('SMTP_PASSWORD_MAKST', '')
+    if not smtp_password:
+        raise ValueError('Секрет SMTP_PASSWORD_MAKST не задан')
+    server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=25)
+    server.login(SENDER_EMAIL_MAKST, smtp_password)
+    return server
 
 
 def send_unisender(to_email: str, to_name: str, subject: str, body_html: str) -> dict:
@@ -519,6 +608,141 @@ def action_batch_send(body: dict) -> dict:
     return json_resp({'ok': True, 'sent': sent, 'total': len(ids), 'errors': errors, 'details': details})
 
 
+def _log_email_sent(cur, prospect_id, subject, to_email, source=''):
+    """Пишет отправку письма в активности и воронку."""
+    now_utc = datetime.now(timezone.utc)
+    cur.execute(
+        f"UPDATE {S}.prospects SET auto_email_sent = TRUE, auto_email_sent_at = %s WHERE id = %s",
+        (now_utc, prospect_id),
+    )
+    cur.execute(
+        f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content, created_at) VALUES (%s, %s, %s, %s)",
+        (prospect_id, 'email_sent', subject, now_utc),
+    )
+    meta = json.dumps({'subject': subject, 'sent_to': to_email})
+    cur.execute(
+        f"INSERT INTO {S}.funnel_events (event_type, prospect_id, source, meta, created_at) VALUES (%s, %s, %s, %s::jsonb, %s)",
+        ('email_sent', prospect_id, source or '', meta, now_utc),
+    )
+
+
+def action_send_uchispro(body: dict) -> dict:
+    """Отправляет фиксированное письмо про Учисьпро.рф одному лиду по ID."""
+    prospect_id = body.get('prospect_id')
+    if not prospect_id:
+        return err('prospect_id обязателен')
+    conn = None
+    try:
+        conn = get_db()
+        with conn.cursor() as cur:
+            prospect = load_prospect(cur, prospect_id)
+            if prospect is None:
+                return err(f'Лид с id={prospect_id} не найден', 404)
+            to_email = clean_email(prospect.get('email') or '')
+            if not to_email:
+                return err('У лида нет корректного email')
+
+            subject = UCHISPRO_SUBJECT
+            html = build_uchispro_html(prospect.get('company_name') or '')
+            send_via_yandex(to_email, prospect.get('company_name') or '', subject, html)
+
+            _log_email_sent(cur, prospect_id, subject, to_email, prospect.get('source'))
+            conn.commit()
+        return json_resp({'ok': True, 'subject': subject, 'sent_to': to_email})
+    except Exception as e:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        print(f"[auto-emailer] send_uchispro error: {e}")
+        return err(str(e), 500)
+    finally:
+        if conn:
+            conn.close()
+
+
+def action_batch_uchispro(body: dict) -> dict:
+    """Рассылает письмо про Учисьпро.рф онлайн-школам/репетиторам (по нише), до 30 за раз.
+    Одно SMTP-соединение на весь пакет — быстро и без таймаутов."""
+    limit = int(body.get('limit') or 30)
+    limit = max(1, min(limit, 50))
+    conn = None
+    server = None
+    sent = 0
+    skipped = 0
+    details = []
+    try:
+        conn = get_db()
+        # Берём кандидатов: есть email, ещё не отправляли
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT id, company_name, email, industry, description, source
+                FROM {S}.prospects
+                WHERE (auto_email_sent IS NULL OR auto_email_sent = FALSE)
+                  AND email IS NOT NULL AND email <> ''
+                ORDER BY id
+                LIMIT 300
+                """,
+            )
+            cols = [d[0] for d in cur.description]
+            candidates = [dict(zip(cols, r)) for r in cur.fetchall()]
+
+        # Фильтруем только образование + валидный email
+        targets = []
+        for p in candidates:
+            if not is_education(p):
+                continue
+            em = clean_email(p.get('email') or '')
+            if not em:
+                continue
+            targets.append((p, em))
+            if len(targets) >= limit:
+                break
+
+        if not targets:
+            return json_resp({'ok': True, 'sent': 0, 'skipped': 0, 'details': [],
+                              'message': 'Онлайн-школ с корректным email и без письма не найдено'})
+
+        server = open_smtp()
+        for idx, (p, em) in enumerate(targets):
+            if idx > 0:
+                time.sleep(0.4)
+            pid = p['id']
+            subject = UCHISPRO_SUBJECT
+            try:
+                html = build_uchispro_html(p.get('company_name') or '')
+                send_via_yandex(em, p.get('company_name') or '', subject, html, server=server)
+                with conn.cursor() as cur:
+                    _log_email_sent(cur, pid, subject, em, p.get('source'))
+                conn.commit()
+                sent += 1
+                details.append({'prospect_id': pid, 'ok': True, 'sent_to': em,
+                                'company': p.get('company_name') or ''})
+            except Exception as e:
+                conn.rollback()
+                skipped += 1
+                details.append({'prospect_id': pid, 'ok': False, 'error': str(e)[:120],
+                                'company': p.get('company_name') or ''})
+                print(f"[auto-emailer] uchispro fail id={pid}: {e}")
+
+        print(f"[auto-emailer] batch_uchispro done: sent={sent} skipped={skipped}")
+        return json_resp({'ok': True, 'sent': sent, 'skipped': skipped,
+                          'total': len(targets), 'details': details})
+    except Exception as e:
+        print(f"[auto-emailer] batch_uchispro error: {e}")
+        return err(str(e), 500)
+    finally:
+        if server is not None:
+            try:
+                server.quit()
+            except Exception:
+                pass
+        if conn:
+            conn.close()
+
+
 def action_sent_log(body: dict) -> dict:
     """Возвращает журнал отправленных писем: кому, тема, когда."""
     limit = int(body.get('limit') or 50)
@@ -585,7 +809,11 @@ def handler(event: dict, context) -> dict:
         return action_analyze_site(body)
     elif action == 'batch_send':
         return action_batch_send(body)
+    elif action == 'send_uchispro':
+        return action_send_uchispro(body)
+    elif action == 'batch_uchispro':
+        return action_batch_uchispro(body)
     elif action == 'sent_log':
         return action_sent_log(body)
     else:
-        return err(f'Неизвестный action: {action!r}. Доступны: send_intro, analyze_site, batch_send, sent_log', 400)
+        return err(f'Неизвестный action: {action!r}. Доступны: send_uchispro, batch_uchispro, send_intro, analyze_site, batch_send, sent_log', 400)

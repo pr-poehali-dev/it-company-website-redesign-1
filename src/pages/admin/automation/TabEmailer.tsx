@@ -16,6 +16,7 @@ interface BatchDetail {
   ok: boolean;
   sent_to?: string;
   subject?: string;
+  company?: string;
   error?: string;
 }
 
@@ -34,6 +35,11 @@ export default function TabEmailer({ token }: { token: string }) {
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchDetails, setBatchDetails] = useState<BatchDetail[] | null>(null);
   const [batchError, setBatchError] = useState("");
+
+  const [eduLoading, setEduLoading] = useState(false);
+  const [eduDetails, setEduDetails] = useState<BatchDetail[] | null>(null);
+  const [eduError, setEduError] = useState("");
+  const [eduMessage, setEduMessage] = useState("");
 
   const [singleId, setSingleId] = useState("");
   const [singleLoading, setSingleLoading] = useState(false);
@@ -88,6 +94,30 @@ export default function TabEmailer({ token }: { token: string }) {
     }
   }
 
+  async function runEduBatch() {
+    setEduLoading(true);
+    setEduError("");
+    setEduMessage("");
+    setEduDetails(null);
+    try {
+      const res = await fetch(AUTO_EMAILER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
+        body: JSON.stringify({ action: "batch_uchispro", limit: 30 }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setEduDetails(data.details ?? []);
+        if (data.message) setEduMessage(data.message);
+      } else setEduError(data.error ?? "Неизвестная ошибка");
+    } catch {
+      setEduError("Ошибка соединения");
+    } finally {
+      setEduLoading(false);
+      loadLog();
+    }
+  }
+
   async function runSingle() {
     const id = parseInt(singleId);
     if (!id) return;
@@ -111,11 +141,57 @@ export default function TabEmailer({ token }: { token: string }) {
 
   const batchSent = batchDetails?.filter(d => d.ok).length ?? 0;
   const batchFailed = batchDetails?.filter(d => !d.ok).length ?? 0;
+  const eduSent = eduDetails?.filter(d => d.ok).length ?? 0;
+  const eduFailed = eduDetails?.filter(d => !d.ok).length ?? 0;
 
   return (
     <div className="space-y-6">
+      <div className="glass border border-violet-500/30 rounded-2xl p-6">
+        <SectionTitle icon="GraduationCap">Учисьпро.рф — рассылка онлайн-школам</SectionTitle>
+        <InfoBlock>
+          Отправляет готовое письмо с предложением платформы «Учисьпро.рф» онлайн-школам и репетиторам
+          из вашей базы (отбор по нише «образование»). Битые email автоматически пропускаются.
+          До 30 писем за раз.
+        </InfoBlock>
+        <div className="flex flex-wrap items-center gap-3">
+          <ActionBtn onClick={runEduBatch} loading={eduLoading} icon="GraduationCap">
+            Разослать онлайн-школам
+          </ActionBtn>
+          {eduLoading && (
+            <span className="text-sm text-violet-300 flex items-center gap-2">
+              <Icon name="Loader2" size={14} className="animate-spin" />
+              Отправляем письма школам…
+            </span>
+          )}
+          {eduError && <ResultErr>{eduError}</ResultErr>}
+        </div>
+
+        {eduMessage && (
+          <div className="mt-4 text-sm text-white/60 bg-white/5 rounded-xl px-4 py-3">{eduMessage}</div>
+        )}
+        {eduDetails && eduDetails.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <div className="text-sm text-white/70">
+              Отправлено: <strong className="text-emerald-400">{eduSent}</strong>
+              {eduFailed > 0 && <span className="text-yellow-300 ml-2">| Ошибок: {eduFailed}</span>}
+            </div>
+            <div className="space-y-1.5">
+              {eduDetails.map((d, i) => (
+                <div key={i} className={`flex items-center gap-2 text-xs rounded-lg px-3 py-2 ${d.ok ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
+                  <Icon name={d.ok ? "CheckCircle" : "XCircle"} size={13} className={d.ok ? "text-emerald-400" : "text-red-400"} />
+                  <span className="text-white/80 truncate max-w-[40%]">{d.company}</span>
+                  {d.ok
+                    ? <span className="text-white/50 truncate">{d.sent_to}</span>
+                    : <span className="text-red-300 truncate">{d.error}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="glass border border-white/10 rounded-2xl p-6">
-        <SectionTitle icon="Send">Пакетная рассылка</SectionTitle>
+        <SectionTitle icon="Send">Пакетная рассылка (ИИ-письма, все ниши)</SectionTitle>
         <InfoBlock>
           Отправляет персональное письмо каждому новому лиду с email. Письмо генерируется AI
           на основе отрасли и сайта компании. Обрабатывает до 20 лидов за раз.
