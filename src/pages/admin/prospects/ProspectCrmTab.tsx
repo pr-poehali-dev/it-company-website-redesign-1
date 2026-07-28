@@ -12,6 +12,11 @@ interface Props {
   filterStatus: string;
   filterPriority: string;
   filterSearch: string;
+  filterSegment: string;
+  filterEmailStatus: string;
+  filterHasEmail: string;
+  filterRegion: string;
+  sortBy: string;
   showProjectForm: boolean;
   newProject: { name: string; description: string; color: string };
   addingProject: boolean;
@@ -20,6 +25,11 @@ interface Props {
   onFilterStatus: (v: string) => void;
   onFilterPriority: (v: string) => void;
   onFilterSearch: (v: string) => void;
+  onFilterSegment: (v: string) => void;
+  onFilterEmailStatus: (v: string) => void;
+  onFilterHasEmail: (v: string) => void;
+  onFilterRegion: (v: string) => void;
+  onSortBy: (v: string) => void;
   onToggleProjectForm: () => void;
   onNewProjectChange: (f: { name: string; description: string; color: string }) => void;
   onCreateProject: () => void;
@@ -31,12 +41,18 @@ interface Props {
 export default function ProspectCrmTab({
   projects, prospects, statusStats, totalProspects, loading,
   filterProject, filterStatus, filterPriority, filterSearch,
+  filterSegment, filterEmailStatus, filterHasEmail, filterRegion, sortBy,
   showProjectForm, newProject, addingProject,
   token,
   onFilterProject, onFilterStatus, onFilterPriority, onFilterSearch,
+  onFilterSegment, onFilterEmailStatus, onFilterHasEmail, onFilterRegion, onSortBy,
   onToggleProjectForm, onNewProjectChange, onCreateProject,
   onSelectProspect, onAddNew, onImportDone,
 }: Props) {
+  const activeExtraFilters = [filterSegment, filterEmailStatus, filterHasEmail, filterRegion].filter(Boolean).length;
+  const resetExtra = () => {
+    onFilterSegment(""); onFilterEmailStatus(""); onFilterHasEmail(""); onFilterRegion("");
+  };
   return (
     <div className="space-y-4">
       {/* Projects bar */}
@@ -101,6 +117,51 @@ export default function ProspectCrmTab({
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all whitespace-nowrap">
             <Icon name="Plus" size={14} /> Добавить
           </button>
+        </div>
+
+        {/* Доп. фильтры: сегмент, статус письма, email, регион, сортировка */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <select value={filterSegment} onChange={e => onFilterSegment(e.target.value)}
+            className="flex-1 min-w-32 glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
+            <option value="">Все ниши</option>
+            <option value="education">Образование / школы</option>
+            <option value="manufacturing">Производство</option>
+            <option value="food">Общепит / рестораны</option>
+            <option value="retail">Торговля / ритейл</option>
+            <option value="digital">Digital / маркетинг</option>
+          </select>
+          <select value={filterEmailStatus} onChange={e => onFilterEmailStatus(e.target.value)}
+            className="flex-1 min-w-32 glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
+            <option value="">Письмо: любой</option>
+            <option value="not_sent">Не писали</option>
+            <option value="sent">Писали</option>
+            <option value="delivered">Доставлено</option>
+            <option value="failed">Не доставлено</option>
+          </select>
+          <select value={filterHasEmail} onChange={e => onFilterHasEmail(e.target.value)}
+            className="flex-1 min-w-32 glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
+            <option value="">Email: любой</option>
+            <option value="yes">Есть email</option>
+            <option value="no">Без email</option>
+          </select>
+          <input value={filterRegion} onChange={e => onFilterRegion(e.target.value)}
+            placeholder="Регион / город"
+            className="flex-1 min-w-32 glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/30 bg-transparent focus:outline-none focus:border-violet-500/50" />
+          <select value={sortBy} onChange={e => onSortBy(e.target.value)}
+            className="flex-1 min-w-32 glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
+            <option value="updated_desc">Сортировка: обновлённые</option>
+            <option value="created_desc">Сначала новые</option>
+            <option value="created_asc">Сначала старые</option>
+            <option value="name_asc">По названию (А-Я)</option>
+            <option value="score_desc">По AI-оценке</option>
+            <option value="email_sent_desc">По дате письма</option>
+          </select>
+          {activeExtraFilters > 0 && (
+            <button onClick={resetExtra}
+              className="flex items-center gap-1 px-3 py-2.5 rounded-xl glass border border-white/10 text-white/50 hover:text-white text-sm transition-all whitespace-nowrap">
+              <Icon name="X" size={13} /> Сбросить ({activeExtraFilters})
+            </button>
+          )}
         </div>
       </div>
 

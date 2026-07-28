@@ -25,6 +25,11 @@ export default function ProspectModule({ token }: { token: string }) {
   const [filterStatus, setFilterStatus]     = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [filterSearch, setFilterSearch]     = useState("");
+  const [filterSegment, setFilterSegment]   = useState("");
+  const [filterEmailStatus, setFilterEmailStatus] = useState("");
+  const [filterHasEmail, setFilterHasEmail] = useState("");
+  const [filterRegion, setFilterRegion]     = useState("");
+  const [sortBy, setSortBy]                 = useState("updated_desc");
 
   // Selected / Edit
   const [selected, setSelected]         = useState<Prospect | null>(null);
@@ -50,12 +55,12 @@ export default function ProspectModule({ token }: { token: string }) {
 
   useEffect(() => {
     loadProspects();
-  }, [filterProject, filterStatus, filterPriority]);
+  }, [filterProject, filterStatus, filterPriority, filterSegment, filterEmailStatus, filterHasEmail, sortBy]);
 
   useEffect(() => {
     const t = setTimeout(() => loadProspects(), 400);
     return () => clearTimeout(t);
-  }, [filterSearch]);
+  }, [filterSearch, filterRegion]);
 
   async function api(action: string, method = "GET", body?: object, qparams?: Record<string, string>) {
     const payload = method === "GET"
@@ -84,6 +89,11 @@ export default function ProspectModule({ token }: { token: string }) {
     if (filterStatus)   qp["status"] = filterStatus;
     if (filterPriority) qp["priority"] = filterPriority;
     if (filterSearch)   qp["search"] = filterSearch;
+    if (filterSegment)  qp["segment"] = filterSegment;
+    if (filterEmailStatus) qp["email_status"] = filterEmailStatus;
+    if (filterHasEmail) qp["has_email"] = filterHasEmail;
+    if (filterRegion)   qp["region"] = filterRegion;
+    if (sortBy)         qp["sort"] = sortBy;
     const data = await api("list", "GET", undefined, qp);
     setProspects(data.prospects || []);
     setStatusStats(data.status_stats || {});
@@ -215,6 +225,11 @@ export default function ProspectModule({ token }: { token: string }) {
           filterStatus={filterStatus}
           filterPriority={filterPriority}
           filterSearch={filterSearch}
+          filterSegment={filterSegment}
+          filterEmailStatus={filterEmailStatus}
+          filterHasEmail={filterHasEmail}
+          filterRegion={filterRegion}
+          sortBy={sortBy}
           showProjectForm={showProjectForm}
           newProject={newProject}
           addingProject={addingProject}
@@ -223,6 +238,11 @@ export default function ProspectModule({ token }: { token: string }) {
           onFilterStatus={setFilterStatus}
           onFilterPriority={setFilterPriority}
           onFilterSearch={setFilterSearch}
+          onFilterSegment={setFilterSegment}
+          onFilterEmailStatus={setFilterEmailStatus}
+          onFilterHasEmail={setFilterHasEmail}
+          onFilterRegion={setFilterRegion}
+          onSortBy={setSortBy}
           onToggleProjectForm={() => setShowProjectForm(!showProjectForm)}
           onNewProjectChange={setNewProject}
           onCreateProject={createProject}

@@ -790,6 +790,17 @@ def handle_prospects_list(event, method, body, params):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+    # Ключевые слова сегментов (совпадают с backend/auto-emailer/segments.py)
+    SEGMENT_KEYWORDS = {
+        'education': ['образован', 'обучен', 'школ', 'репетит', 'курс', 'учеб', 'преподав',
+                      'академ', 'колледж', 'лицей', 'тренинг', 'подготовк', 'егэ', 'огэ',
+                      'детск', 'развит', 'педагог'],
+        'manufacturing': ['производ', 'завод', 'фабрик', 'изготовл', 'цех'],
+        'food': ['ресторан', 'кафе', 'кофейн', 'общепит', 'пиццер', 'кухн', 'столов'],
+        'retail': ['магазин', 'торгов', 'розниц', 'товар', 'склад', 'поставк', 'дистриб'],
+        'digital': ['разработк', 'программ', 'диджитал', 'маркетинг', 'реклам', 'агентств'],
+    }
+
     if method == 'GET':
         filters = []
         args = []
@@ -806,6 +817,48 @@ def handle_prospects_list(event, method, body, params):
             filters.append("(p.company_name ILIKE %s OR p.industry ILIKE %s OR p.region ILIKE %s)")
             q = f"%{params['search']}%"
             args += [q, q, q]
+        if params.get('region'):
+            filters.append("p.region ILIKE %s")
+            args.append(f"%{params['region']}%")
+
+        # Фильтр по наличию email
+        has_email = params.get('has_email')
+        if has_email == 'yes':
+            filters.append("(p.email IS NOT NULL AND p.email <> '')")
+        elif has_email == 'no':
+            filters.append("(p.email IS NULL OR p.email = '')")
+
+        # Фильтр по статусу письма
+        email_status = params.get('email_status')
+        if email_status == 'not_sent':
+            filters.append("(p.auto_email_sent IS NULL OR p.auto_email_sent = FALSE)")
+        elif email_status == 'sent':
+            filters.append("p.auto_email_sent = TRUE")
+        elif email_status == 'delivered':
+            filters.append("p.email_delivery_status = 'sent'")
+        elif email_status == 'failed':
+            filters.append("p.email_delivery_status = 'failed'")
+
+        # Фильтр по сегменту/нише
+        seg = params.get('segment')
+        if seg and seg in SEGMENT_KEYWORDS:
+            kws = SEGMENT_KEYWORDS[seg]
+            conds = []
+            for kw in kws:
+                conds.append("(LOWER(COALESCE(p.company_name,'')||' '||COALESCE(p.industry,'')||' '||COALESCE(p.description,'')) LIKE %s)")
+                args.append(f"%{kw}%")
+            filters.append('(' + ' OR '.join(conds) + ')')
+
+        # Сортировка (белый список)
+        SORT_MAP = {
+            'updated_desc': 'p.updated_at DESC',
+            'created_desc': 'p.created_at DESC',
+            'created_asc': 'p.created_at ASC',
+            'name_asc': 'p.company_name ASC',
+            'score_desc': 'p.ai_score DESC NULLS LAST',
+            'email_sent_desc': 'p.auto_email_sent_at DESC NULLS LAST',
+        }
+        order_by = SORT_MAP.get(params.get('sort', ''), 'p.updated_at DESC')
 
         where = ('WHERE ' + ' AND '.join(filters)) if filters else ''
         cur.execute(f"""
@@ -813,7 +866,7 @@ def handle_prospects_list(event, method, body, params):
             FROM {S}.prospects p
             LEFT JOIN {S}.prospect_projects pr ON pr.id = p.project_id
             {where}
-            ORDER BY p.updated_at DESC
+            ORDER BY {order_by}
             LIMIT 200
         """, args)
         prospects = [dict(r) for r in cur.fetchall()]

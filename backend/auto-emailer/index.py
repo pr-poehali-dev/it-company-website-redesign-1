@@ -351,6 +351,27 @@ def send_unisender(to_email: str, to_name: str, subject: str, body_html: str) ->
     return result
 
 
+def send_email(to_email: str, to_name: str, subject: str, body_html: str, server=None) -> dict:
+    """Унифицированная отправка: сначала Unisender Go (лучше доходит),
+    при недоступности/отказе — откат на Yandex SMTP.
+    Возвращает {'provider': 'unisender'|'yandex', 'status': 'sent'|'failed'}."""
+    # 1) Пробуем Unisender Go, если задан ключ
+    if os.environ.get('UNISENDER_API_KEY'):
+        try:
+            res = send_unisender(to_email, to_name, subject, body_html)
+            failed = (res or {}).get('failed_emails') or {}
+            if to_email in failed:
+                raise ValueError(f"Unisender отклонил адрес: {failed[to_email]}")
+            print(f"[auto-emailer] send_email OK via unisender to={to_email}")
+            return {'provider': 'unisender', 'status': 'sent'}
+        except Exception as e:
+            print(f"[auto-emailer] Unisender failed, fallback to Yandex: {e}")
+
+    # 2) Откат на Yandex SMTP
+    send_via_yandex(to_email, to_name, subject, body_html, server=server)
+    return {'provider': 'yandex', 'status': 'sent'}
+
+
 def load_prospect(cur, prospect_id) -> dict | None:
     """Загружает лида из БД по id."""
     cur.execute(
@@ -610,12 +631,15 @@ def action_batch_send(body: dict) -> dict:
     return json_resp({'ok': True, 'sent': sent, 'total': len(ids), 'errors': errors, 'details': details})
 
 
-def _log_email_sent(cur, prospect_id, subject, to_email, source=''):
-    """Пишет отправку письма в активности и воронку."""
+def _log_email_sent(cur, prospect_id, subject, to_email, source='', provider='', status='sent'):
+    """Пишет отправку письма в активности и воронку, фиксирует провайдера и статус доставки."""
     now_utc = datetime.now(timezone.utc)
     cur.execute(
-        f"UPDATE {S}.prospects SET auto_email_sent = TRUE, auto_email_sent_at = %s WHERE id = %s",
-        (now_utc, prospect_id),
+        f"""UPDATE {S}.prospects
+            SET auto_email_sent = TRUE, auto_email_sent_at = %s,
+                email_delivery_status = %s, email_delivery_provider = %s
+            WHERE id = %s""",
+        (now_utc, status, provider, prospect_id),
     )
     cur.execute(
         f"INSERT INTO {S}.prospect_activities (prospect_id, activity_type, content, created_at) VALUES (%s, %s, %s, %s)",
@@ -646,11 +670,11 @@ def action_send_uchispro(body: dict) -> dict:
 
             subject = UCHISPRO_SUBJECT
             html = build_uchispro_html(prospect.get('company_name') or '')
-            send_via_yandex(to_email, prospect.get('company_name') or '', subject, html)
+            r = send_email(to_email, prospect.get('company_name') or '', subject, html)
 
-            _log_email_sent(cur, prospect_id, subject, to_email, prospect.get('source'))
+            _log_email_sent(cur, prospect_id, subject, to_email, prospect.get('source'), r['provider'], r['status'])
             conn.commit()
-        return json_resp({'ok': True, 'subject': subject, 'sent_to': to_email})
+        return json_resp({'ok': True, 'subject': subject, 'sent_to': to_email, 'provider': r['provider']})
     except Exception as e:
         if conn:
             try:
@@ -707,7 +731,8 @@ def action_batch_uchispro(body: dict) -> dict:
             return json_resp({'ok': True, 'sent': 0, 'skipped': 0, 'details': [],
                               'message': 'Онлайн-школ с корректным email и без письма не найдено'})
 
-        server = open_smtp()
+        use_smtp = not os.environ.get('UNISENDER_API_KEY')
+        server = open_smtp() if use_smtp else None
         for idx, (p, em) in enumerate(targets):
             if idx > 0:
                 time.sleep(0.4)
@@ -715,12 +740,12 @@ def action_batch_uchispro(body: dict) -> dict:
             subject = UCHISPRO_SUBJECT
             try:
                 html = build_uchispro_html(p.get('company_name') or '')
-                send_via_yandex(em, p.get('company_name') or '', subject, html, server=server)
+                r = send_email(em, p.get('company_name') or '', subject, html, server=server)
                 with conn.cursor() as cur:
-                    _log_email_sent(cur, pid, subject, em, p.get('source'))
+                    _log_email_sent(cur, pid, subject, em, p.get('source'), r['provider'], r['status'])
                 conn.commit()
                 sent += 1
-                details.append({'prospect_id': pid, 'ok': True, 'sent_to': em,
+                details.append({'prospect_id': pid, 'ok': True, 'sent_to': em, 'provider': r['provider'],
                                 'company': p.get('company_name') or ''})
             except Exception as e:
                 conn.rollback()
@@ -837,16 +862,17 @@ def action_batch_segment(body: dict) -> dict:
                               'message': 'Компаний этого сегмента с корректным email и без письма не найдено'})
 
         subject = SEGMENTS[segment_key]['subject']
-        server = open_smtp()
+        use_smtp = not os.environ.get('UNISENDER_API_KEY')
+        server = open_smtp() if use_smtp else None
         for idx, (p, em) in enumerate(targets):
             if idx > 0:
                 time.sleep(0.4)
             pid = p['id']
             try:
                 html = build_segment_html(segment_key, p.get('company_name') or '')
-                send_via_yandex(em, p.get('company_name') or '', subject, html, server=server)
+                r = send_email(em, p.get('company_name') or '', subject, html, server=server)
                 with conn.cursor() as cur:
-                    _log_email_sent(cur, pid, subject, em, p.get('source'))
+                    _log_email_sent(cur, pid, subject, em, p.get('source'), r['provider'], r['status'])
                 conn.commit()
                 sent += 1
                 details.append({'prospect_id': pid, 'ok': True, 'sent_to': em,
