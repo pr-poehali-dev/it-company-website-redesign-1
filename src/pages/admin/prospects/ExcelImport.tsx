@@ -202,14 +202,14 @@ export default function ExcelImport({ token, projects, onDone }: Props) {
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-all shadow-lg shadow-green-900/30">
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-all shadow-lg shadow-green-900/30 whitespace-nowrap">
         <Icon name="FileSpreadsheet" size={14} className="text-white" />
         Импорт из Excel
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass neon-border rounded-2xl p-6 w-full max-w-xl space-y-5">
+          <div className="glass neon-border rounded-2xl p-6 w-full max-w-xl space-y-5 max-h-[90vh] overflow-y-auto">
 
             {/* Header */}
             <div className="flex items-center justify-between">

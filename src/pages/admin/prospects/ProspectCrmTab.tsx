@@ -81,25 +81,27 @@ export default function ProspectCrmTab({
       </div>
 
       {/* Filters + add */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="space-y-3">
         <input value={filterSearch} onChange={e => onFilterSearch(e.target.value)}
           placeholder="Поиск по названию, отрасли..."
-          className="flex-1 min-w-48 glass border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50" />
-        <select value={filterStatus} onChange={e => onFilterStatus(e.target.value)}
-          className="glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
-          <option value="">Все статусы</option>
-          {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-        </select>
-        <select value={filterPriority} onChange={e => onFilterPriority(e.target.value)}
-          className="glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
-          <option value="">Все приоритеты</option>
-          {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
-        </select>
-        <ExcelImport token={token} projects={projects} onDone={onImportDone} />
-        <button onClick={onAddNew}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all">
-          <Icon name="Plus" size={14} /> Добавить
-        </button>
+          className="w-full glass border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50" />
+        <div className="flex flex-wrap gap-2 items-center">
+          <select value={filterStatus} onChange={e => onFilterStatus(e.target.value)}
+            className="flex-1 min-w-32 glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
+            <option value="">Все статусы</option>
+            {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+          </select>
+          <select value={filterPriority} onChange={e => onFilterPriority(e.target.value)}
+            className="flex-1 min-w-32 glass border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white bg-transparent focus:outline-none">
+            <option value="">Все приоритеты</option>
+            {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+          </select>
+          <ExcelImport token={token} projects={projects} onDone={onImportDone} />
+          <button onClick={onAddNew}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all whitespace-nowrap">
+            <Icon name="Plus" size={14} /> Добавить
+          </button>
+        </div>
       </div>
 
       {/* Kanban-статистика */}
