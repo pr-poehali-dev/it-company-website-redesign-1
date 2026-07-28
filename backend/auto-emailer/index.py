@@ -23,6 +23,8 @@ from email.utils import formataddr
 import psycopg2
 import psycopg2.extras
 
+from segments import SEGMENTS, SEGMENT_ORDER, match_segment, build_segment_html
+
 # ── Константы ────────────────────────────────────────────────────────────────
 
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
@@ -743,6 +745,135 @@ def action_batch_uchispro(body: dict) -> dict:
             conn.close()
 
 
+def action_segments_stats(body: dict) -> dict:
+    """Возвращает группы клиентов с числом компаний и предложением боль→решение."""
+    conn = None
+    try:
+        conn = get_db()
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT company_name, industry, description, email,
+                       COALESCE(auto_email_sent, FALSE) AS sent
+                FROM {S}.prospects
+                WHERE email IS NOT NULL AND email <> ''
+                """,
+            )
+            cols = [d[0] for d in cur.description]
+            rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+
+        counts = {k: {'total': 0, 'not_sent': 0} for k in SEGMENT_ORDER}
+        for p in rows:
+            key = match_segment(p)
+            if not key:
+                continue
+            counts[key]['total'] += 1
+            if not p['sent']:
+                counts[key]['not_sent'] += 1
+
+        segments = []
+        for key in SEGMENT_ORDER:
+            seg = SEGMENTS[key]
+            segments.append({
+                'key': key,
+                'title': seg['title'],
+                'product': seg['product'],
+                'subject': seg['subject'],
+                'total': counts[key]['total'],
+                'not_sent': counts[key]['not_sent'],
+                'pains': [{'pain': p, 'solution': s} for p, s in seg['pains']],
+            })
+        return json_resp({'ok': True, 'segments': segments})
+    except Exception as e:
+        print(f"[auto-emailer] segments_stats error: {e}")
+        return err(str(e), 500)
+    finally:
+        if conn:
+            conn.close()
+
+
+def action_batch_segment(body: dict) -> dict:
+    """Рассылает письмо «боль→решение» компаниям выбранного сегмента (до 30 за раз)."""
+    segment_key = body.get('segment')
+    if segment_key not in SEGMENTS:
+        return err(f'Неизвестный сегмент: {segment_key!r}')
+    limit = int(body.get('limit') or 30)
+    limit = max(1, min(limit, 50))
+
+    conn = None
+    server = None
+    sent = 0
+    skipped = 0
+    details = []
+    try:
+        conn = get_db()
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT id, company_name, email, industry, description, source
+                FROM {S}.prospects
+                WHERE (auto_email_sent IS NULL OR auto_email_sent = FALSE)
+                  AND email IS NOT NULL AND email <> ''
+                ORDER BY id
+                LIMIT 500
+                """,
+            )
+            cols = [d[0] for d in cur.description]
+            candidates = [dict(zip(cols, r)) for r in cur.fetchall()]
+
+        targets = []
+        for p in candidates:
+            if match_segment(p) != segment_key:
+                continue
+            em = clean_email(p.get('email') or '')
+            if not em:
+                continue
+            targets.append((p, em))
+            if len(targets) >= limit:
+                break
+
+        if not targets:
+            return json_resp({'ok': True, 'sent': 0, 'skipped': 0, 'details': [],
+                              'message': 'Компаний этого сегмента с корректным email и без письма не найдено'})
+
+        subject = SEGMENTS[segment_key]['subject']
+        server = open_smtp()
+        for idx, (p, em) in enumerate(targets):
+            if idx > 0:
+                time.sleep(0.4)
+            pid = p['id']
+            try:
+                html = build_segment_html(segment_key, p.get('company_name') or '')
+                send_via_yandex(em, p.get('company_name') or '', subject, html, server=server)
+                with conn.cursor() as cur:
+                    _log_email_sent(cur, pid, subject, em, p.get('source'))
+                conn.commit()
+                sent += 1
+                details.append({'prospect_id': pid, 'ok': True, 'sent_to': em,
+                                'company': p.get('company_name') or ''})
+            except Exception as e:
+                conn.rollback()
+                skipped += 1
+                details.append({'prospect_id': pid, 'ok': False, 'error': str(e)[:120],
+                                'company': p.get('company_name') or ''})
+                print(f"[auto-emailer] segment {segment_key} fail id={pid}: {e}")
+
+        print(f"[auto-emailer] batch_segment {segment_key} done: sent={sent} skipped={skipped}")
+        return json_resp({'ok': True, 'sent': sent, 'skipped': skipped,
+                          'total': len(targets), 'details': details})
+    except Exception as e:
+        print(f"[auto-emailer] batch_segment error: {e}")
+        return err(str(e), 500)
+    finally:
+        if server is not None:
+            try:
+                server.quit()
+            except Exception:
+                pass
+        if conn:
+            conn.close()
+
+
 def action_sent_log(body: dict) -> dict:
     """Возвращает журнал отправленных писем: кому, тема, когда."""
     limit = int(body.get('limit') or 50)
@@ -813,7 +944,11 @@ def handler(event: dict, context) -> dict:
         return action_send_uchispro(body)
     elif action == 'batch_uchispro':
         return action_batch_uchispro(body)
+    elif action == 'segments_stats':
+        return action_segments_stats(body)
+    elif action == 'batch_segment':
+        return action_batch_segment(body)
     elif action == 'sent_log':
         return action_sent_log(body)
     else:
-        return err(f'Неизвестный action: {action!r}. Доступны: send_uchispro, batch_uchispro, send_intro, analyze_site, batch_send, sent_log', 400)
+        return err(f'Неизвестный action: {action!r}', 400)

@@ -15,7 +15,7 @@ export const INDUSTRIES = [
   "образование и курсы", "торговля и e-commerce", "юридические услуги",
 ];
 
-export type Tab = "emailer" | "followup" | "radar" | "analyze";
+export type Tab = "segments" | "emailer" | "followup" | "radar" | "analyze";
 
 export interface Task {
   id: string;

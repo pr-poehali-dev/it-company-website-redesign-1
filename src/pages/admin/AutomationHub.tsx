@@ -2,12 +2,14 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { Tab } from "./automation/automation-ui";
 import CronStatusBar from "./automation/CronStatusBar";
+import TabSegments from "./automation/TabSegments";
 import TabEmailer from "./automation/TabEmailer";
 import TabFollowup from "./automation/TabFollowup";
 import TabRadar from "./automation/TabRadar";
 import TabAnalyze from "./automation/TabAnalyze";
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
+  { key: "segments", label: "Сегменты", icon: "LayoutGrid" },
   { key: "emailer", label: "Авто-рассылка", icon: "Mail" },
   { key: "followup", label: "Follow-up", icon: "RefreshCw" },
   { key: "radar", label: "Радар", icon: "Radar" },
@@ -15,7 +17,7 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
 ];
 
 export default function AutomationHub({ token }: { token: string }) {
-  const [activeTab, setActiveTab] = useState<Tab>("emailer");
+  const [activeTab, setActiveTab] = useState<Tab>("segments");
 
   return (
     <div className="space-y-6">
@@ -50,6 +52,7 @@ export default function AutomationHub({ token }: { token: string }) {
         ))}
       </div>
 
+      {activeTab === "segments" && <TabSegments token={token} />}
       {activeTab === "emailer" && <TabEmailer token={token} />}
       {activeTab === "followup" && <TabFollowup />}
       {activeTab === "radar" && <TabRadar />}
