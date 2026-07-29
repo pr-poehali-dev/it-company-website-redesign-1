@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
-import { AUTO_EMAILER_URL, ActionBtn, InfoBlock, ResultErr, SectionTitle } from "./automation-ui";
+import { AUTO_EMAILER_URL, ActionBtn, InfoBlock, ResultErr, ResultOk, SectionTitle } from "./automation-ui";
 
 interface PainSolution {
   pain: string;
@@ -31,6 +31,34 @@ export default function TabSegments({ token }: { token: string }) {
   const [error, setError] = useState("");
   const [sendingKey, setSendingKey] = useState("");
   const [result, setResult] = useState<Record<string, { sent: number; skipped: number; details: SendDetail[]; message?: string }>>({});
+
+  const [testEmail, setTestEmail] = useState("");
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function sendTest() {
+    if (!testEmail.trim()) return;
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(AUTO_EMAILER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Token": token },
+        body: JSON.stringify({ action: "test_email", email: testEmail.trim() }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const via = data.provider === "unisender" ? "Unisender Go" : "Яндекс SMTP";
+        setTestResult({ ok: true, text: `Отправлено на ${data.sent_to} через ${via}. Проверьте входящие и папку «Спам».` });
+      } else {
+        setTestResult({ ok: false, text: data.error || "Не удалось отправить" });
+      }
+    } catch {
+      setTestResult({ ok: false, text: "Ошибка соединения" });
+    } finally {
+      setTesting(false);
+    }
+  }
 
   const loadStats = useCallback(async () => {
     setLoading(true);
@@ -93,6 +121,32 @@ export default function TabSegments({ token }: { token: string }) {
           справа наше решение. Рассылка учитывает только компании с корректным email, которым ещё не писали.
         </InfoBlock>
         {error && <ResultErr>{error}</ResultErr>}
+      </div>
+
+      {/* Тест доставки писем */}
+      <div className="glass border border-white/10 rounded-2xl p-6">
+        <SectionTitle icon="MailCheck">Проверка доставки писем</SectionTitle>
+        <InfoBlock>
+          Отправьте тестовое письмо на любой адрес и убедитесь, что оно дошло.
+          В ответе будет видно, через какой сервис ушло письмо.
+        </InfoBlock>
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            value={testEmail}
+            onChange={e => setTestEmail(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && sendTest()}
+            placeholder="email для проверки"
+            className="flex-1 min-w-56 glass border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50"
+          />
+          <ActionBtn onClick={sendTest} loading={testing} disabled={!testEmail.trim()} icon="Send">
+            Отправить тест
+          </ActionBtn>
+        </div>
+        {testResult && (
+          <div className="mt-3">
+            {testResult.ok ? <ResultOk>{testResult.text}</ResultOk> : <ResultErr>{testResult.text}</ResultErr>}
+          </div>
+        )}
       </div>
 
       {segments.map(seg => {

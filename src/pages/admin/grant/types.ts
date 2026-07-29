@@ -15,7 +15,22 @@ export interface Grant {
   why_fit?: string;
   source?: string;
   saved?: boolean;
+  link?: "ok" | "dead" | "unknown";
+  deadline_status?: "open" | "closing_soon" | "closed" | "rolling" | "unknown";
+  days_left?: number | null;
 }
+
+export const LINK_BADGE: Record<string, { label: string; cls: string; icon: string }> = {
+  ok: { label: "Ссылка активна", cls: "text-emerald-300 bg-emerald-500/10", icon: "Link" },
+  dead: { label: "Ссылка не открывается", cls: "text-red-300 bg-red-500/10", icon: "Unlink" },
+};
+
+export const DEADLINE_BADGE: Record<string, { label: string; cls: string; icon: string }> = {
+  open: { label: "Приём открыт", cls: "text-emerald-300 bg-emerald-500/10", icon: "CalendarCheck" },
+  closing_soon: { label: "Скоро закрытие", cls: "text-amber-300 bg-amber-500/10", icon: "CalendarClock" },
+  closed: { label: "Приём закрыт", cls: "text-red-300 bg-red-500/10", icon: "CalendarX" },
+  rolling: { label: "Приём круглый год", cls: "text-cyan-300 bg-cyan-500/10", icon: "CalendarRange" },
+};
 
 export interface Fund {
   key: string;

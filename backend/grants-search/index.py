@@ -289,6 +289,107 @@ def ai_analyze_grant(grant: dict, api_key: str) -> dict:
     return {'ok': True, 'analysis': out['data']}
 
 
+import re
+from datetime import date, datetime
+
+RU_MONTHS = {
+    'янв': 1, 'фев': 2, 'мар': 3, 'апр': 4, 'мая': 5, 'май': 5, 'июн': 6,
+    'июл': 7, 'авг': 8, 'сен': 9, 'окт': 10, 'ноя': 11, 'дек': 12,
+}
+
+
+def check_grant_link(url: str) -> dict:
+    """Проверяет, что ссылка на грант живая. Возвращает {'link': 'ok'|'dead'|'unknown'}."""
+    if not url or not url.startswith(('http://', 'https://')):
+        return {'link': 'unknown', 'code': 0}
+    for method in ('HEAD', 'GET'):
+        try:
+            req = urllib.request.Request(
+                url, method=method,
+                headers={'User-Agent': 'Mozilla/5.0 (compatible; GrantBot/1.0)'},
+            )
+            with urllib.request.urlopen(req, timeout=8) as r:
+                code = r.getcode()
+                if 200 <= code < 400:
+                    return {'link': 'ok', 'code': code}
+                return {'link': 'dead', 'code': code}
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 405, 429):
+                # сайт блокирует ботов, но существует — считаем живым
+                return {'link': 'ok', 'code': e.code}
+            if method == 'GET':
+                return {'link': 'dead', 'code': e.code}
+        except Exception:
+            if method == 'GET':
+                return {'link': 'unknown', 'code': 0}
+    return {'link': 'unknown', 'code': 0}
+
+
+def parse_deadline_status(deadline: str) -> dict:
+    """По строке дедлайна определяет статус приёма: open / closing_soon / closed / rolling / unknown."""
+    if not deadline:
+        return {'deadline_status': 'unknown', 'days_left': None}
+    d = deadline.lower()
+    if any(w in d for w in ['круглый год', 'кругло', 'постоянн', 'приём открыт', 'прием открыт', 'в течение года', 'ежемесячно', 'нет ограничен']):
+        return {'deadline_status': 'rolling', 'days_left': None}
+
+    today = date.today()
+    found = None
+    # ISO дата: 2026-03-15 или 15.03.2026
+    m = re.search(r'(\d{4})-(\d{1,2})-(\d{1,2})', d)
+    if m:
+        try:
+            found = date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            found = None
+    if not found:
+        m = re.search(r'(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})', d)
+        if m:
+            try:
+                found = date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+            except ValueError:
+                found = None
+    if not found:
+        # "до 15 марта 2026" / "15 апреля"
+        m = re.search(r'(\d{1,2})\s+([а-я]{3,})\.?\s*(\d{4})?', d)
+        if m:
+            day = int(m.group(1))
+            mon = None
+            for k, v in RU_MONTHS.items():
+                if m.group(2).startswith(k):
+                    mon = v
+                    break
+            year = int(m.group(3)) if m.group(3) else today.year
+            if mon:
+                try:
+                    found = date(year, mon, day)
+                    if not m.group(3) and found < today:
+                        found = date(year + 1, mon, day)
+                except ValueError:
+                    found = None
+
+    if not found:
+        return {'deadline_status': 'unknown', 'days_left': None}
+
+    days_left = (found - today).days
+    if days_left < 0:
+        return {'deadline_status': 'closed', 'days_left': days_left}
+    if days_left <= 14:
+        return {'deadline_status': 'closing_soon', 'days_left': days_left}
+    return {'deadline_status': 'open', 'days_left': days_left}
+
+
+def verify_grants(grants: list) -> list:
+    """Проверяет список грантов: живость ссылки + статус дедлайна."""
+    out = []
+    for g in grants[:20]:
+        info = dict(g)
+        info.update(check_grant_link(g.get('url') or ''))
+        info.update(parse_deadline_status(g.get('deadline') or ''))
+        out.append(info)
+    return out
+
+
 def handler(event: dict, context) -> dict:
     """Поиск грантов и конкурсов: ИИ-подбор + каталог фондов + ИИ-анализ + избранное."""
     if event.get('httpMethod') == 'OPTIONS':
@@ -415,6 +516,17 @@ def handler(event: dict, context) -> dict:
         for g in result['grants']:
             g['source'] = 'ИИ-подбор'
             g['saved'] = (str(g.get('id')), 'ИИ-подбор') in saved_set
-        return resp(200, {'grants': result['grants'], 'funds': GRANT_FUNDS})
+
+        # Проверка живости ссылок и статуса дедлайнов
+        grants = verify_grants(result['grants'])
+        # Убираем гранты с явно мёртвой ссылкой И закрытым приёмом одновременно
+        return resp(200, {'grants': grants, 'funds': GRANT_FUNDS})
+
+    # ── POST /verify — перепроверить ссылки/дедлайны у переданных грантов ──
+    if method == 'POST' and action == 'verify':
+        grants = body.get('grants') or []
+        if not isinstance(grants, list):
+            return resp(400, {'error': 'grants должен быть списком'})
+        return resp(200, {'grants': verify_grants(grants)})
 
     return resp(404, {'error': 'Маршрут не найден'})

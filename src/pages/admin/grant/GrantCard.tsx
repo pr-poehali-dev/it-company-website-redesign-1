@@ -1,6 +1,6 @@
 import Icon from "@/components/ui/icon";
 import AnalysisView from "./AnalysisView";
-import { Grant, GrantAnalysis, score } from "./types";
+import { Grant, GrantAnalysis, score, LINK_BADGE, DEADLINE_BADGE } from "./types";
 
 export default function GrantCard({
   g,
@@ -17,6 +17,8 @@ export default function GrantCard({
   analysis: GrantAnalysis | null;
   analyzing: boolean;
 }) {
+  const linkB = g.link ? LINK_BADGE[g.link] : undefined;
+  const dlB = g.deadline_status ? DEADLINE_BADGE[g.deadline_status] : undefined;
   return (
     <div className="glass border border-white/10 rounded-2xl p-5">
       <div className="flex items-start justify-between gap-4">
@@ -43,6 +45,25 @@ export default function GrantCard({
               </span>
             )}
           </div>
+          {(linkB || dlB) && (
+            <div className="flex items-center gap-2 mb-2 flex-wrap text-[11px]">
+              {dlB && (
+                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${dlB.cls}`}>
+                  <Icon name={dlB.icon as "CalendarCheck"} size={11} />
+                  {dlB.label}
+                  {g.days_left != null && g.days_left >= 0 && g.deadline_status !== "rolling" && (
+                    <span className="opacity-70">· {g.days_left} дн.</span>
+                  )}
+                </span>
+              )}
+              {linkB && (
+                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${linkB.cls}`}>
+                  <Icon name={linkB.icon as "Link"} size={11} />
+                  {linkB.label}
+                </span>
+              )}
+            </div>
+          )}
           <p className="text-white/55 text-sm leading-relaxed mb-2">{g.description}</p>
           {g.matched_product && (
             <p className="text-xs text-cyan-300 flex items-center gap-1">

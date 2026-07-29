@@ -900,6 +900,26 @@ def action_batch_segment(body: dict) -> dict:
             conn.close()
 
 
+def action_test_email(body: dict) -> dict:
+    """Отправляет тестовое письмо на указанный адрес и возвращает провайдера."""
+    to_email = clean_email(body.get('email') or '')
+    if not to_email:
+        return err('Укажите корректный email для теста')
+    subject = 'Тест доставки — МАТ-Лабс CRM'
+    html = """<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;padding:24px;color:#1f2937;">
+<h2 style="color:#6d28d9;">Тестовое письмо доставлено ✅</h2>
+<p>Это проверочное письмо из CRM МАТ-Лабс. Если вы его видите — отправка работает.</p>
+<p style="color:#6b7280;font-size:13px;">Отправлено автоматически системой рассылки.</p>
+</body></html>"""
+    try:
+        r = send_email(to_email, '', subject, html)
+        return json_resp({'ok': True, 'sent_to': to_email,
+                          'provider': r['provider'], 'status': r['status']})
+    except Exception as e:
+        print(f"[auto-emailer] test_email error: {e}")
+        return err(f'Не удалось отправить: {e}', 500)
+
+
 def action_sent_log(body: dict) -> dict:
     """Возвращает журнал отправленных писем: кому, тема, когда."""
     limit = int(body.get('limit') or 50)
@@ -974,6 +994,8 @@ def handler(event: dict, context) -> dict:
         return action_segments_stats(body)
     elif action == 'batch_segment':
         return action_batch_segment(body)
+    elif action == 'test_email':
+        return action_test_email(body)
     elif action == 'sent_log':
         return action_sent_log(body)
     else:

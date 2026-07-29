@@ -31,10 +31,32 @@ export default function GrantSearch({ token }: { token: string }) {
     setFunds(d.funds || []);
   }
 
+  const [verifying, setVerifying] = useState(false);
+
   async function loadSaved() {
     const r = await fetch(`${GRANTS_URL}?action=saved`, { headers: { "X-Session-Token": token } });
     const d = await r.json();
     setSaved((d.saved || []).map((x: Record<string, unknown>) => ({ ...x, saved: true })));
+  }
+
+  async function verifySaved() {
+    if (saved.length === 0) return;
+    setVerifying(true);
+    try {
+      const r = await fetch(GRANTS_URL, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "verify", grants: saved }),
+      });
+      const d = await r.json();
+      if (d.grants) {
+        setSaved(prev => prev.map((s, i) => ({ ...s, ...(d.grants[i] || {}), saved: true })));
+      }
+    } catch {
+      setError("Не удалось перепроверить");
+    } finally {
+      setVerifying(false);
+    }
   }
 
   async function search(q?: string) {
@@ -246,6 +268,15 @@ export default function GrantSearch({ token }: { token: string }) {
               <p>Избранных грантов пока нет</p>
             </div>
           ) : (
+            <>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-white/50">Сохранено грантов: {saved.length}</span>
+              <button onClick={verifySaved} disabled={verifying}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg glass border border-white/15 text-white/70 hover:text-white text-sm transition-all disabled:opacity-50">
+                <Icon name="RefreshCw" size={14} className={verifying ? "animate-spin" : ""} />
+                {verifying ? "Проверяю ссылки и сроки..." : "Перепроверить актуальность"}
+              </button>
+            </div>
             <div className="grid gap-3">
               {saved.map((g) => (
                 <GrantCard
@@ -259,6 +290,7 @@ export default function GrantSearch({ token }: { token: string }) {
                 />
               ))}
             </div>
+            </>
           )}
         </>
       )}
