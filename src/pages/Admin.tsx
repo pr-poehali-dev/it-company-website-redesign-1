@@ -9,12 +9,13 @@ import ProspectModule from "./admin/ProspectModule";
 import ContactRequests from "./admin/ContactRequests";
 import ConsultantChats from "./admin/ConsultantChats";
 import AgentModule from "./admin/AgentModule";
+import LegalModule from "./admin/LegalModule";
 import AutomationHub from "./admin/AutomationHub";
 import FunnelDashboard from "./admin/FunnelDashboard";
 import SalesPlan from "./admin/SalesPlan";
 import { AUTH_URL, BLOG_URL, GENERATE_PDF_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "plan" | "blog" | "tenders" | "grants" | "prospects" | "requests" | "chats" | "agent" | "automation" | "funnel";
+type Section = "plan" | "blog" | "tenders" | "grants" | "prospects" | "requests" | "chats" | "agent" | "legal" | "automation" | "funnel";
 
 function getStoredToken(): string {
   return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
@@ -215,6 +216,7 @@ export default function Admin() {
     { id: "requests", label: "Заявки", icon: "Mail" },
     { id: "chats", label: "Диалоги", icon: "MessagesSquare" },
     { id: "agent", label: "AI-агент", icon: "BrainCircuit" },
+    { id: "legal", label: "Юрист", icon: "Scale" },
     { id: "automation", label: "Автоматизация", icon: "Zap" },
     { id: "funnel", label: "Воронка", icon: "BarChart2" },
   ];
@@ -339,6 +341,11 @@ export default function Admin() {
         {/* AI-AGENT SECTION */}
         {section === "agent" && (
           <AgentModule token={token} />
+        )}
+
+        {/* ИИ-ЮРИСТ */}
+        {section === "legal" && (
+          <LegalModule token={token} />
         )}
 
         {/* AUTOMATION HUB */}

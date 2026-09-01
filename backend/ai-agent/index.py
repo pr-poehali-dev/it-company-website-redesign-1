@@ -624,8 +624,16 @@ def handler(event: dict, context) -> dict:
         except Exception:
             pass
 
-    action = body.get('action', 'generate_report')
+    params = event.get('queryStringParameters') or {}
+    action = body.get('action') or params.get('action') or 'generate_report'
     print(f"[ai-agent] action={action}")
+
+    if action.startswith('legal_'):
+        import legal
+        result = legal.handle(action, body, params, json_resp, err)
+        if result is not None:
+            return result
+        return err(f'Неизвестное действие юриста: {action}')
 
     if action == 'generate_report':
         focus = body.get('focus', 'all')
