@@ -87,6 +87,8 @@ export const CASE_STATUSES: { key: string; label: string; cls: string }[] = [
 ];
 
 export const DOC_TYPE_LABELS: Record<string, string> = {
+  offer: "Коммерческое предложение",
+  contract: "Договор на оказание услуг",
   claim: "Досудебная претензия",
   lawsuit: "Исковое заявление",
   agreement: "Соглашение о рассрочке",
