@@ -91,6 +91,7 @@ export const DOC_TYPE_LABELS: Record<string, string> = {
   contract: "Договор на оказание услуг",
   objection: "Возражения на иск / ходатайство",
   calculation: "Контррасчёт неустойки и процентов",
+  expenses: "Заявление о судебных расходах",
   claim: "Досудебная претензия",
   lawsuit: "Исковое заявление",
   agreement: "Соглашение о рассрочке",
