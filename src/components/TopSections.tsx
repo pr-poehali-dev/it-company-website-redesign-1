@@ -268,6 +268,55 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
               </AnimatedSection>
             ))}
           </div>
+
+          <AnimatedSection className="mt-8">
+            <div className="glass neon-border rounded-2xl p-8 md:p-10 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/10 via-transparent to-cyan-600/10" />
+              <div className="relative flex flex-col lg:flex-row gap-8 lg:items-center lg:justify-between">
+                <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-2 glass px-3 py-1 rounded-full text-xs text-emerald-300 border border-emerald-500/30 mb-4">
+                    <Icon name="RefreshCw" size={12} />
+                    После запуска
+                  </div>
+                  <h3 className="font-oswald text-2xl md:text-3xl font-bold text-white mb-3">
+                    Абонентское сопровождение
+                  </h3>
+                  <p className="text-white/50 text-sm md:text-base leading-relaxed mb-5">
+                    Внедрение — это старт, а не финиш. Бизнес меняется: появляются новые
+                    процессы, сценарии и интеграции. Мы ведём систему дальше, чтобы она
+                    работала и через год.
+                  </p>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2">
+                    {[
+                      "Доработки каждый месяц",
+                      "Контроль интеграций",
+                      "Приоритетная реакция на сбои",
+                      "Отчёт по метрикам",
+                    ].map((t, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm text-white/70">
+                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
+                          <Icon name="Check" size={10} className="text-white" />
+                        </div>
+                        {t}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="shrink-0 lg:text-right">
+                  <div className="font-oswald text-3xl md:text-4xl font-bold gradient-text mb-1">
+                    от 30 000 ₽
+                  </div>
+                  <div className="text-white/40 text-sm mb-5">в месяц</div>
+                  <button
+                    onClick={() => { ymGoal("cta_click", { source: "retainer" }); scrollTo("#contacts"); }}
+                    className="btn-gradient px-7 py-3 rounded-xl text-sm font-semibold text-white glow-purple whitespace-nowrap"
+                  >
+                    Обсудить сопровождение
+                  </button>
+                </div>
+              </div>
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 

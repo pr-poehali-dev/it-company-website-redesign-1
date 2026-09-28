@@ -183,6 +183,44 @@ export default function ServicePage() {
               </div>
             ))}
           </div>
+
+          {service.retainer && (
+            <div className="mt-8 glass border border-white/10 rounded-2xl p-8 md:p-10">
+              <div className="grid md:grid-cols-2 gap-8 items-start">
+                <div>
+                  <div className="inline-flex items-center gap-2 glass px-3 py-1 rounded-full text-xs text-emerald-300 border border-emerald-500/30 mb-4">
+                    <Icon name="RefreshCw" size={12} />
+                    После запуска
+                  </div>
+                  <h3 className="font-oswald text-2xl md:text-3xl font-bold text-white mb-3">
+                    {service.retainer.title}
+                  </h3>
+                  <div className={`font-oswald text-3xl font-bold bg-gradient-to-r ${service.color} bg-clip-text text-transparent mb-4`}>
+                    {service.retainer.price}
+                  </div>
+                  <p className="text-white/50 text-sm leading-relaxed mb-6">
+                    {service.retainer.desc}
+                  </p>
+                  <button
+                    onClick={() => navigate("/consultant")}
+                    className={`px-7 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r ${service.color} text-white transition-all hover:opacity-90`}
+                  >
+                    Обсудить сопровождение
+                  </button>
+                </div>
+                <ul className="space-y-3">
+                  {service.retainer.items.map((item, j) => (
+                    <li key={j} className="flex items-start gap-3 text-sm text-white/70">
+                      <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${service.color} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <Icon name="Check" size={11} className="text-white" />
+                      </div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

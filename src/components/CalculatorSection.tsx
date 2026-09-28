@@ -24,12 +24,12 @@ const steps: Step[] = [
     id: "type",
     question: "Что вам нужно?",
     options: [
-      { label: "AI-автоматизация", icon: "Bot", base: 30000, desc: "Обработка заявок, CRM, AI-агент" },
-      { label: "Сайт или лендинг", icon: "Globe", base: 50000, desc: "Конверсионный сайт с интеграциями" },
-      { label: "ИИ и ML-решение", icon: "Brain", base: 80000, desc: "Чат-боты, предиктивная аналитика" },
-      { label: "Аналитика данных", icon: "BarChart3", base: 90000, desc: "Дашборды, BI, ETL-пайплайны" },
-      { label: "Кибербезопасность", icon: "Shield", base: 60000, desc: "Аудит, пентест, 152-ФЗ" },
-      { label: "Комплексный проект", icon: "Layers", base: 150000, desc: "Несколько направлений под ключ" },
+      { label: "AI-автоматизация", icon: "Bot", base: 150000, desc: "Обработка заявок, CRM, AI-агент" },
+      { label: "Сайт или лендинг", icon: "Globe", base: 180000, desc: "Конверсионный сайт с интеграциями" },
+      { label: "ИИ и ML-решение", icon: "Brain", base: 250000, desc: "Чат-боты, предиктивная аналитика" },
+      { label: "Аналитика данных", icon: "BarChart3", base: 200000, desc: "Дашборды, BI, ETL-пайплайны" },
+      { label: "Кибербезопасность", icon: "Shield", base: 150000, desc: "Аудит, пентест, 152-ФЗ" },
+      { label: "Комплексный проект", icon: "Layers", base: 500000, desc: "Несколько направлений под ключ" },
     ],
   },
   {
@@ -56,12 +56,12 @@ const steps: Step[] = [
   },
   {
     id: "support",
-    question: "Нужна поддержка после запуска?",
+    question: "Что после запуска?",
     options: [
-      { label: "Не нужна", icon: "X", price: 0, desc: "Сдача проекта и до свидания" },
-      { label: "1 месяц", icon: "Clock", price: 15000, desc: "Исправление ошибок и мелкие доработки" },
-      { label: "3 месяца", icon: "CalendarDays", price: 35000, desc: "Поддержка, обновления, консультации" },
-      { label: "6 месяцев", icon: "Star", price: 60000, desc: "Выделенная команда на полгода" },
+      { label: "Базовая гарантия", icon: "ShieldCheck", price: 0, desc: "1 месяц на исправление ошибок — входит в стоимость" },
+      { label: "Сопровождение 3 месяца", icon: "CalendarDays", price: 90000, desc: "От 30 000 ₽/мес: доработки, контроль интеграций, отчёты" },
+      { label: "Сопровождение 6 месяцев", icon: "Star", price: 165000, desc: "От 27 500 ₽/мес: та же работа, выгоднее на 8%" },
+      { label: "Сопровождение 12 месяцев", icon: "Crown", price: 300000, desc: "От 25 000 ₽/мес: максимальная выгода, приоритет в очереди" },
     ],
   },
 ];
@@ -107,7 +107,7 @@ export default function CalculatorSection({ scrollTo }: { scrollTo: (href: strin
     const intIdxs = (answers["integrations"] as number[]) || [];
     const supportIdx = (answers["support"] as number) ?? 0;
 
-    const base = steps[0].options[typeIdx]?.base ?? 30000;
+    const base = steps[0].options[typeIdx]?.base ?? 150000;
     const mult = steps[1].options[scaleIdx]?.multiplier ?? 1;
     const intPrice = intIdxs.reduce((sum, i) => {
       return sum + (steps[2].options[i]?.price ?? 0);
