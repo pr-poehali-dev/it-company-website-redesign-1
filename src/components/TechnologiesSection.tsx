@@ -74,16 +74,16 @@ export default function TechnologiesSection({ scrollTo }: TechnologiesSectionPro
                 <span className="gradient-text-2">команде мечты</span>
               </h2>
               <p className="text-white/60 text-lg leading-relaxed mb-6">
-                Мы ищем лучших — тех, кто горит технологиями и хочет делать
-                продукты, которыми пользуются миллионы.
+                Ищем тех, кто горит технологиями и хочет делать продукты,
+                которые решают реальные задачи бизнеса.
               </p>
               <div className="space-y-3 mb-8">
                 {[
-                  "Конкурентная зарплата + бонусы",
+                  "Конкурентная зарплата + бонусы за результат",
                   "Удалённая работа или гибридный формат",
-                  "Обучение и конференции за счёт компании",
-                  "Акции компании (ESOP) для ключевых сотрудников",
-                  "ДМС + психологическая поддержка",
+                  "Реальные AI-проекты, а не поддержка легаси",
+                  "Короткий путь от идеи до продакшена",
+                  "Прямое влияние на продукт без бюрократии",
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 text-white/70">
                     <div className="w-5 h-5 rounded-full bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center flex-shrink-0">

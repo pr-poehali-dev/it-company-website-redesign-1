@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, TEAM_IMAGE, PORTFOLIO_IMAGE, services, portfolio, AnimatedSection } from "@/components/shared";
@@ -6,11 +5,10 @@ import { ymGoal } from "@/lib/ym";
 
 interface TopSectionsProps {
   scrollTo: (href: string) => void;
-  counter: { projects: number; years: number; clients: number; team: number };
   statsRef: React.RefObject<HTMLDivElement>;
 }
 
-export default function TopSections({ scrollTo, counter, statsRef }: TopSectionsProps) {
+export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
   const navigate = useNavigate();
   return (
     <>
@@ -68,10 +66,10 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
 
             <div ref={statsRef} className="flex flex-wrap gap-10 animate-fade-in-up delay-400">
               {[
-                { val: `${counter.projects}+`, label: "Проектов" },
                 { val: "7–14", label: "Дней до результата" },
-                { val: "70%", label: "Сокращение ручной работы" },
-                { val: `${counter.clients}%`, label: "Довольных клиентов" },
+                { val: "до 70%", label: "Сокращение ручной работы" },
+                { val: "5 мин", label: "Ответ клиенту вместо 2 часов" },
+                { val: "0", label: "Потерянных заявок" },
               ].map((s, i) => (
                 <div key={i} className="text-center">
                   <div className="font-oswald text-3xl md:text-4xl font-bold gradient-text">{s.val}</div>
@@ -178,17 +176,17 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
             <AnimatedSection>
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-cyan-600/20 rounded-3xl blur-xl" />
-                <img src={TEAM_IMAGE} alt="Команда МАТ-Лабс — 50+ IT-специалистов и инженеров" loading="lazy" className="relative rounded-3xl w-full object-cover aspect-[4/3] neon-border" />
+                <img src={TEAM_IMAGE} alt="Команда МАТ-Лабс — разработка и внедрение AI-решений" loading="lazy" className="relative rounded-3xl w-full object-cover aspect-[4/3] neon-border" />
                 <div className="absolute -bottom-6 -right-6 glass neon-border rounded-2xl p-5 animate-float">
-                  <div className="font-oswald text-3xl font-bold gradient-text">2026</div>
-                  <div className="text-white/60 text-sm">год основания</div>
+                  <div className="font-oswald text-3xl font-bold gradient-text">7–14</div>
+                  <div className="text-white/60 text-sm">дней до результата</div>
                 </div>
                 <div className="absolute -top-6 -left-6 glass neon-border rounded-2xl p-4 animate-float-reverse">
                   <div className="flex items-center gap-2">
-                    <Icon name="Award" size={20} className="text-amber-400" />
-                    <span className="text-sm font-semibold">TOP-10</span>
+                    <Icon name="Handshake" size={20} className="text-amber-400" />
+                    <span className="text-sm font-semibold">Лемана Про</span>
                   </div>
-                  <div className="text-white/50 text-xs">IT-компаний РФ</div>
+                  <div className="text-white/50 text-xs">официальный партнёр</div>
                 </div>
               </div>
             </AnimatedSection>
@@ -204,7 +202,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
                   рабочим инструментом
                 </h2>
                 <p className="text-white/60 text-lg leading-relaxed mb-6">
-                  МАТ-Лабс — 50+ инженеров и аналитиков, которые внедряют AI-автоматизацию
+                  МАТ-Лабс — команда инженеров и аналитиков, которая внедряет AI-автоматизацию
                   в реальный бизнес: от малого до корпоративного уровня.
                 </p>
                 <p className="text-white/50 leading-relaxed mb-8">
@@ -285,7 +283,7 @@ export default function TopSections({ scrollTo, counter, statsRef }: TopSections
               Проекты, которыми{" "}
               <span className="gradient-text-2">мы гордимся</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">200+ реализованных решений для компаний из разных отраслей</p>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">Решения для компаний из разных отраслей — от ремонта и агро до станкостроения</p>
           </AnimatedSection>
 
           <AnimatedSection className="mb-6">
