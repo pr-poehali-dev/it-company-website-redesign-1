@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { services } from "@/components/shared";
 import Icon from "@/components/ui/icon";
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 
 export default function ServicePage() {
   const { slug } = useParams();
@@ -13,9 +14,11 @@ export default function ServicePage() {
     return null;
   }
 
-  const pageTitle = `${service.title} — MAT Labs | AI-автоматизация бизнеса`;
+  const pageTitle = `${service.title} — ${service.price} | МАТ-Лабс`;
   const pageUrl = `https://mat-labs.ru/services/${service.slug}`;
   const ogImage = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/bucket/445e832b-e1ed-413e-a842-7a510d6d41f1.jpg";
+  const metaDesc = service.fullDesc.slice(0, 158);
+  const priceValue = service.packages?.[0]?.price?.replace(/\D/g, "") ?? "";
 
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -24,34 +27,85 @@ export default function ServicePage() {
     "description": service.fullDesc,
     "provider": {
       "@type": "Organization",
-      "name": "MAT Labs",
-      "url": "https://mat-labs.ru"
+      "name": "ООО МАТ-Лабс",
+      "url": "https://mat-labs.ru",
     },
-    "priceRange": service.price,
     "url": pageUrl,
-    "areaServed": "RU",
-    "availableLanguage": "Russian"
+    "areaServed": { "@type": "Country", "name": "Россия" },
+    "availableLanguage": "ru",
+    ...(priceValue
+      ? {
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "RUB",
+            price: priceValue,
+            url: pageUrl,
+            availability: "https://schema.org/InStock",
+          },
+        }
+      : {}),
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `Сколько стоит ${service.title.toLowerCase()}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: service.packages
+            ? service.packages
+                .map((p) => `${p.name} — ${p.price}`)
+                .join(". ") + "."
+            : `Стоимость — ${service.price}. Точная цена зависит от задачи.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Сколько времени занимает внедрение?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Базовые решения запускаем за 7–14 дней. Комплексные проекты — от 3 недель. Точный срок называем после бесплатного разбора задачи.",
+        },
+      },
+      ...(service.retainer
+        ? [
+            {
+              "@type": "Question",
+              name: "Что происходит после запуска?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: `${service.retainer.title} — ${service.retainer.price}. ${service.retainer.desc}`,
+              },
+            },
+          ]
+        : []),
+    ],
   };
 
   return (
     <>
     <Helmet>
       <title>{pageTitle}</title>
-      <meta name="description" content={service.fullDesc} />
+      <meta name="description" content={metaDesc} />
       <meta name="robots" content="index, follow" />
       <link rel="canonical" href={pageUrl} />
       <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="ООО МАТ-Лабс" />
       <meta property="og:title" content={pageTitle} />
-      <meta property="og:description" content={service.fullDesc} />
+      <meta property="og:description" content={metaDesc} />
       <meta property="og:url" content={pageUrl} />
       <meta property="og:image" content={ogImage} />
       <meta property="og:image:type" content="image/jpeg" />
       <meta property="og:locale" content="ru_RU" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={pageTitle} />
-      <meta name="twitter:description" content={service.fullDesc} />
+      <meta name="twitter:description" content={metaDesc} />
       <meta name="twitter:image" content={ogImage} />
       <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
+      <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
     </Helmet>
     <div className="min-h-screen bg-[#080812] text-white font-golos overflow-x-hidden">
       {/* Back button */}
@@ -72,6 +126,13 @@ export default function ServicePage() {
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br ${service.color} opacity-10 rounded-full blur-3xl`} />
 
         <div className="max-w-4xl mx-auto relative">
+          <PageBreadcrumbs
+            items={[
+              { label: "Услуги", href: "/#services" },
+              { label: service.title },
+            ]}
+            className="mb-6"
+          />
           <div className={`inline-block glass px-4 py-1.5 rounded-full text-sm border mb-6 ${service.tagColor}`}>
             Услуга
           </div>

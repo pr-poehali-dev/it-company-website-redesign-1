@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { type BlogPost } from "@/components/BlogModal";
 import { generateSlug } from "@/lib/slug";
 
@@ -115,16 +116,16 @@ export default function BlogPage() {
     <div className="min-h-screen bg-[#080812] text-white">
       {post && (
         <Helmet>
-          <title>{post.title} | Блог MAT Labs</title>
+          <title>{post.title} | Блог МАТ-Лабс</title>
           <meta name="description" content={description} />
           <link rel="canonical" href={canonicalUrl} />
-          <meta property="og:title" content={`${post.title} | Блог MAT Labs`} />
+          <meta property="og:title" content={`${post.title} | Блог МАТ-Лабс`} />
           <meta property="og:description" content={description} />
           <meta property="og:url" content={canonicalUrl} />
           <meta property="og:type" content="article" />
           {post.cover_url && <meta property="og:image" content={post.cover_url} />}
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={`${post.title} | Блог MAT Labs`} />
+          <meta name="twitter:title" content={`${post.title} | Блог МАТ-Лабс`} />
           <meta name="twitter:description" content={description} />
           {post.cover_url && <meta name="twitter:image" content={post.cover_url} />}
           {jsonLd && (
@@ -137,6 +138,13 @@ export default function BlogPage() {
       <div className="absolute top-2/3 right-1/4 w-72 h-72 bg-cyan-600/8 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-3xl mx-auto px-6 py-12 relative">
+        {post && (
+          <PageBreadcrumbs
+            items={[{ label: "Блог", href: "/#blog" }, { label: post.title }]}
+            className="mb-6"
+          />
+        )}
+
         <Link
           to="/#blog"
           className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm mb-10 group"
