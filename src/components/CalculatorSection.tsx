@@ -169,6 +169,13 @@ export default function CalculatorSection({ scrollTo }: { scrollTo: (href: strin
                     Пересчитать
                   </button>
                 </div>
+                <a
+                  href="/skolko-stoit-avtomatizaciya"
+                  className="inline-flex items-center gap-1.5 mt-6 text-sm text-white/40 hover:text-white/70 transition-colors"
+                >
+                  Из чего складывается цена
+                  <Icon name="ArrowRight" size={14} />
+                </a>
               </div>
             </div>
           </AnimatedSection>
