@@ -16,6 +16,8 @@ import Presentation from "./pages/Presentation";
 import PriceCalculator from "./pages/PriceCalculator";
 import CitiesIndex from "./pages/CitiesIndex";
 import CityPage from "./pages/CityPage";
+import ServicesGeoIndex from "./pages/ServicesGeoIndex";
+import ServiceCityPage from "./pages/ServiceCityPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +41,8 @@ const App = () => (
           <Route path="/skolko-stoit-avtomatizaciya" element={<PriceCalculator />} />
           <Route path="/avtomatizaciya-biznesa" element={<CitiesIndex />} />
           <Route path="/avtomatizaciya-biznesa/:citySlug" element={<CityPage />} />
+          <Route path="/uslugi" element={<ServicesGeoIndex />} />
+          <Route path="/uslugi/:serviceSlug/:citySlug" element={<ServiceCityPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { findCity, cities } from "@/lib/cities";
+import { geoServices } from "@/lib/serviceGeo";
 import { ymGoal } from "@/lib/ym";
 
 const SITE = "https://mat-labs.ru";
@@ -378,6 +379,29 @@ export default function CityPage() {
                   <h3 className="font-semibold text-white text-sm mb-2">{q}</h3>
                   <p className="text-white/55 text-sm leading-relaxed">{a}</p>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="mb-14">
+            <h2 className="font-oswald text-xl font-bold mb-4">
+              Отдельные услуги в {city.nameIn}
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {geoServices.map((s) => (
+                <Link
+                  key={s.slug}
+                  to={`/uslugi/${s.slug}/${city.slug}`}
+                  className="glass border border-white/10 rounded-xl p-4 hover:border-violet-500/40 transition-all"
+                >
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <Icon name={s.icon} size={15} className="text-violet-400" />
+                    <span className="font-semibold text-white text-sm">{s.short}</span>
+                  </div>
+                  <div className="text-white/35 text-xs">
+                    от {s.price.toLocaleString("ru-RU")} ₽
+                  </div>
+                </Link>
               ))}
             </div>
           </section>

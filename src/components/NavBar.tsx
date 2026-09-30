@@ -96,6 +96,19 @@ export default function NavBar({ scrolled, menuOpen, setMenuOpen, scrollTo }: Na
                             </div>
                             <Icon name="ArrowRight" size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
                           </button>
+                          <button
+                            onClick={() => { navigate("/uslugi"); setServicesOpen(false); }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all group text-left"
+                          >
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
+                              <Icon name="Layers" size={14} className="text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-gray-800 group-hover:text-gray-900 transition-colors">Услуги по городам</div>
+                              <div className="text-xs text-gray-400">Все направления в регионах</div>
+                            </div>
+                            <Icon name="ArrowRight" size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
+                          </button>
                         </div>
                       </div>
                     </div>
