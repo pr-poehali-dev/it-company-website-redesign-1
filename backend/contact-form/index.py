@@ -4,12 +4,18 @@
 
 import json
 import os
+import smtplib
 import requests
 import psycopg2
 from datetime import datetime
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.utils import formataddr
 
 UNISENDER_GO_API_URL = "https://go2.unisender.ru/ru/transactional/api/v1"
 NOTIFY_EMAIL = "maksT77@yandex.ru"
+SMTP_HOST = "smtp.yandex.ru"
+SMTP_PORT = 465
 
 
 def cors_headers():
@@ -23,6 +29,43 @@ def cors_headers():
 
 def response(status, body):
     return {"statusCode": status, "headers": cors_headers(), "body": json.dumps(body, ensure_ascii=False)}
+
+
+def send_via_unisender(subject, html, api_key, sender_email, sender_name):
+    """Отправка через Unisender Go. Возвращает True при успехе."""
+    r = requests.post(
+        f"{UNISENDER_GO_API_URL}/email/send.json",
+        headers={"Content-Type": "application/json", "X-API-KEY": api_key},
+        json={"message": {
+            "recipients": [{"email": NOTIFY_EMAIL}],
+            "from_email": sender_email,
+            "from_name": sender_name,
+            "subject": subject,
+            "body": {"html": html},
+            "track_links": 0,
+            "track_read": 0,
+        }},
+        timeout=15,
+    ).json()
+    if r.get("status") == "error":
+        raise RuntimeError(r.get("message", "Unisender error"))
+    return True
+
+
+def send_via_smtp(subject, html):
+    """Резервная отправка через Яндекс SMTP. Возвращает True при успехе."""
+    password = os.environ.get("SMTP_PASSWORD_MAKST", "")
+    if not password:
+        raise RuntimeError("SMTP_PASSWORD_MAKST не задан")
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = formataddr(("МАТ-Лабс", NOTIFY_EMAIL))
+    msg["To"] = NOTIFY_EMAIL
+    msg.attach(MIMEText(html, "html", "utf-8"))
+    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+        server.login(NOTIFY_EMAIL, password)
+        server.sendmail(NOTIFY_EMAIL, NOTIFY_EMAIL, msg.as_bytes())
+    return True
 
 
 def handler(event: dict, context) -> dict:
@@ -59,9 +102,6 @@ def handler(event: dict, context) -> dict:
     sender_email = os.environ.get("UNISENDER_SENDER_EMAIL", "info@mat-labs.ru")
     sender_name = os.environ.get("UNISENDER_SENDER_NAME", "МАТ-Лабс")
 
-    if not api_key:
-        return response(200, {"success": True})
-
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
 
     html = f"""
@@ -80,22 +120,27 @@ def handler(event: dict, context) -> dict:
     </div>
     """
 
-    result = requests.post(
-        f"{UNISENDER_GO_API_URL}/email/send.json",
-        headers={"Content-Type": "application/json", "X-API-KEY": api_key},
-        json={"message": {
-            "recipients": [{"email": NOTIFY_EMAIL}],
-            "from_email": sender_email,
-            "from_name": sender_name,
-            "subject": f"Новая заявка от {name} | {phone}",
-            "body": {"html": html},
-            "track_links": 0,
-            "track_read": 0,
-        }},
-        timeout=15,
-    ).json()
+    subject = f"Новая заявка от {name} | {phone}"
+    errors = []
+    sent_via = None
 
-    if result.get("status") == "error":
-        return response(500, {"error": result.get("message", "Ошибка отправки")})
+    if api_key:
+        try:
+            send_via_unisender(subject, html, api_key, sender_email, sender_name)
+            sent_via = "unisender"
+        except Exception as e:
+            errors.append(f"unisender: {e}")
+            print(f"[contact-form] Unisender не сработал, пробую SMTP: {e}")
 
-    return response(200, {"success": True})
+    if not sent_via:
+        try:
+            send_via_smtp(subject, html)
+            sent_via = "smtp"
+        except Exception as e:
+            errors.append(f"smtp: {e}")
+            print(f"[contact-form] SMTP не сработал: {e}")
+
+    if not sent_via:
+        print(f"[contact-form] ВНИМАНИЕ: заявка сохранена в БД, но письмо не отправлено. {'; '.join(errors)}")
+
+    return response(200, {"success": True, "notified": bool(sent_via)})

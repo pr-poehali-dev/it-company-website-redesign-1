@@ -24,6 +24,15 @@
       "path": "/",
       "expectedStatus": 200,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Заявка сохраняется даже при сбое почты",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Автотест", "email": "autotest@mat-labs.ru", "phone": "+79990000001", "company": "Автотест", "message": "Проверка сохранения заявки"},
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
     }
   ]
 }
