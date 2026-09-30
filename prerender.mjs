@@ -3,7 +3,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DIST = path.join(__dirname, "dist");
+const DIST = process.env.VITE_OUT_DIR
+  ? path.resolve(process.env.VITE_OUT_DIR)
+  : path.join(__dirname, "dist");
 const SITE = "https://mat-labs.ru";
 const OG_IMAGE =
   "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/bucket/445e832b-e1ed-413e-a842-7a510d6d41f1.jpg";
@@ -49,6 +51,7 @@ function numField(block, name) {
   return m ? parseInt(m[1], 10) : 0;
 }
 
+export function prerender() {
 const citiesSrc = readTs("lib/cities.ts");
 const geoSrc = readTs("lib/serviceGeo.ts");
 const sharedSrc = readTs("components/shared.tsx");
@@ -334,3 +337,19 @@ for (const r of routes) {
 console.log(`prerender: создано ${written} статичных страниц`);
 console.log(`  гео-услуги: ${geoServices.length} × ${cities.length} = ${geoServices.length * cities.length}`);
 console.log(`  города: ${cities.length}, услуги: ${services.length}, хабы: 3`);
+return written;
+}
+
+export default function prerenderPlugin() {
+  return {
+    name: "seo-prerender",
+    apply: "build",
+    closeBundle() {
+      try {
+        prerender();
+      } catch (e) {
+        console.warn(`[seo-prerender] пропущен: ${e.message}`);
+      }
+    },
+  };
+}

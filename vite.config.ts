@@ -2,6 +2,7 @@ import {defineConfig} from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import {componentTagger} from "pp-tagger";
+import prerenderPlugin from "./prerender.mjs";
 
 // https://vitejs.dev/config/
 const hmrKeepalive = {
@@ -25,6 +26,7 @@ export default defineConfig(({mode}) => ({
         react(),
         mode === 'development' &&
         componentTagger(),
+        mode !== 'development' && prerenderPlugin(),
     ].filter(Boolean),
     resolve: {
         alias: {
