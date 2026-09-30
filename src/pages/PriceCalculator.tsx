@@ -415,10 +415,10 @@ export default function PriceCalculator() {
                   Получить точный расчёт
                 </button>
                 <button
-                  onClick={() => navigate("/#services")}
+                  onClick={() => navigate("/avtomatizaciya-biznesa")}
                   className="glass border border-white/20 px-7 py-3.5 rounded-xl font-semibold text-sm text-white hover:border-white/40 transition-all"
                 >
-                  Смотреть услуги
+                  Автоматизация в вашем городе
                 </button>
               </div>
             </div>
