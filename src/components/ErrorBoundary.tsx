@@ -18,6 +18,16 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("App crashed:", error, info?.componentStack);
+    const msg = error?.message || "";
+    const isChunkError = /dynamically imported module|Importing a module script failed|Failed to fetch|Loading chunk/i.test(msg);
+    if (isChunkError && !sessionStorage.getItem("chunk-reload")) {
+      sessionStorage.setItem("chunk-reload", "1");
+      window.location.reload();
+    }
+  }
+
+  componentDidMount() {
+    setTimeout(() => sessionStorage.removeItem("chunk-reload"), 10000);
   }
 
   handleReload = () => {

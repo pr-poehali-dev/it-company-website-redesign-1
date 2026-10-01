@@ -5,21 +5,25 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { lazy, Suspense } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
-import Admin from "./pages/Admin";
-import ChatGPT from "./pages/ChatGPT";
-import Consultant from "./pages/Consultant";
-import ServicePage from "./pages/ServicePage";
-import BlogPage from "./pages/BlogPage";
-import BlogIndex from "./pages/BlogIndex";
-import Presentation from "./pages/Presentation";
-import PriceCalculator from "./pages/PriceCalculator";
-import CitiesIndex from "./pages/CitiesIndex";
-import CityPage from "./pages/CityPage";
-import ServicesGeoIndex from "./pages/ServicesGeoIndex";
-import ServiceCityPage from "./pages/ServiceCityPage";
-import NotFound from "./pages/NotFound";
+
+const Admin = lazy(() => import("./pages/Admin"));
+const ChatGPT = lazy(() => import("./pages/ChatGPT"));
+const Consultant = lazy(() => import("./pages/Consultant"));
+const Presentation = lazy(() => import("./pages/Presentation"));
+const PriceCalculator = lazy(() => import("./pages/PriceCalculator"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogIndex = lazy(() => import("./pages/BlogIndex"));
+const CitiesIndex = lazy(() => import("./pages/CitiesIndex"));
+const CityPage = lazy(() => import("./pages/CityPage"));
+const ServicesGeoIndex = lazy(() => import("./pages/ServicesGeoIndex"));
+const ServiceCityPage = lazy(() => import("./pages/ServiceCityPage"));
+const ServicePage = lazy(() => import("./pages/ServicePage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const PageFallback = () => <div className="min-h-screen bg-[#080812]" />;
 
 const queryClient = new QueryClient();
 
@@ -31,6 +35,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<Admin />} />
@@ -48,6 +53,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
