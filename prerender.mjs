@@ -51,7 +51,45 @@ function numField(block, name) {
   return m ? parseInt(m[1], 10) : 0;
 }
 
-export function prerender() {
+const BLOG_API = "https://functions.poehali.dev/f6938906-b3c4-4bf7-b1f9-96560e19ef1b/";
+
+const cyrillicMap = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "zh",
+  з: "z", и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o",
+  п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "kh", ц: "ts",
+  ч: "ch", ш: "sh", щ: "shch", ъ: "", ы: "y", ь: "", э: "e", ю: "yu",
+  я: "ya",
+};
+
+function generateSlug(title) {
+  return title
+    .split("")
+    .map((ch) => {
+      const low = ch.toLowerCase();
+      return cyrillicMap[low] !== undefined && /[а-яё]/i.test(ch) ? cyrillicMap[low] : ch;
+    })
+    .join("")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+async function fetchPosts() {
+  try {
+    const res = await fetch(BLOG_API, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return (data.posts || []).filter((p) => p.content && p.title);
+  } catch (e) {
+    console.warn(`[seo-prerender] статьи блога не загружены: ${e.message}`);
+    return [];
+  }
+}
+
+export async function prerender() {
+const posts = await fetchPosts();
 const citiesSrc = readTs("lib/cities.ts");
 const geoSrc = readTs("lib/serviceGeo.ts");
 const sharedSrc = readTs("components/shared.tsx");
@@ -258,6 +296,136 @@ routes.push({
   ],
 });
 
+function inlineMd(s) {
+  return esc(s)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+
+function mdToHtml(md) {
+  const out = [];
+  let list = null;
+  const closeList = () => {
+    if (list) {
+      out.push(`</${list}>`);
+      list = null;
+    }
+  };
+  for (const raw of md.split("\n")) {
+    const line = raw.trimEnd();
+    let m;
+    if ((m = line.match(/^(#{1,3})\s+(.*)/))) {
+      closeList();
+      const lvl = Math.max(2, m[1].length);
+      out.push(`<h${lvl}>${inlineMd(m[2])}</h${lvl}>`);
+    } else if ((m = line.match(/^[-*]\s+(.*)/))) {
+      if (list !== "ul") {
+        closeList();
+        out.push("<ul>");
+        list = "ul";
+      }
+      out.push(`<li>${inlineMd(m[1])}</li>`);
+    } else if ((m = line.match(/^\d+\.\s*(.*)/))) {
+      if (list !== "ol") {
+        closeList();
+        out.push("<ol>");
+        list = "ol";
+      }
+      out.push(`<li>${inlineMd(m[1])}</li>`);
+    } else if (line.trim() === "") {
+      closeList();
+    } else {
+      closeList();
+      out.push(`<p>${inlineMd(line)}</p>`);
+    }
+  }
+  closeList();
+  return out.join("\n");
+}
+
+const plain = (md) =>
+  md.replace(/[#*`_~]/g, "").replace(/\s+/g, " ").trim();
+
+const blogPosts = [];
+const seenSlugs = new Set();
+for (const p of posts) {
+  const slug = generateSlug(p.title);
+  if (!slug || seenSlugs.has(slug)) continue;
+  seenSlugs.add(slug);
+  blogPosts.push({ ...p, slug, url: `/blog/${slug}` });
+}
+
+for (const p of blogPosts) {
+  const description = clip(plain(p.content), 165);
+  const published = (p.created_at || "").slice(0, 10);
+  const modified = (p.updated_at || p.created_at || "").slice(0, 10);
+  routes.push({
+    url: p.url,
+    title: fitTitle(p.title, " | Блог МАТ-Лабс", 75),
+    description,
+    h1: p.title,
+    bodyHtml: mdToHtml(p.content),
+    ogType: "article",
+    image: p.cover_url || null,
+    lastmod: modified,
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: p.title,
+      description,
+      ...(p.cover_url ? { image: p.cover_url } : {}),
+      ...(published ? { datePublished: published } : {}),
+      ...(modified ? { dateModified: modified } : {}),
+      author: { "@type": "Organization", name: "ООО МАТ-Лабс", url: SITE },
+      publisher: { "@type": "Organization", name: "ООО МАТ-Лабс", url: SITE },
+      mainEntityOfPage: SITE + p.url,
+      inLanguage: "ru",
+    },
+    crumbs: [
+      ["Главная", "/"],
+      ["Блог", "/blog"],
+      [p.title, p.url],
+    ],
+  });
+}
+
+if (blogPosts.length) {
+  routes.push({
+    url: "/blog",
+    title: "Блог об автоматизации бизнеса и AI | МАТ-Лабс",
+    description:
+      "Статьи и разборы от инженеров МАТ-Лабс: автоматизация бизнес-процессов, внедрение AI, гранты, цифровизация отраслей и опыт собственных продуктов.",
+    h1: "Блог МАТ-Лабс",
+    bodyHtml:
+      "<p>Статьи, кейсы и технические разборы от наших инженеров.</p>\n<ul>\n" +
+      blogPosts
+        .map((p) => `<li><a href="${p.url}">${esc(p.title)}</a></li>`)
+        .join("\n") +
+      "\n</ul>",
+    lastmod: blogPosts
+      .map((p) => (p.updated_at || p.created_at || "").slice(0, 10))
+      .sort()
+      .pop(),
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: "Блог МАТ-Лабс",
+      url: SITE + "/blog",
+      publisher: { "@type": "Organization", name: "ООО МАТ-Лабс", url: SITE },
+      blogPost: blogPosts.map((p) => ({
+        "@type": "BlogPosting",
+        headline: p.title,
+        url: SITE + p.url,
+      })),
+    },
+    crumbs: [
+      ["Главная", "/"],
+      ["Блог", "/blog"],
+    ],
+  });
+}
+
 const tpl = fs.readFileSync(path.join(DIST, "index.html"), "utf-8");
 
 function buildHead(r) {
@@ -279,19 +447,19 @@ function buildHead(r) {
     <meta name="description" content="${esc(r.description)}"/>
     <meta name="robots" content="index, follow"/>
     <link rel="canonical" href="${canonical}"/>
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="${r.ogType || "website"}">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:site_name" content="ООО МАТ-Лабс">
     <meta property="og:title" content="${esc(r.title)}">
     <meta property="og:description" content="${esc(r.description)}">
     <meta property="og:url" content="${canonical}">
-    <meta property="og:image" content="${OG_IMAGE}">
+    <meta property="og:image" content="${esc(r.image || OG_IMAGE)}">${r.image ? "" : `
     <meta property="og:image:width" content="1024">
-    <meta property="og:image:height" content="1024">
+    <meta property="og:image:height" content="1024">`}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${esc(r.title)}">
     <meta name="twitter:description" content="${esc(r.description)}">
-    <meta name="twitter:image" content="${OG_IMAGE}">
+    <meta name="twitter:image" content="${esc(r.image || OG_IMAGE)}">
 ${schemas.map((s) => `    <script type="application/ld+json">${JSON.stringify(s)}</script>`).join("\n")}`;
 }
 
@@ -302,8 +470,32 @@ function buildNoscript(r) {
   return `<div id="seo-content" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">
 <nav>${nav}</nav>
 <h1>${esc(r.h1)}</h1>
-${r.body.filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("\n")}
+${r.bodyHtml ?? r.body.filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("\n")}
 </div>`;
+}
+
+function updateSitemap() {
+  const file = path.join(DIST, "sitemap.xml");
+  if (!fs.existsSync(file)) return 0;
+  let xml = fs.readFileSync(file, "utf-8");
+  const extra = routes.filter(
+    (r) => r.url.startsWith("/blog") && !xml.includes(`<loc>${SITE}${r.url}</loc>`),
+  );
+  if (!extra.length) return 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const items = extra
+    .map(
+      (r) => `  <url>
+    <loc>${SITE}${r.url}</loc>
+    <lastmod>${r.lastmod || today}</lastmod>
+    <changefreq>${r.url === "/blog" ? "weekly" : "monthly"}</changefreq>
+    <priority>${r.url === "/blog" ? "0.7" : "0.6"}</priority>
+  </url>`,
+    )
+    .join("\n");
+  xml = xml.replace("</urlset>", `${items}\n</urlset>`);
+  fs.writeFileSync(file, xml, "utf-8");
+  return extra.length;
 }
 
 let written = 0;
@@ -334,9 +526,12 @@ for (const r of routes) {
   written++;
 }
 
+const added = updateSitemap();
+
 console.log(`prerender: создано ${written} статичных страниц`);
 console.log(`  гео-услуги: ${geoServices.length} × ${cities.length} = ${geoServices.length * cities.length}`);
 console.log(`  города: ${cities.length}, услуги: ${services.length}, хабы: 3`);
+console.log(`  блог: ${blogPosts.length} статей${blogPosts.length ? " + список" : ""}, в sitemap добавлено: ${added}`);
 return written;
 }
 
@@ -344,9 +539,9 @@ export default function prerenderPlugin() {
   return {
     name: "seo-prerender",
     apply: "build",
-    closeBundle() {
+    async closeBundle() {
       try {
-        prerender();
+        await prerender();
       } catch (e) {
         console.warn(`[seo-prerender] пропущен: ${e.message}`);
       }

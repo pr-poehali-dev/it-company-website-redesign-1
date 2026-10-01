@@ -140,13 +140,13 @@ export default function BlogPage() {
       <div className="max-w-3xl mx-auto px-6 py-12 relative">
         {post && (
           <PageBreadcrumbs
-            items={[{ label: "Блог", href: "/#blog" }, { label: post.title }]}
+            items={[{ label: "Блог", href: "/blog" }, { label: post.title }]}
             className="mb-6"
           />
         )}
 
         <Link
-          to="/#blog"
+          to="/blog"
           className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm mb-10 group"
         >
           <Icon name="ArrowLeft" size={16} className="group-hover:-translate-x-1 transition-transform" />
@@ -242,7 +242,7 @@ export default function BlogPage() {
 
             <div className="mt-4 flex justify-start">
               <Link
-                to="/#blog"
+                to="/blog"
                 className="inline-flex items-center gap-2 glass border border-white/20 px-6 py-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/5 transition-all text-sm font-semibold group"
               >
                 <Icon name="ArrowLeft" size={16} className="group-hover:-translate-x-1 transition-transform" />

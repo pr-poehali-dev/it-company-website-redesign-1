@@ -12,6 +12,7 @@ import ChatGPT from "./pages/ChatGPT";
 import Consultant from "./pages/Consultant";
 import ServicePage from "./pages/ServicePage";
 import BlogPage from "./pages/BlogPage";
+import BlogIndex from "./pages/BlogIndex";
 import Presentation from "./pages/Presentation";
 import PriceCalculator from "./pages/PriceCalculator";
 import CitiesIndex from "./pages/CitiesIndex";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/chatgpt" element={<ChatGPT />} />
           <Route path="/consultant" element={<Consultant />} />
           <Route path="/services/:slug" element={<ServicePage />} />
+          <Route path="/blog" element={<BlogIndex />} />
           <Route path="/blog/:slug" element={<BlogPage />} />
           <Route path="/presentation" element={<Presentation />} />
           <Route path="/skolko-stoit-avtomatizaciya" element={<PriceCalculator />} />
