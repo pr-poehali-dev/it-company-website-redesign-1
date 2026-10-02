@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, TEAM_IMAGE, PORTFOLIO_IMAGE, services, portfolio, AnimatedSection } from "@/components/shared";
 import { ymGoal } from "@/lib/ym";
+import PortfolioCard from "@/components/PortfolioCard";
 
 interface TopSectionsProps {
   scrollTo: (href: string) => void;
@@ -358,27 +359,7 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {portfolio.map((p, i) => (
               <AnimatedSection key={i}>
-                <a href={p.url} target="_blank" rel="noopener noreferrer" className="block h-full">
-                  <div className="glass neon-border rounded-2xl p-6 card-hover group cursor-pointer h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                      <img src={p.icon} alt={p.title} loading="lazy" className={`w-12 h-12 rounded-xl object-cover ring-1 ring-white/10 bg-gradient-to-br ${p.color} flex-shrink-0`} />
-                      <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${p.color} text-white font-medium`}>{p.category}</span>
-                    </div>
-                    <h3 className="font-oswald text-lg font-semibold mb-2 text-white">{p.title}</h3>
-                    <p className="text-white/50 text-sm leading-relaxed mb-4">{p.desc}</p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex gap-2 flex-wrap">
-                        {p.tech.map(t => (
-                          <span key={t} className="glass border border-white/10 text-white/60 text-xs px-2 py-1 rounded-lg">{t}</span>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-1 text-violet-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-3">
-                        <span>Открыть</span>
-                        <Icon name="ExternalLink" size={12} />
-                      </div>
-                    </div>
-                  </div>
-                </a>
+                <PortfolioCard p={p} />
               </AnimatedSection>
             ))}
           </div>
