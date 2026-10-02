@@ -50,7 +50,7 @@ def handler(event: dict, context) -> dict:
 
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT id, name, email, phone, company, message, created_at FROM contact_requests ORDER BY created_at DESC")
+    cur.execute("SELECT id, name, email, phone, company, message, source, created_at FROM contact_requests ORDER BY created_at DESC")
     rows = cur.fetchall()
     conn.close()
 

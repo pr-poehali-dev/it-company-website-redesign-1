@@ -8,6 +8,7 @@ interface ContactRequest {
   email: string;
   phone: string;
   company: string | null;
+  source?: string | null;
   message: string;
   created_at: string;
 }
@@ -69,6 +70,9 @@ export default function ContactRequests({ token }: { token: string }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <span className="font-semibold text-white">{r.name}</span>
+                    {r.source === "turnkey" && (
+                      <span className="text-xs text-white bg-gradient-to-r from-emerald-600 to-cyan-600 px-2 py-0.5 rounded-full">Бизнес под ключ</span>
+                    )}
                     {r.company && (
                       <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">{r.company}</span>
                     )}

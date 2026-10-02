@@ -1,0 +1,2 @@
+ALTER TABLE t_p88532089_it_company_website_r.contact_requests ADD COLUMN IF NOT EXISTS source VARCHAR(50) NULL;
+ALTER TABLE t_p88532089_it_company_website_r.contact_requests ADD COLUMN IF NOT EXISTS details TEXT NULL;

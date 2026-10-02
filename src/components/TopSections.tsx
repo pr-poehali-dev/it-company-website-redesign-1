@@ -363,6 +363,30 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
               </AnimatedSection>
             ))}
           </div>
+
+          <AnimatedSection className="mt-8">
+            <button
+              onClick={() => { ymGoal("cta_click", { source: "portfolio_turnkey" }); navigate("/gotovyy-biznes"); }}
+              className="w-full text-left glass neon-border rounded-2xl p-6 md:p-8 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/15 via-transparent to-cyan-600/15" />
+              <div className="relative flex flex-col md:flex-row md:items-center gap-5 md:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
+                    <Icon name="Rocket" size={22} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-oswald text-xl md:text-2xl font-bold text-white">Хотите такой же проект в своём городе?</h3>
+                    <p className="text-white/55 text-sm">Готовый бизнес под ключ: запуск под вашим брендом от 250 000 ₽ и сопровождение</p>
+                  </div>
+                </div>
+                <span className="btn-gradient px-6 py-3 rounded-xl text-sm font-semibold text-white flex items-center gap-2 self-start md:self-auto whitespace-nowrap">
+                  Смотреть проекты
+                  <Icon name="ArrowRight" size={16} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+              </div>
+            </button>
+          </AnimatedSection>
         </div>
       </section>
     </>

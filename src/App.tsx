@@ -21,6 +21,7 @@ const CityPage = lazy(() => import("./pages/CityPage"));
 const ServicesGeoIndex = lazy(() => import("./pages/ServicesGeoIndex"));
 const ServiceCityPage = lazy(() => import("./pages/ServiceCityPage"));
 const ServicePage = lazy(() => import("./pages/ServicePage"));
+const Turnkey = lazy(() => import("./pages/Turnkey"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => <div className="min-h-screen bg-[#080812]" />;
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/services/:slug" element={<ServicePage />} />
           <Route path="/blog" element={<BlogIndex />} />
           <Route path="/blog/:slug" element={<BlogPage />} />
+          <Route path="/gotovyy-biznes" element={<Turnkey />} />
           <Route path="/presentation" element={<Presentation />} />
           <Route path="/skolko-stoit-avtomatizaciya" element={<PriceCalculator />} />
           <Route path="/avtomatizaciya-biznesa" element={<CitiesIndex />} />

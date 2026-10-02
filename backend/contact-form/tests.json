@@ -33,6 +33,42 @@
       "expectedStatus": 200,
       "expectedBody": {"success": true},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Под ключ - короткий телефон",
+      "method": "POST",
+      "path": "/",
+      "body": {"source": "turnkey", "name": "Тест", "phone": "123", "product": "АВАНГАРД"},
+      "expectedStatus": 400,
+      "expectedBody": {"field": "phone"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Под ключ - без проекта",
+      "method": "POST",
+      "path": "/",
+      "body": {"source": "turnkey", "name": "Тест", "phone": "+7 999 000-00-02"},
+      "expectedStatus": 400,
+      "expectedBody": {"field": "product"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Под ключ - бот отсекается",
+      "method": "POST",
+      "path": "/",
+      "body": {"source": "turnkey", "website": "spam.ru", "name": "Бот", "phone": "+79990000003", "product": "АВАНГАРД"},
+      "expectedStatus": 200,
+      "expectedBody": {"success": true, "notified": false},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Под ключ - успешная заявка без email",
+      "method": "POST",
+      "path": "/",
+      "body": {"source": "turnkey", "name": "Автотест", "phone": "+7 999 000-00-04", "product": "Автотест", "plan": "Старт", "city": "Самара", "message": "Проверка"},
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
     }
   ]
 }

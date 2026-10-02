@@ -280,6 +280,63 @@ routes.push({
   ],
 });
 
+const turnkeySrc = readTs("lib/turnkey.ts");
+const turnkey = parseObjects(turnkeySrc, "export const turnkeyProducts")
+  .map((b) => ({
+    title: field(b, "title"),
+    niche: field(b, "niche"),
+    pitch: field(b, "pitch"),
+    whoFor: field(b, "whoFor"),
+    launchPrice: numField(b, "launchPrice"),
+    supportPrice: numField(b, "supportPrice"),
+    launchDays: field(b, "launchDays"),
+  }))
+  .filter((p) => p.title && p.launchPrice);
+
+if (turnkey.length) {
+  const minL = Math.min(...turnkey.map((p) => p.launchPrice));
+  const minS = Math.min(...turnkey.map((p) => p.supportPrice));
+  routes.push({
+    url: "/gotovyy-biznes",
+    title: "Готовый IT-бизнес под ключ — запуск и сопровождение | МАТ-Лабс",
+    description: clip(
+      `Запустите готовый онлайн-бизнес под своим брендом: ${turnkey.map((p) => p.niche.toLowerCase()).join(", ")}. Запуск от ${fmt(minL)} ₽, сопровождение от ${fmt(minS)} ₽/мес.`,
+      170,
+    ),
+    h1: "Готовый IT-бизнес под ключ",
+    bodyHtml:
+      `<p>Берёте проект, который уже работает. Мы разворачиваем копию под ваш бренд и город, обучаем и ведём техническую часть.</p>\n` +
+      turnkey
+        .map(
+          (p) =>
+            `<h2>${esc(p.title)} — ${esc(p.niche)}</h2>\n<p>${esc(p.pitch)}</p>\n<p>Подойдёт: ${esc(p.whoFor)}. Запуск — ${fmt(p.launchPrice)} ₽, сопровождение — ${fmt(p.supportPrice)} ₽ в месяц, срок — ${esc(p.launchDays)}.</p>`,
+        )
+        .join("\n") +
+      `\n<p>Мы не гарантируем доход: отвечаем за работающий продукт, запуск и поддержку.</p>`,
+    lastmod: new Date().toISOString().slice(0, 10),
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Готовый бизнес под ключ",
+      itemListElement: turnkey.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Service",
+          name: `${p.title} — готовый бизнес под ключ`,
+          description: p.pitch,
+          provider: { "@type": "Organization", name: "ООО МАТ-Лабс", url: SITE },
+          offers: { "@type": "Offer", priceCurrency: "RUB", price: String(p.launchPrice) },
+        },
+      })),
+    },
+    crumbs: [
+      ["Главная", "/"],
+      ["Готовый бизнес под ключ", "/gotovyy-biznes"],
+    ],
+  });
+}
+
 routes.push({
   url: "/skolko-stoit-avtomatizaciya",
   title: "Сколько стоит автоматизация бизнеса — расчёт | МАТ-Лабс",
@@ -479,7 +536,7 @@ function updateSitemap() {
   if (!fs.existsSync(file)) return 0;
   let xml = fs.readFileSync(file, "utf-8");
   const extra = routes.filter(
-    (r) => r.url.startsWith("/blog") && !xml.includes(`<loc>${SITE}${r.url}</loc>`),
+    (r) => (r.url.startsWith("/blog") || r.url === "/gotovyy-biznes") && !xml.includes(`<loc>${SITE}${r.url}</loc>`),
   );
   if (!extra.length) return 0;
   const today = new Date().toISOString().slice(0, 10);
@@ -489,7 +546,7 @@ function updateSitemap() {
     <loc>${SITE}${r.url}</loc>
     <lastmod>${r.lastmod || today}</lastmod>
     <changefreq>${r.url === "/blog" ? "weekly" : "monthly"}</changefreq>
-    <priority>${r.url === "/blog" ? "0.7" : "0.6"}</priority>
+    <priority>${r.url === "/blog" ? "0.7" : r.url === "/gotovyy-biznes" ? "0.8" : "0.6"}</priority>
   </url>`,
     )
     .join("\n");
