@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { navLinks, AnimatedSection } from "@/components/shared";
-import { ymGoal } from "@/lib/ym";
+import { ymGoal, ymLead } from "@/lib/ym";
 
 const CONTACT_URL = "https://functions.poehali.dev/0c33a6f9-4b7e-4dc3-8c2e-6db6eadb5f1d";
 
@@ -34,7 +34,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
       });
       const data = await res.json();
       if (data.success) {
-        ymGoal("form_submit");
+        ymLead("form_submit");
         setFormStatus("success");
         setForm({ name: "", company: "", email: "", phone: "", message: "" });
       } else {

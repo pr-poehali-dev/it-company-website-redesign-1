@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/icon";
-import { ymGoal } from "@/lib/ym";
+import { ymGoal, ymLead } from "@/lib/ym";
 import { turnkeyProducts, formatRub } from "@/lib/turnkey";
 
 const CONTACT_URL = "https://functions.poehali.dev/0c33a6f9-4b7e-4dc3-8c2e-6db6eadb5f1d";
@@ -198,7 +198,7 @@ export default function TurnkeyForm({ preset }: Props) {
         setStatus("error");
         return;
       }
-      ymGoal("turnkey_form_submit", { product: form.product, plan: form.plan });
+      ymLead("turnkey_form_submit", { product: form.product, plan: form.plan });
       setRequestId(data.id ?? null);
       setStatus("success");
       try {

@@ -51,7 +51,6 @@ export default function FinalCtaSection({ scrollTo }: { scrollTo: (href: string)
                   href="https://t.me/mat_labs"
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() => ymGoal("telegram_click")}
                   className="glass px-10 py-4 rounded-2xl text-base font-semibold text-white hover:bg-white/10 transition-all duration-300 border border-white/20 flex items-center justify-center gap-2"
                 >
                   <Icon name="MessageCircle" size={18} />

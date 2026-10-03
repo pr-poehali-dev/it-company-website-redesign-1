@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
+import { ymGoal, ymLead } from "@/lib/ym";
 
 const API_URL = "https://functions.poehali.dev/762d515a-ff32-4d7f-a30f-f5015a70496a";
 
@@ -52,6 +53,7 @@ export default function Consultant() {
 
     const newMessages: Message[] = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
+    if (!newMessages.some((m, i) => m.role === "user" && i < newMessages.length - 1)) ymGoal("consultant_first_message");
     setInput("");
     setIsLoading(true);
 
@@ -95,6 +97,7 @@ export default function Consultant() {
       if (data.success) {
         setBrief(data.brief);
         setStage("sent");
+        ymLead("consultant_brief");
       } else if (data.need_contacts) {
         setStage("chat");
         setReadyToSend(false);
