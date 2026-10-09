@@ -71,7 +71,7 @@ export default function TechnologiesSection({ scrollTo }: TechnologiesSectionPro
               </div>
               <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6 leading-tight">
                 Присоединяйся к{" "}
-                <span className="gradient-text-2">команде мечты</span>
+                <span className="gradient-text-2">команде</span>
               </h2>
               <p className="text-white/60 text-lg leading-relaxed mb-6">
                 Ищем тех, кто горит технологиями и хочет делать продукты,

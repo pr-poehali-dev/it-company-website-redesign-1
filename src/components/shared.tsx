@@ -5,15 +5,13 @@ export const TEAM_IMAGE = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b
 export const PORTFOLIO_IMAGE = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/31da4818-f15a-431d-9e25-4c9cd5a4e254.jpg";
 
 export const navLinks = [
-  { label: "Главная", href: "#hero" },
-  { label: "О компании", href: "#about" },
+  { label: "Что автоматизируем", href: "#what-we-do" },
   { label: "Услуги", href: "#services" },
-  { label: "Портфолио", href: "#portfolio" },
-  { label: "Калькулятор", href: "#calculator" },
-  { label: "Технологии", href: "#technologies" },
-  { label: "Карьера", href: "#career" },
+  { label: "Кейсы и продукты", href: "#portfolio" },
+  { label: "Калькулятор потерь", href: "#loss" },
+  { label: "Инвесторам", href: "/investors" },
+  { label: "О компании", href: "#about" },
   { label: "Блог", href: "#blog" },
-  { label: "FAQ", href: "#faq" },
   { label: "Контакты", href: "#contacts" },
 ];
 

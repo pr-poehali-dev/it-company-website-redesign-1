@@ -20,6 +20,11 @@ export default function Index() {
   }, []);
 
   function scrollTo(href: string) {
+    if (href.startsWith("/")) {
+      setMenuOpen(false);
+      navigate(href);
+      return;
+    }
     const id = href.replace("#", "");
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMenuOpen(false);

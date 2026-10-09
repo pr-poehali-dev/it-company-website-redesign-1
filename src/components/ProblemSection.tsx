@@ -56,7 +56,7 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
 
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: "TrendingDown", color: "text-violet-400", bg: "bg-violet-500/10", metric: "до 70%", text: "сокращение ручной работы" },
+                  { icon: "TrendingDown", color: "text-violet-400", bg: "bg-violet-500/10", metric: "↓", text: "меньше ручной работы — считаем до и после" },
                   { icon: "Zap", color: "text-cyan-400", bg: "bg-cyan-500/10", metric: "в минуты", text: "быстрые ответы клиентам" },
                   { icon: "ShieldCheck", color: "text-emerald-400", bg: "bg-emerald-500/10", metric: "0", text: "потерянных заявок" },
                   { icon: "BarChart2", color: "text-amber-400", bg: "bg-amber-500/10", metric: "↑", text: "рост конверсии и продаж" },

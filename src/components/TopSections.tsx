@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, TEAM_IMAGE, PORTFOLIO_IMAGE, services, portfolio, AnimatedSection } from "@/components/shared";
 import { ymGoal } from "@/lib/ym";
 import PortfolioCard from "@/components/PortfolioCard";
+import AutomateSection from "@/components/AutomateSection";
 
 interface TopSectionsProps {
   scrollTo: (href: string) => void;
@@ -28,19 +29,18 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full mb-8 border border-cyan-500/30 animate-fade-in-up">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-sm text-white/80">Внедрение за 7–14 дней · Бесплатный разбор</span>
+              <span className="text-sm text-white/80">Бесплатный AI-аудит · Запуск за 7–14 дней</span>
             </div>
 
             <h1 className="font-oswald text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.0] mb-6 animate-fade-in-up delay-100">
-              <span className="block text-white">Автоматизируем</span>
-              <span className="block gradient-text">бизнес-процессы</span>
-              <span className="block text-white">и увеличиваем</span>
-              <span className="block gradient-text-3">поток заявок</span>
+              <span className="block text-white">Не внедряем AI.</span>
+              <span className="block gradient-text">Убираем ручную</span>
+              <span className="block gradient-text-3">работу</span>
             </h1>
 
             <p className="text-lg md:text-xl text-white/60 max-w-2xl leading-relaxed mb-4 animate-fade-in-up delay-200">
-              Помогаем компаниям снизить ручную работу, ускорить обработку клиентов
-              и зарабатывать больше с помощью автоматизации и продуманных сайтов.
+              Находим процессы, на которых ваш бизнес теряет деньги, и запускаем рабочее
+              решение за 7–14 дней: заявки, продажи, CRM, документы, поддержка, аналитика.
             </p>
 
             <div className="flex flex-wrap gap-4 mb-4 animate-fade-in-up delay-300">
@@ -49,28 +49,28 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
                 className="btn-gradient px-8 py-4 rounded-2xl text-base font-semibold text-white glow-purple group"
               >
                 <span className="flex items-center gap-2">
-                  Получить бесплатный разбор
+                  Получить AI-аудит бесплатно
                   <Icon name="ArrowRight" size={18} />
                 </span>
               </button>
               <button
-                onClick={() => scrollTo("#what-we-do")}
+                onClick={() => { ymGoal("cta_click", { source: "hero_loss" }); scrollTo("#loss"); }}
                 className="glass px-8 py-4 rounded-2xl text-base font-semibold text-white hover:bg-white/10 transition-all duration-300 border border-white/20"
               >
-                Что мы делаем
+                Посчитать потери
               </button>
             </div>
 
             <p className="text-sm text-white/35 mb-12 animate-fade-in-up delay-300">
-              Бесплатно покажем, где вы теряете заявки и как исправить это за 7–14 дней
+              30–45 минут: 3 точки потерь, 3 процесса для автоматизации и оценка экономии
             </p>
 
             <div ref={statsRef} className="flex flex-wrap gap-10 animate-fade-in-up delay-400">
               {[
-                { val: "7–14", label: "Дней до результата" },
-                { val: "до 70%", label: "Сокращение ручной работы" },
-                { val: "5 мин", label: "Ответ клиенту вместо 2 часов" },
-                { val: "0", label: "Потерянных заявок" },
+                { val: "0 ₽", label: "AI-аудит бизнеса" },
+                { val: "3–7", label: "Дней на пилот" },
+                { val: "7–14", label: "Дней до внедрения" },
+                { val: "12", label: "Собственных AI-продуктов" },
               ].map((s, i) => (
                 <div key={i} className="text-center">
                   <div className="font-oswald text-3xl md:text-4xl font-bold gradient-text">{s.val}</div>
@@ -87,87 +87,7 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
         </div>
       </section>
 
-      {/* ЧТО МЫ ВНЕДРЯЕМ */}
-      <section id="what-we-do" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-950/10 to-transparent" />
-        <div className="max-w-7xl mx-auto px-6 relative">
-          <AnimatedSection className="text-center mb-14">
-            <div className="inline-block glass px-4 py-1.5 rounded-full text-sm text-violet-300 border border-violet-500/30 mb-6">
-              Что мы внедряем
-            </div>
-            <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-              Четыре направления —{" "}
-              <span className="gradient-text">один результат</span>
-            </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Больше заявок, меньше ручной работы, прозрачные процессы
-            </p>
-          </AnimatedSection>
-
-          <div className="grid md:grid-cols-2 gap-5 mb-14">
-            {[
-              {
-                icon: "Inbox",
-                gradient: "from-violet-600 to-purple-600",
-                title: "Автоматизация обработки заявок",
-                desc: "Автоответы, распределение лидов, фиксация всех обращений — ни одна заявка не теряется.",
-              },
-              {
-                icon: "GitBranch",
-                gradient: "from-cyan-500 to-blue-600",
-                title: "Интеграции и процессы",
-                desc: "Связываем CRM, сайт, формы и сервисы в единую систему без ручного переноса данных.",
-              },
-              {
-                icon: "Bot",
-                gradient: "from-pink-500 to-rose-600",
-                title: "AI для бизнеса",
-                desc: "Используем AI для обработки обращений, квалификации лидов и упрощения работы команды.",
-              },
-              {
-                icon: "TrendingUp",
-                gradient: "from-emerald-500 to-teal-600",
-                title: "Сайты, которые приносят заявки",
-                desc: "Создаём и дорабатываем сайты с фокусом на конверсию: форма → CRM → уведомление менеджеру.",
-              },
-            ].map((item, i) => (
-              <AnimatedSection key={i}>
-                <div className="glass neon-border rounded-2xl p-7 card-hover flex gap-5 group h-full">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon name={item.icon} size={22} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-oswald text-lg font-semibold mb-2 text-white">{item.title}</h3>
-                    <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              </AnimatedSection>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <AnimatedSection>
-            <div className="text-center glass neon-border rounded-2xl p-10 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-cyan-600/10 to-violet-600/10" />
-              <div className="relative">
-                <h3 className="font-oswald text-3xl md:text-4xl font-bold mb-3 text-white">
-                  Готовы найти потери в вашем бизнесе?
-                </h3>
-                <p className="text-white/50 mb-8 max-w-xl mx-auto">
-                  Бесплатно покажем, что можно автоматизировать и какой будет результат
-                </p>
-                <button
-                  onClick={() => { ymGoal("cta_click", { source: "what_we_do" }); scrollTo("#contacts"); }}
-                  className="btn-gradient px-10 py-4 rounded-2xl text-base font-semibold text-white glow-purple flex items-center gap-2 mx-auto"
-                >
-                  Получить бесплатный разбор
-                  <Icon name="ArrowRight" size={18} />
-                </button>
-              </div>
-            </div>
-          </AnimatedSection>
-        </div>
-      </section>
+      <AutomateSection scrollTo={scrollTo} />
 
       {/* ABOUT */}
       <section id="about" className="py-24 relative">
