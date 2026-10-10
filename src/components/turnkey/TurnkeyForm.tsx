@@ -420,7 +420,7 @@ export default function TurnkeyForm({ preset }: Props) {
           </>
         ) : (
           <>
-            Получить бесплатный разбор
+            Записаться на консультацию
             <Icon name="ArrowRight" size={18} />
           </>
         )}

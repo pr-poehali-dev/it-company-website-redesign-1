@@ -31,7 +31,7 @@ const packages = [
     days: "10–14 дней",
     icon: "Bot",
     items: [
-      "AI-ассистент отвечает клиентам круглосуточно",
+      "AI-помощник отвечает на типовые вопросы",
       "Автоматическая квалификация лидов",
       "Разбор и классификация обращений",
       "Автоотчёты по заявкам и конверсии",
@@ -73,8 +73,8 @@ export default function CityPage() {
   }
 
   const pageUrl = `${SITE}/avtomatizaciya-biznesa/${city.slug}`;
-  const title = `Автоматизация бизнеса в ${city.nameIn} — внедрение за 7–14 дней | МАТ-Лабс`;
-  const description = `Автоматизация бизнес-процессов в ${city.nameIn}: обработка заявок, интеграция CRM, внедрение AI. Пакеты от 150 000 ₽, запуск за 7–14 дней. Работаем удалённо.`;
+  const title = `Автоматизация бизнеса в ${city.nameIn} — заявки, CRM, AI | МАТ-Лабс`;
+  const description = `Автоматизация бизнес-процессов в ${city.nameIn}: обработка заявок, интеграция CRM, внедрение AI. Пакеты от 150 000 ₽, бесплатная консультация. Работаем удалённо.`;
   const fmt = (n: number) => n.toLocaleString("ru-RU");
   const current = packages.find((p) => p.id === active) ?? packages[0];
 
@@ -191,7 +191,7 @@ export default function CityPage() {
             </h1>
             <p className="text-white/60 text-lg leading-relaxed max-w-3xl mb-4">
               Настраиваем обработку заявок, связываем CRM с сайтом и мессенджерами,
-              внедряем AI-ассистента. Первые результаты — за 7–14 дней.
+              внедряем AI-ассистента. Простые задачи — от 7 дней.
             </p>
             <p className="text-white/45 leading-relaxed max-w-3xl">
               {city.context}
@@ -328,7 +328,7 @@ export default function CityPage() {
             </p>
             <div className="space-y-3">
               {[
-                ["Бесплатный разбор", "Изучаем процессы, находим точки потерь, оцениваем эффект в деньгах. Без обязательств."],
+                ["Бесплатная консультация", "Разбираем процессы, говорим, что стоит автоматизировать и сколько это стоит. Без обязательств."],
                 ["План внедрения", "Фиксируем задачи, сроки и стоимость в договоре. Вы понимаете, за что платите."],
                 ["Разработка и настройка", "Собираем решение под ваши процессы, показываем промежуточные результаты."],
                 ["Интеграция", "Подключаем сайт, CRM, мессенджеры и почту в единый контур."],
@@ -449,7 +449,7 @@ export default function CityPage() {
               }}
               className="btn-gradient px-8 py-4 rounded-xl font-semibold text-white glow-purple inline-flex items-center gap-2"
             >
-              Получить бесплатный разбор
+              Записаться на консультацию
               <Icon name="ArrowRight" size={18} />
             </button>
           </section>

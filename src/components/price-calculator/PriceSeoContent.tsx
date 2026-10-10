@@ -147,7 +147,7 @@ export default function PriceSeoContent() {
           }}
           className="btn-gradient px-8 py-4 rounded-xl font-semibold text-white glow-purple inline-flex items-center gap-2"
         >
-          Получить бесплатный разбор
+          Записаться на консультацию
           <Icon name="ArrowRight" size={18} />
         </button>
       </section>

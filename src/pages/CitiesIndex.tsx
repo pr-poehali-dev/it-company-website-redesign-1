@@ -58,7 +58,7 @@ export default function CitiesIndex() {
         <meta property="og:title" content="Автоматизация бизнеса по городам России — МАТ-Лабс" />
         <meta
           property="og:description"
-          content="Автоматизация бизнес-процессов по всей России. Пакеты от 150 000 ₽, внедрение за 7–14 дней."
+          content="Автоматизация бизнес-процессов по всей России. Пакеты от 150 000 ₽, бесплатная консультация."
         />
         <meta property="og:url" content={PAGE_URL} />
         <script type="application/ld+json">{JSON.stringify(itemListSchema)}</script>
@@ -81,7 +81,7 @@ export default function CitiesIndex() {
             <p className="text-white/60 text-lg leading-relaxed max-w-3xl mb-4">
               Настраиваем обработку заявок, связываем CRM с сайтом и
               мессенджерами, внедряем AI-ассистента. Пакеты от 150 000 ₽,
-              внедрение за 7–14 дней.
+              бесплатная консультация.
             </p>
             <p className="text-white/45 leading-relaxed max-w-3xl">
               Головной офис в Самаре, работаем с компаниями по всей стране
@@ -93,7 +93,7 @@ export default function CitiesIndex() {
           <div className="grid sm:grid-cols-3 gap-3 mb-14">
             {[
               ["MapPin", `${cities.length} городов`, "Работаем по всей России"],
-              ["Clock", "7–14 дней", "До первых результатов"],
+              ["Clock", "от 7 дней", "Простые задачи"],
               ["Wallet", "от 150 000 ₽", "Единая цена для всех регионов"],
             ].map(([i, t, d], k) => (
               <div key={k} className="glass border border-white/10 rounded-xl p-5">
@@ -178,7 +178,7 @@ export default function CitiesIndex() {
                 }}
                 className="btn-gradient px-8 py-4 rounded-xl font-semibold text-white glow-purple inline-flex items-center gap-2"
               >
-                Получить бесплатный разбор
+                Записаться на консультацию
                 <Icon name="ArrowRight" size={18} />
               </button>
               <Link

@@ -92,7 +92,7 @@ export default function Turnkey() {
                 onClick={() => document.getElementById("zayavka")?.scrollIntoView({ behavior: "smooth" })}
                 className="glass border border-white/20 px-7 py-4 rounded-2xl font-semibold text-white hover:bg-white/10 transition-colors"
               >
-                Бесплатный разбор
+                Бесплатная консультация
               </button>
             </div>
             <div className="flex flex-wrap gap-x-10 gap-y-4">
@@ -278,7 +278,7 @@ export default function Turnkey() {
 
           <section id="zayavka" className="scroll-mt-24 grid lg:grid-cols-5 gap-8 items-start">
             <div className="lg:col-span-2">
-              <h2 className="font-oswald text-3xl md:text-4xl font-bold mb-4">Бесплатный разбор</h2>
+              <h2 className="font-oswald text-3xl md:text-4xl font-bold mb-4">Бесплатная консультация</h2>
               <p className="text-white/60 leading-relaxed mb-6">
                 Оставьте заявку — созвонимся на 30 минут, проверим, свободен ли ваш город, и подскажем,
                 какой проект лучше подойдёт под ваш опыт и бюджет.

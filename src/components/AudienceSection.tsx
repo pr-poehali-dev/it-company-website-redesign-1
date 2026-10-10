@@ -85,7 +85,7 @@ export default function AudienceSection({ scrollTo }: { scrollTo: (href: string)
                   { icon: "Link2", text: "Интеграция сайта с CRM-системой" },
                   { icon: "Bell", text: "Уведомления менеджеров о новых лидах" },
                   { icon: "FileText", text: "Автоматическое создание отчётов" },
-                  { icon: "HeadphonesIcon", text: "Автоматизация обработки обращений клиентов" },
+                  { icon: "Headphones", text: "Автоматизация обработки обращений клиентов" },
                   { icon: "Globe", text: "Создание лендингов для привлечения клиентов" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">

@@ -133,16 +133,16 @@ export default function Consultant() {
     return (
       <>
         <Helmet>
-          <title>AI-консультант MAT Labs — бесплатный разбор задачи</title>
+          <title>AI-консультант MAT Labs — бесплатная консультация</title>
           <meta name="description" content="Опишите задачу AI-консультанту MAT Labs — получите конкретный план автоматизации и стоимость внедрения. Бесплатно, без обязательств." />
           <link rel="canonical" href="https://mat-labs.ru/consultant" />
-          <meta property="og:title" content="AI-консультант MAT Labs — бесплатный разбор задачи" />
+          <meta property="og:title" content="AI-консультант MAT Labs — бесплатная консультация" />
           <meta property="og:description" content="Опишите задачу AI-консультанту MAT Labs — получите конкретный план автоматизации и стоимость внедрения." />
           <meta property="og:url" content="https://mat-labs.ru/consultant" />
           <meta property="og:type" content="website" />
           <meta name="twitter:card" content="summary" />
           <meta name="twitter:title" content="AI-консультант MAT Labs" />
-          <meta name="twitter:description" content="Бесплатный разбор задачи: план автоматизации и стоимость за 24 часа." />
+          <meta name="twitter:description" content="Опишите задачу — получите план автоматизации и примерную стоимость." />
         </Helmet>
       <div className="min-h-screen bg-[#0d1117] flex items-center justify-center p-6">
         <div className="max-w-2xl w-full text-center">
@@ -187,16 +187,16 @@ export default function Consultant() {
   return (
     <>
       <Helmet>
-        <title>AI-консультант MAT Labs — бесплатный разбор задачи</title>
+        <title>AI-консультант MAT Labs — бесплатная консультация</title>
         <meta name="description" content="Опишите задачу AI-консультанту MAT Labs — получите конкретный план автоматизации и стоимость внедрения. Бесплатно, без обязательств." />
         <link rel="canonical" href="https://mat-labs.ru/consultant" />
-        <meta property="og:title" content="AI-консультант MAT Labs — бесплатный разбор задачи" />
+        <meta property="og:title" content="AI-консультант MAT Labs — бесплатная консультация" />
         <meta property="og:description" content="Опишите задачу AI-консультанту MAT Labs — получите конкретный план автоматизации и стоимость внедрения." />
         <meta property="og:url" content="https://mat-labs.ru/consultant" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="AI-консультант MAT Labs" />
-        <meta name="twitter:description" content="Бесплатный разбор задачи: план автоматизации и стоимость за 24 часа." />
+        <meta name="twitter:description" content="Опишите задачу — получите план автоматизации и примерную стоимость." />
       </Helmet>
     <div className="min-h-screen bg-[#0d1117] flex flex-col">
       {/* Header */}
