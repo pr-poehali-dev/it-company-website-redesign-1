@@ -338,6 +338,22 @@ if (turnkey.length) {
 }
 
 routes.push({
+  url: "/consultant",
+  title: "AI-консультант MAT Labs — бесплатный разбор задачи",
+  description:
+    "Опишите задачу AI-консультанту MAT Labs — получите план автоматизации и оценку стоимости. Бесплатно, без звонков, ответ за 24 часа.",
+  h1: "AI-консультант по автоматизации бизнеса",
+  body: [
+    "Опишите процесс, который хотите автоматизировать. Консультант задаст уточняющие вопросы, соберёт требования и подготовит описание задачи.",
+    "На основе описания команда MAT Labs готовит план автоматизации и коммерческое предложение.",
+  ],
+  crumbs: [
+    ["Главная", "/"],
+    ["AI-консультант", "/consultant"],
+  ],
+});
+
+routes.push({
   url: "/investors",
   title: "Инвесторам — стратегия развития MAT Labs 2026–2027",
   description:
@@ -436,7 +452,7 @@ for (const p of blogPosts) {
   const modified = (p.updated_at || p.created_at || "").slice(0, 10);
   routes.push({
     url: p.url,
-    title: fitTitle(p.title, " | Блог МАТ-Лабс", 75),
+    title: fitTitle(p.title, " | Блог МАТ-Лабс", 70),
     description,
     h1: p.title,
     bodyHtml: mdToHtml(p.content),
@@ -553,7 +569,7 @@ function updateSitemap() {
   if (!fs.existsSync(file)) return 0;
   let xml = fs.readFileSync(file, "utf-8");
   const extra = routes.filter(
-    (r) => (r.url.startsWith("/blog") || r.url === "/gotovyy-biznes") && !xml.includes(`<loc>${SITE}${r.url}</loc>`),
+    (r) => (r.url.startsWith("/blog") || r.url === "/gotovyy-biznes" || r.url === "/investors") && !xml.includes(`<loc>${SITE}${r.url}</loc>`),
   );
   if (!extra.length) return 0;
   const today = new Date().toISOString().slice(0, 10);
@@ -563,7 +579,7 @@ function updateSitemap() {
     <loc>${SITE}${r.url}</loc>
     <lastmod>${r.lastmod || today}</lastmod>
     <changefreq>${r.url === "/blog" ? "weekly" : "monthly"}</changefreq>
-    <priority>${r.url === "/blog" ? "0.7" : r.url === "/gotovyy-biznes" ? "0.8" : "0.6"}</priority>
+    <priority>${r.url === "/blog" ? "0.7" : r.url === "/gotovyy-biznes" ? "0.8" : r.url === "/investors" ? "0.5" : "0.6"}</priority>
   </url>`,
     )
     .join("\n");

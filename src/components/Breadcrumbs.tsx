@@ -3,12 +3,14 @@ import Icon from "@/components/ui/icon";
 
 const sections = [
   { id: "hero", label: "Главная" },
+  { id: "what-we-do", label: "Что автоматизируем" },
   { id: "about", label: "О компании" },
   { id: "services", label: "Услуги" },
-  { id: "portfolio", label: "Портфолио" },
-  { id: "technologies", label: "Технологии" },
-  { id: "career", label: "Карьера" },
+  { id: "portfolio", label: "Кейсы и продукты" },
+  { id: "loss", label: "Калькулятор потерь" },
+  { id: "process", label: "Как работаем" },
   { id: "blog", label: "Блог" },
+  { id: "faq", label: "Вопросы" },
   { id: "contacts", label: "Контакты" },
 ];
 
@@ -38,7 +40,7 @@ export default function Breadcrumbs() {
   }, []);
 
   const activeIndex = sections.findIndex(s => s.id === active);
-  const crumbs = activeIndex > 0 ? sections.slice(0, activeIndex + 1) : [];
+  const crumbs = activeIndex > 0 ? [sections[0], sections[activeIndex]] : [];
 
   if (!visible || crumbs.length === 0) return null;
 
@@ -49,7 +51,7 @@ export default function Breadcrumbs() {
   return (
     <nav
       aria-label="Хлебные крошки"
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up"
+      className="hidden md:block fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-fade-in-up"
     >
       <ol className="flex items-center gap-1 glass border border-white/10 rounded-2xl px-4 py-2.5 text-xs backdrop-blur-md">
         {crumbs.map((crumb, i) => (

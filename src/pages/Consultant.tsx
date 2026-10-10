@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { ymGoal, ymLead } from "@/lib/ym";
 
 const API_URL = "https://functions.poehali.dev/762d515a-ff32-4d7f-a30f-f5015a70496a";
@@ -200,6 +201,7 @@ export default function Consultant() {
     <div className="min-h-screen bg-[#0d1117] flex flex-col">
       {/* Header */}
       <div className="border-b border-white/10 bg-[#0d1117]/95 backdrop-blur sticky top-0 z-10">
+        <PageBreadcrumbs items={[{ label: "AI-консультант" }]} className="max-w-3xl mx-auto px-4 pt-3 text-xs" />
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
             А

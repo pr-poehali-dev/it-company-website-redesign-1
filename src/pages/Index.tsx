@@ -33,17 +33,17 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-[#080812] text-white font-golos overflow-x-hidden">
       <Helmet>
-        <title>MAT Labs — AI-автоматизация бизнеса | Внедрение за 7–14 дней</title>
-        <meta name="description" content="MAT Labs автоматизирует бизнес-процессы с помощью AI: обработка заявок, интеграция с CRM, создание сайтов. Внедрение за 7–14 дней. Бесплатный разбор." />
-        <meta name="keywords" content="AI автоматизация бизнеса, автоматизация заявок, внедрение ИИ, интеграция CRM, автоматизация процессов, MAT Labs, МАТ Лабс" />
+        <title>Не внедряем AI — убираем ручную работу. AI-аудит бесплатно | МАТ-Лабс</title>
+        <meta name="description" content="Находим процессы, на которых бизнес теряет деньги, и автоматизируем их с AI за 7–14 дней. Бесплатный AI-аудит, пилот от 30 000 ₽, внедрение от 100 000 ₽." />
+        <meta name="keywords" content="AI автоматизация бизнеса, AI-аудит, внедрение ИИ в бизнес, автоматизация отдела продаж, AI-менеджер, интеграция CRM, MAT Labs, МАТ Лабс" />
         <link rel="canonical" href="https://mat-labs.ru/" />
         <meta property="og:url" content="https://mat-labs.ru/" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="MAT Labs — AI-автоматизация бизнеса | Внедрение за 7–14 дней" />
-        <meta property="og:description" content="Помогаем снижать нагрузку на сотрудников, ускорять процессы и увеличивать заявки без расширения штата. Бесплатный разбор." />
+        <meta property="og:title" content="Не внедряем AI — убираем ручную работу. AI-аудит бесплатно | МАТ-Лабс" />
+        <meta property="og:description" content="Находим, где бизнес теряет деньги на ручной работе, и запускаем AI-решение за 7–14 дней. Бесплатный AI-аудит." />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="MAT Labs — AI-автоматизация бизнеса" />
-        <meta name="twitter:description" content="Внедряем AI для обработки заявок, автоматизируем рутину, создаём сайты. Результат за 7–14 дней." />
+        <meta name="twitter:title" content="MAT Labs — убираем ручную работу с помощью AI" />
+        <meta name="twitter:description" content="Бесплатный AI-аудит, пилот за 3–7 дней, внедрение за 7–14 дней." />
       </Helmet>
       <NavBar
         scrolled={scrolled}
