@@ -54,13 +54,13 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
         <div className="max-w-7xl mx-auto px-6">
           <AnimatedSection className="text-center mb-16">
             <div className="inline-block glass px-4 py-1.5 rounded-full text-sm text-emerald-300 border border-emerald-500/30 mb-6">
-              Бесплатный разбор
+              Консультация
             </div>
             <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-              Получить{" "}
-              <span className="gradient-text">бесплатный разбор</span>
+              Записаться на{" "}
+              <span className="gradient-text">консультацию</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">Расскажите о своих процессах — мы покажем, что и как можно автоматизировать</p>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">Коротко опишите задачу — перезвоним и договоримся об удобном времени</p>
           </AnimatedSection>
 
           <div className="grid lg:grid-cols-2 gap-12">
@@ -73,7 +73,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                         <Icon name="CheckCircle" size={32} className="text-emerald-400" />
                       </div>
                       <h3 className="font-oswald text-2xl font-bold text-white">Заявка отправлена!</h3>
-                      <p className="text-white/50 text-sm">Подготовим разбор и свяжемся с вами в течение 24 часов</p>
+                      <p className="text-white/50 text-sm">Свяжемся с вами в течение рабочего дня</p>
                       <button
                         onClick={() => setFormStatus("idle")}
                         className="glass border border-white/20 px-6 py-2 rounded-xl text-sm text-white/70 hover:text-white transition-all"
@@ -151,7 +151,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                         {formStatus === "sending" ? (
                           <><Icon name="Loader2" size={18} className="animate-spin" />Отправляем...</>
                         ) : (
-                          <>Получить бесплатный разбор<Icon name="ArrowRight" size={18} /></>
+                          <>Записаться на консультацию<Icon name="ArrowRight" size={18} /></>
                         )}
                       </button>
                       <p className="text-center text-white/30 text-xs">
@@ -176,7 +176,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                       {
                         step: "01",
                         icon: "Search",
-                        title: "Разбор ваших процессов",
+                        title: "Разговор о ваших процессах",
                         desc: "Изучим, где теряются заявки и какие задачи занимают больше всего времени",
                         color: "text-violet-400",
                         bg: "bg-violet-500/10",
@@ -186,7 +186,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                         step: "02",
                         icon: "Lightbulb",
                         title: "Конкретный план автоматизации",
-                        desc: "Покажем, что именно автоматизировать и какой результат это даст",
+                        desc: "Скажем, что стоит автоматизировать, а что лучше оставить как есть",
                         color: "text-cyan-400",
                         bg: "bg-cyan-500/10",
                         border: "border-cyan-500/20",
@@ -195,7 +195,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                         step: "03",
                         icon: "Calculator",
                         title: "Стоимость и сроки",
-                        desc: "Назовём цену и срок внедрения под вашу задачу — без воды и лишних затрат",
+                        desc: "Назовём примерную цену и срок под вашу задачу",
                         color: "text-emerald-400",
                         bg: "bg-emerald-500/10",
                         border: "border-emerald-500/20",
@@ -219,7 +219,7 @@ export default function ContactsSection({ scrollTo }: ContactsSectionProps) {
                   <div className="mt-5 pt-5 border-t border-white/5 flex items-center gap-3">
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse flex-shrink-0" />
                     <p className="text-xs text-white/40">
-                      Разбор бесплатный и ни к чему не обязывает. Ответим в течение 24 часов.
+                      Консультация бесплатная и ни к чему не обязывает.
                     </p>
                   </div>
                 </div>

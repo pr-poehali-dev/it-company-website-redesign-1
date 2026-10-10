@@ -3,49 +3,49 @@ import { AnimatedSection } from "@/components/shared";
 import { ymGoal } from "@/lib/ym";
 
 const pains = [
-  { icon: "Inbox", problem: "Заявки теряются", solution: "AI-менеджер принимает и фиксирует каждое обращение" },
-  { icon: "MessageSquare", problem: "Менеджеры отвечают вручную", solution: "AI-оператор отвечает клиентам за минуты, 24/7" },
-  { icon: "Database", problem: "CRM заполняется руками", solution: "Карточки и сделки создаются автоматически" },
-  { icon: "PhoneCall", problem: "Много звонков без контроля", solution: "AI-анализ звонков и оценка работы менеджеров" },
-  { icon: "FileText", problem: "Документы готовят вручную", solution: "Договоры, КП и акты собираются сами" },
-  { icon: "Sheet", problem: "Всё живёт в Excel", solution: "Автоматическая аналитика и дашборд руководителя" },
-  { icon: "Clock", problem: "Клиенты долго ждут", solution: "AI-первая линия поддержки" },
-  { icon: "Search", problem: "Сотрудники ищут информацию", solution: "Корпоративный AI-помощник по базе знаний" },
+  { icon: "Inbox", problem: "Заявки теряются", solution: "Все обращения с сайта, почты и мессенджеров попадают в одно место" },
+  { icon: "MessageSquare", problem: "Менеджеры отвечают вручную", solution: "AI-помощник отвечает на типовые вопросы сразу, сложные передаёт менеджеру" },
+  { icon: "Database", problem: "CRM заполняется руками", solution: "Карточки клиентов и сделки создаются автоматически" },
+  { icon: "PhoneCall", problem: "Непонятно, как менеджеры говорят с клиентами", solution: "Расшифровка звонков и проверка по чек-листу" },
+  { icon: "FileText", problem: "Документы готовят вручную", solution: "Договоры, КП и акты заполняются по шаблону" },
+  { icon: "Sheet", problem: "Всё живёт в Excel", solution: "Отчёты собираются сами, руководитель видит цифры в одном окне" },
+  { icon: "Clock", problem: "Клиенты долго ждут ответа", solution: "Чат-бот закрывает частые вопросы в любое время" },
+  { icon: "Search", problem: "Сотрудники ищут информацию", solution: "AI-помощник отвечает по вашим инструкциям и документам" },
 ];
 
 const ladder = [
   {
     step: "01",
-    name: "AI-аудит",
+    name: "Консультация",
     price: "0 ₽",
     term: "30–45 минут",
     gradient: "from-emerald-500 to-teal-600",
-    items: ["3 точки потери денег", "3 процесса для автоматизации", "Оценка экономии", "Предварительная стоимость"],
+    items: ["Разбираем ваши процессы", "Говорим, что стоит автоматизировать", "Называем примерную цену", "Ни к чему не обязывает"],
   },
   {
     step: "02",
-    name: "AI-пилот",
+    name: "Пробный проект",
     price: "30–70 тыс. ₽",
     term: "3–7 дней",
     gradient: "from-cyan-500 to-blue-600",
-    items: ["Один процесс под ключ", "AI-менеджер или Telegram-бот", "Квалификация заявок", "Замер результата"],
+    items: ["Одна задача под ключ", "Например, чат-бот или приём заявок", "Сравниваем «до» и «после»", "Решаете, идти ли дальше"],
   },
   {
     step: "03",
     name: "Внедрение",
-    price: "100–500 тыс. ₽",
+    price: "от 150 тыс. ₽",
     term: "7–21 день",
     gradient: "from-violet-600 to-purple-600",
-    items: ["CRM + AI + сайт + мессенджеры", "Интеграции с 1С и сервисами", "Обучение команды", "Отчёт «было → стало»"],
+    items: ["Несколько процессов сразу", "Связка CRM, сайта, мессенджеров, 1С", "Обучение сотрудников", "Сроки и цена — в договоре"],
     featured: true,
   },
   {
     step: "04",
-    name: "AI-партнёр",
-    price: "от 15 тыс. ₽/мес",
-    term: "постоянно",
+    name: "Сопровождение",
+    price: "от 30 тыс. ₽/мес",
+    term: "ежемесячно",
     gradient: "from-pink-500 to-rose-600",
-    items: ["Внешний AI-отдел компании", "Мониторинг и доработки", "Новые сценарии каждый месяц", "Аналитика по метрикам"],
+    items: ["Следим, чтобы всё работало", "Исправляем сбои", "Дорабатываем по запросу", "Ежемесячный отчёт о работах"],
   },
 ];
 
@@ -59,11 +59,11 @@ export default function AutomateSection({ scrollTo }: { scrollTo: (href: string)
             Что автоматизируем
           </div>
           <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-            Что мы можем автоматизировать{" "}
-            <span className="gradient-text">в вашем бизнесе</span>
+            Что можно{" "}
+            <span className="gradient-text">автоматизировать</span>
           </h2>
           <p className="text-white/50 text-lg max-w-2xl mx-auto">
-            Узнайте свою проблему — у неё уже есть готовое решение
+            Типовые задачи, с которыми к нам приходят
           </p>
         </AnimatedSection>
 
@@ -89,11 +89,11 @@ export default function AutomateSection({ scrollTo }: { scrollTo: (href: string)
             Как начать работу
           </div>
           <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-            Четыре шага —{" "}
-            <span className="gradient-text-3">без большого риска</span>
+            Начните{" "}
+            <span className="gradient-text-3">с малого</span>
           </h2>
           <p className="text-white/50 text-lg max-w-2xl mx-auto">
-            Начните с бесплатного аудита и небольшого пилота. Масштабируйте то, что уже дало результат
+            Не нужно сразу заказывать большой проект. Проверьте на одной задаче, а потом решите
           </p>
         </AnimatedSection>
 
@@ -103,7 +103,7 @@ export default function AutomateSection({ scrollTo }: { scrollTo: (href: string)
               <div className={`glass rounded-2xl p-6 h-full flex flex-col relative ${l.featured ? "border-2 border-violet-500/60" : "neon-border"}`}>
                 {l.featured && (
                   <span className="absolute -top-3 left-6 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs px-3 py-1 rounded-full">
-                    Основной продукт
+                    Основной формат
                   </span>
                 )}
                 <div className="flex items-center justify-between mb-4">
@@ -126,7 +126,7 @@ export default function AutomateSection({ scrollTo }: { scrollTo: (href: string)
                   onClick={() => { ymGoal("cta_click", { source: `ladder_${l.step}` }); scrollTo("#contacts"); }}
                   className={`w-full py-3 rounded-xl text-sm font-semibold text-white ${i === 0 || l.featured ? "btn-gradient" : "glass border border-white/15 hover:bg-white/10"}`}
                 >
-                  {i === 0 ? "Записаться на аудит" : "Обсудить"}
+                  {i === 0 ? "Записаться" : "Обсудить"}
                 </button>
               </div>
             </AnimatedSection>

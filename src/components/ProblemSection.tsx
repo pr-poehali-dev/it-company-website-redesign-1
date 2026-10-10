@@ -17,9 +17,8 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
                 Проблема
               </div>
               <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                Большинство компаний{" "}
-                <span className="text-red-400">теряют клиентов</span>{" "}
-                из-за процессов
+                Узнаёте{" "}
+                <span className="text-red-400">свою ситуацию?</span>
               </h2>
 
               <div className="space-y-3 mb-8">
@@ -37,8 +36,8 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
               </div>
 
               <p className="text-white/50 text-base leading-relaxed border-l-2 border-red-500/40 pl-4">
-                В итоге бизнес теряет деньги, даже не замечая этого.
-                Мы находим и устраняем эти потери с помощью автоматизации.
+                Обычно это не вина сотрудников — им просто не хватает рук.
+                Часть такой работы может делать система.
               </p>
             </div>
           </AnimatedSection>
@@ -51,24 +50,22 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
                 Что вы получите
               </div>
               <h3 className="font-oswald text-2xl font-bold mb-7 text-white">
-                После внедрения автоматизации
+                Чего можно добиться
               </h3>
 
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: "TrendingDown", color: "text-violet-400", bg: "bg-violet-500/10", metric: "↓", text: "меньше ручной работы — считаем до и после" },
-                  { icon: "Zap", color: "text-cyan-400", bg: "bg-cyan-500/10", metric: "в минуты", text: "быстрые ответы клиентам" },
-                  { icon: "ShieldCheck", color: "text-emerald-400", bg: "bg-emerald-500/10", metric: "0", text: "потерянных заявок" },
-                  { icon: "BarChart2", color: "text-amber-400", bg: "bg-amber-500/10", metric: "↑", text: "рост конверсии и продаж" },
-                  { icon: "Eye", color: "text-pink-400", bg: "bg-pink-500/10", metric: "100%", text: "прозрачные и понятные процессы" },
-                ].map((item, i) => (
+                  { icon: "TrendingDown", color: "text-violet-400", bg: "bg-violet-500/10", metric: "", text: "Сотрудники меньше времени тратят на перенос данных" },
+                  { icon: "Zap", color: "text-cyan-400", bg: "bg-cyan-500/10", metric: "", text: "Клиенты быстрее получают ответ" },
+                  { icon: "ShieldCheck", color: "text-emerald-400", bg: "bg-emerald-500/10", metric: "", text: "Заявки не теряются между почтой, сайтом и мессенджерами" },
+                  { icon: "BarChart2", color: "text-amber-400", bg: "bg-amber-500/10", metric: "", text: "Руководитель видит, что происходит с каждой заявкой" },
+                                  ].map((item, i) => (
                   <div key={i} className={`flex items-center gap-4 ${item.bg} rounded-xl px-4 py-3`}>
                     <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
                       <Icon name={item.icon} size={16} className={item.color} />
                     </div>
                     <div className="flex items-center gap-2 flex-1">
-                      <span className={`font-oswald font-bold text-lg ${item.color}`}>{item.metric}</span>
-                      <span className="text-sm text-white/70">{item.text}</span>
+                                            <span className="text-sm text-white/70">{item.text}</span>
                     </div>
                   </div>
                 ))}
@@ -78,7 +75,7 @@ export default function ProblemSection({ scrollTo }: { scrollTo: (href: string) 
                 onClick={() => { ymGoal("cta_click", { source: "problem" }); scrollTo("#contacts"); }}
                 className="w-full btn-gradient py-3.5 rounded-2xl text-sm font-semibold text-white flex items-center justify-center gap-2"
               >
-                Найти потери в моём бизнесе
+                Обсудить мою задачу
                 <Icon name="ArrowRight" size={16} />
               </button>
             </div>

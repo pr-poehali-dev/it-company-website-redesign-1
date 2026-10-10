@@ -7,8 +7,8 @@ export const PORTFOLIO_IMAGE = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4
 export const navLinks = [
   { label: "Что автоматизируем", href: "#what-we-do" },
   { label: "Услуги", href: "#services" },
-  { label: "Кейсы и продукты", href: "#portfolio" },
-  { label: "Калькулятор потерь", href: "#loss" },
+  { label: "Наши сервисы", href: "#portfolio" },
+  { label: "Расчёт", href: "#loss" },
   { label: "Инвесторам", href: "/investors" },
   { label: "О компании", href: "#about" },
   { label: "Блог", href: "#blog" },
@@ -34,7 +34,7 @@ export const services = [
       { icon: "Zap", title: "Автоматизация процессов", desc: "Связываем CRM, Google Sheets, мессенджеры и другие инструменты в единый автоматический поток" },
     ],
     process: [
-      { step: "01", title: "Бесплатный разбор", desc: "Изучаем ваши процессы, находим точки для автоматизации, оцениваем эффект" },
+      { step: "01", title: "Бесплатная консультация", desc: "Разбираем ваши процессы и говорим, что стоит автоматизировать" },
       { step: "02", title: "План внедрения", desc: "Составляем конкретный план с задачами, сроками и ожидаемым результатом" },
       { step: "03", title: "Разработка и настройка", desc: "Создаём и настраиваем AI-решение под ваши процессы" },
       { step: "04", title: "Интеграция", desc: "Подключаем к вашим системам: сайт, CRM, мессенджеры, почта" },
@@ -284,7 +284,7 @@ export const portfolio = [
   { title: "АгроПорт", category: "ИИ / Агробизнес", desc: "AI-платформа мониторинга и прогнозирования агрорынка России: прогнозы цен на зерновые, спутниковый NDVI-мониторинг посевов и карта рисков по 23 регионам", tech: ["AI", "React", "Python"], color: "from-green-600 to-lime-600", url: "https://agroport-ai.ru", icon: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/f907a1ca-2bf8-4e25-88c5-2ca48e1525de.jpg" },
   { title: "MAIL-KA", category: "Email-маркетинг / ИИ", desc: "Российская платформа для email-рассылок с AI-копирайтером, визуальными автоматизациями и omnichannel-каналами: Email, SMS, Telegram, Push", tech: ["AI", "React", "Python"], color: "from-blue-600 to-indigo-700", url: "https://mail-ka.ru", icon: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/847e0ff7-653b-4522-a7b7-702fd6832810.jpg" },
   { title: "MAT-AD", category: "Реклама / ИИ", desc: "Сервис для рекламных специалистов: ИИ-генерация объявлений, работа с фидами и шаблонами — автоматизация рутинных задач в настройке кампаний", tech: ["AI", "React", "Python"], color: "from-rose-600 to-orange-600", url: "https://mat-ad.ru", icon: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/10d35a76-07c0-408e-b8eb-3613e62a4aa3.jpg" },
-  { title: "УЧИСЬПРО", category: "EdTech / ИИ-репетитор", desc: "ИИ-репетитор, который доводит до 90+ баллов на экзамене: голосовой ассистент за 5 минут диагностики находит пробелы и ведёт ученика по персональному маршруту до результата — 24/7, без записи и ожидания", tech: ["AI", "Voice AI", "React", "Python"], color: "from-fuchsia-600 to-purple-700", url: "https://учисьпро.рф", icon: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/111df0c4-b333-4b17-ae40-13b49c4bdcad.jpg" },
+  { title: "УЧИСЬПРО", category: "EdTech / ИИ-репетитор", desc: "Онлайн-школа с ИИ-репетитором: голосовая диагностика находит пробелы в знаниях и ведёт ученика по персональному плану подготовки к экзаменам — в любое время", tech: ["AI", "Voice AI", "React", "Python"], color: "from-fuchsia-600 to-purple-700", url: "https://учисьпро.рф", icon: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/111df0c4-b333-4b17-ae40-13b49c4bdcad.jpg" },
   { title: "Грант AI", category: "ИИ / Гранты и субсидии", desc: "AI-платформа для поиска грантов, субсидий и конкурсов: умный подбор подходящих программ под ваш проект и помощь в подготовке заявок на финансирование", tech: ["AI", "React", "Python"], color: "from-teal-600 to-emerald-700", url: "https://grant-ai.ru", icon: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/c872d7f1-cb6e-4365-9579-c03186e3a7f0.jpg" },
 ];
 

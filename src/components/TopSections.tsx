@@ -29,18 +29,18 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full mb-8 border border-cyan-500/30 animate-fade-in-up">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-sm text-white/80">Бесплатный AI-аудит · Запуск за 7–14 дней</span>
+              <span className="text-sm text-white/80">Автоматизация для малого и среднего бизнеса</span>
             </div>
 
             <h1 className="font-oswald text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.0] mb-6 animate-fade-in-up delay-100">
-              <span className="block text-white">Не внедряем AI.</span>
-              <span className="block gradient-text">Убираем ручную</span>
-              <span className="block gradient-text-3">работу</span>
+              <span className="block text-white">Автоматизируем</span>
+              <span className="block gradient-text">рутину в бизнесе</span>
+              <span className="block text-white">с помощью AI</span>
             </h1>
 
             <p className="text-lg md:text-xl text-white/60 max-w-2xl leading-relaxed mb-4 animate-fade-in-up delay-200">
-              Находим процессы, на которых ваш бизнес теряет деньги, и запускаем рабочее
-              решение за 7–14 дней: заявки, продажи, CRM, документы, поддержка, аналитика.
+              Заявки, ответы клиентам, CRM, документы и отчёты — то, что сотрудники
+              сейчас делают вручную. Начинаем с бесплатной консультации.
             </p>
 
             <div className="flex flex-wrap gap-4 mb-4 animate-fade-in-up delay-300">
@@ -49,28 +49,27 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
                 className="btn-gradient px-8 py-4 rounded-2xl text-base font-semibold text-white glow-purple group"
               >
                 <span className="flex items-center gap-2">
-                  Получить AI-аудит бесплатно
+                  Бесплатная консультация
                   <Icon name="ArrowRight" size={18} />
                 </span>
               </button>
               <button
-                onClick={() => { ymGoal("cta_click", { source: "hero_loss" }); scrollTo("#loss"); }}
+                onClick={() => { ymGoal("cta_click", { source: "hero_what" }); scrollTo("#what-we-do"); }}
                 className="glass px-8 py-4 rounded-2xl text-base font-semibold text-white hover:bg-white/10 transition-all duration-300 border border-white/20"
               >
-                Посчитать потери
+                Что можно автоматизировать
               </button>
             </div>
 
             <p className="text-sm text-white/35 mb-12 animate-fade-in-up delay-300">
-              30–45 минут: 3 точки потерь, 3 процесса для автоматизации и оценка экономии
+              30–45 минут онлайн. Разберём ваши процессы и скажем, что стоит автоматизировать, а что нет
             </p>
 
             <div ref={statsRef} className="flex flex-wrap gap-10 animate-fade-in-up delay-400">
               {[
-                { val: "0 ₽", label: "AI-аудит бизнеса" },
-                { val: "3–7", label: "Дней на пилот" },
-                { val: "7–14", label: "Дней до внедрения" },
-                { val: "12", label: "Собственных AI-продуктов" },
+                { val: "0 ₽", label: "Первая консультация" },
+                { val: "от 30 тыс. ₽", label: "Пробный проект" },
+                { val: "12", label: "Своих работающих сервисов" },
               ].map((s, i) => (
                 <div key={i} className="text-center">
                   <div className="font-oswald text-3xl md:text-4xl font-bold gradient-text">{s.val}</div>
@@ -99,8 +98,8 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
                 <div className="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-cyan-600/20 rounded-3xl blur-xl" />
                 <img src={TEAM_IMAGE} alt="Команда МАТ-Лабс — разработка и внедрение AI-решений" loading="lazy" className="relative rounded-3xl w-full object-cover aspect-[4/3] neon-border" />
                 <div className="absolute -bottom-6 -right-6 glass neon-border rounded-2xl p-5 animate-float">
-                  <div className="font-oswald text-3xl font-bold gradient-text">7–14</div>
-                  <div className="text-white/60 text-sm">дней до результата</div>
+                  <div className="font-oswald text-3xl font-bold gradient-text">12</div>
+                  <div className="text-white/60 text-sm">своих сервисов в работе</div>
                 </div>
                 <div className="absolute -top-6 -left-6 glass neon-border rounded-2xl p-4 animate-float-reverse">
                   <div className="flex items-center gap-2">
@@ -118,24 +117,23 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
                   О компании
                 </div>
                 <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                  Команда, которая{" "}
-                  <span className="gradient-text">делает AI</span>{" "}
-                  рабочим инструментом
+                  Мы делаем то,{" "}
+                  <span className="gradient-text">чем пользуемся сами</span>
                 </h2>
                 <p className="text-white/60 text-lg leading-relaxed mb-6">
-                  МАТ-Лабс — команда инженеров и аналитиков, которая внедряет AI-автоматизацию
-                  в реальный бизнес: от малого до корпоративного уровня.
+                  МАТ-Лабс — команда разработчиков из Самары. Мы создали и поддерживаем 12 собственных
+                  сервисов: для ремонта, CRM, обучения, рассылок, грантов. Тот же опыт применяем в проектах клиентов.
                 </p>
                 <p className="text-white/50 leading-relaxed mb-8">
-                  Мы не продаём «разработку» — мы берёмся за конкретную проблему
-                  и выдаём измеримый результат за 7–14 дней.
+                  Начинаем с одной задачи и небольшого бюджета. Если результат вас устроил — продолжаем.
+                  Если нет — вы не потратили лишнего.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { icon: "Bot", text: "AI-первый подход" },
-                    { icon: "Zap", text: "Внедрение за 7–14 дней" },
-                    { icon: "Users", text: "Выделенная команда" },
-                    { icon: "Target", text: "Фокус на результате" },
+                    { icon: "Package", text: "12 своих сервисов" },
+                    { icon: "Handshake", text: "Партнёр Лемана Про" },
+                    { icon: "Globe", text: "Работаем по всей России" },
+                    { icon: "FileText", text: "Работаем по договору" },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 glass rounded-xl p-3 border border-white/5">
                       <div className="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -160,10 +158,10 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
               Услуги
             </div>
             <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-              Всё, что нужно для{" "}
-              <span className="gradient-text-3">роста бизнеса</span>
+              Услуги{" "}
+              <span className="gradient-text-3">и цены</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">AI-автоматизация, сайты и разработка — под конкретную задачу, а не «в общем»</p>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">Цены указаны «от». Точную стоимость назовём после консультации и зафиксируем в договоре</p>
           </AnimatedSection>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -203,9 +201,8 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
                     Абонентское сопровождение
                   </h3>
                   <p className="text-white/50 text-sm md:text-base leading-relaxed mb-5">
-                    Внедрение — это старт, а не финиш. Бизнес меняется: появляются новые
-                    процессы, сценарии и интеграции. Мы ведём систему дальше, чтобы она
-                    работала и через год.
+                    После запуска система требует внимания: меняются сервисы, появляются новые задачи.
+                    Мы следим, чтобы всё работало, и дорабатываем по вашим запросам.
                   </p>
                   <div className="flex flex-wrap gap-x-6 gap-y-2">
                     {[
@@ -250,10 +247,10 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
               Портфолио
             </div>
             <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4">
-              Проекты, которыми{" "}
-              <span className="gradient-text-2">мы гордимся</span>
+              Наши{" "}
+              <span className="gradient-text-2">сервисы</span>
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">Решения для компаний из разных отраслей — от ремонта и агро до станкостроения</p>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">Всё это мы сделали и поддерживаем сами. Каждый можно открыть и посмотреть</p>
           </AnimatedSection>
 
           <AnimatedSection className="mb-6">
@@ -262,7 +259,7 @@ export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
               <img src={PORTFOLIO_IMAGE} alt="Проект АВАНГАРД — ИИ-эксперт по дизайну и ремонту интерьера" loading="lazy" className="w-full h-64 md:h-80 object-cover opacity-40" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#080812] via-[#080812]/70 to-transparent flex items-center">
                 <div className="p-8 md:p-12 max-w-lg">
-                  <span className="inline-block bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs px-3 py-1 rounded-full mb-4">Флагманский проект</span>
+                  <span className="inline-block bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs px-3 py-1 rounded-full mb-4">Наш главный проект</span>
                   <h3 className="font-oswald text-3xl md:text-4xl font-bold mb-3">АВАНГАРД</h3>
                   <p className="text-white/60 mb-4">ИИ-эксперт по дизайну и ремонту: онлайн-консультации, создание дизайн-проектов интерьера и расчёт сметы</p>
                   <div className="flex gap-2 flex-wrap">

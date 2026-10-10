@@ -12,13 +12,13 @@ const segments = [
     icon: "Rocket",
     gradient: "from-cyan-500 to-blue-600",
     title: "Онлайн-сервисам и стартапам",
-    desc: "Если нужен сайт, веб-сервис или MVP для запуска продукта быстро и без лишних затрат.",
+    desc: "Если нужен сайт, веб-сервис или первая версия продукта, чтобы проверить идею.",
   },
   {
     icon: "MessageCircle",
     gradient: "from-emerald-500 to-teal-600",
     title: "Компаниям с большим потоком заявок",
-    desc: "Если важно быстрее отвечать клиентам и не терять ни одного обращения.",
+    desc: "Если менеджеры не успевают отвечать и часть обращений остаётся без ответа.",
   },
   {
     icon: "GitBranch",
@@ -42,7 +42,7 @@ export default function AudienceSection({ scrollTo }: { scrollTo: (href: string)
             <span className="gradient-text-3">наши решения</span>
           </h2>
           <p className="text-white/50 text-lg max-w-2xl mx-auto">
-            Узнайте себя — и оставьте заявку на бесплатный разбор
+            Если узнали себя — приходите на бесплатную консультацию
           </p>
         </AnimatedSection>
 
@@ -72,11 +72,11 @@ export default function AudienceSection({ scrollTo }: { scrollTo: (href: string)
                   Примеры задач
                 </div>
                 <h3 className="font-oswald text-2xl md:text-3xl font-bold text-white mb-4">
-                  Что мы уже{" "}
-                  <span className="gradient-text">решали</span>
+                  С чем{" "}
+                  <span className="gradient-text">обращаются чаще всего</span>
                 </h3>
                 <p className="text-white/50 text-sm leading-relaxed">
-                  Это реальные задачи наших клиентов — возможно, одна из них похожа на вашу.
+                  Типовые задачи. Если вашей нет в списке — расскажите, подскажем, решается ли она.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-3">

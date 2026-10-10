@@ -151,7 +151,7 @@ export default function CalculatorSection({ scrollTo }: { scrollTo: (href: strin
                   от {price.toLocaleString("ru-RU")} ₽
                 </div>
                 <p className="text-white/30 text-sm mb-8">
-                  Точная цена — после бесплатного разбора задачи
+                  Точная цена — после бесплатной консультации
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button

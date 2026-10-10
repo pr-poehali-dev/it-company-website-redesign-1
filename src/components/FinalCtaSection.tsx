@@ -14,7 +14,7 @@ export default function FinalCtaSection({ scrollTo }: { scrollTo: (href: string)
             <div className="relative">
               <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-emerald-300 border border-emerald-500/30 mb-8">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                Бесплатный разбор — без обязательств
+                Бесплатно и без обязательств
               </div>
 
               <h2 className="font-oswald text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -23,14 +23,14 @@ export default function FinalCtaSection({ scrollTo }: { scrollTo: (href: string)
               </h2>
 
               <p className="text-white/60 text-lg leading-relaxed max-w-2xl mx-auto mb-3">
-                Оставьте заявку и получите разбор ваших процессов с конкретными рекомендациями.
+                Оставьте заявку — мы перезвоним и договоримся о консультации. На ней разберём:
               </p>
 
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-white/40 mb-10">
                 {[
                   "где теряются заявки",
                   "что можно автоматизировать",
-                  "как снизить нагрузку на сотрудников",
+                  "сколько это будет стоить",
                 ].map((t, i) => (
                   <span key={i} className="flex items-center gap-1.5">
                     <Icon name="ChevronRight" size={13} className="text-violet-400" />
@@ -60,7 +60,7 @@ export default function FinalCtaSection({ scrollTo }: { scrollTo: (href: string)
 
               <div className="flex flex-wrap justify-center gap-6 mt-10 pt-10 border-t border-white/10">
                 {[
-                  { icon: "Zap", text: "Ответ в течение 24 часов" },
+                  { icon: "Zap", text: "Перезвоним в рабочее время" },
                   { icon: "Shield", text: "Без обязательств" },
                   { icon: "Gift", text: "Бесплатно" },
                 ].map((item, i) => (

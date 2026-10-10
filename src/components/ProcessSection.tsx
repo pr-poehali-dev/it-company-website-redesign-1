@@ -17,16 +17,16 @@ export default function ProcessSection({ scrollTo }: { scrollTo: (href: string) 
                 Как мы работаем
               </div>
               <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-10 leading-tight">
-                От разбора до{" "}
+                От консультации до{" "}
                 <span className="gradient-text">готового результата</span>
               </h2>
 
               <div className="space-y-4">
                 {[
-                  { step: "01", icon: "Search", title: "Анализируем ваш бизнес", desc: "Изучаем текущие процессы, находим, где теряются заявки и время сотрудников" },
-                  { step: "02", icon: "Target", title: "Находим точки потерь и роста", desc: "Показываем конкретно: что автоматизировать и какой результат это даст" },
-                  { step: "03", icon: "FileText", title: "Предлагаем решение и план", desc: "Называем сроки, стоимость и ожидаемый эффект — без скрытых платежей" },
-                  { step: "04", icon: "Rocket", title: "Запускаем и настраиваем", desc: "Внедряем за 7–14 дней. Вы получаете готовое решение, а не \"разработку ради разработки\"" },
+                  { step: "01", icon: "Search", title: "Консультация", desc: "Слушаем, как устроена работа сейчас и что мешает" },
+                  { step: "02", icon: "Target", title: "Предложение", desc: "Говорим, что стоит автоматизировать, а что нет, и почему" },
+                  { step: "03", icon: "FileText", title: "Договор", desc: "Фиксируем задачи, сроки и цену. Без скрытых платежей" },
+                  { step: "04", icon: "Rocket", title: "Запуск", desc: "Делаем, проверяем вместе с вами, обучаем сотрудников. Простые задачи — от 7 дней" },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-5">
                     <div className="flex flex-col items-center gap-1 flex-shrink-0">
@@ -51,7 +51,7 @@ export default function ProcessSection({ scrollTo }: { scrollTo: (href: string) 
             <AnimatedSection>
               <div className="space-y-5">
                 <div className="inline-block glass px-4 py-1.5 rounded-full text-sm text-emerald-300 border border-emerald-500/30 mb-2">
-                  Примеры результатов
+                  Что обычно меняется
                 </div>
 
                 {[
@@ -59,22 +59,22 @@ export default function ProcessSection({ scrollTo }: { scrollTo: (href: string) 
                     icon: "Zap",
                     gradient: "from-violet-600 to-purple-600",
                     tag: "Автоматизация",
-                    title: "Время ответа с 2 часов до 5 минут",
-                    desc: "Настроили автоматическую обработку заявок с сайта — клиент получает ответ мгновенно, менеджер видит уведомление в Telegram.",
+                    title: "Клиент получает ответ сразу",
+                    desc: "Заявка с сайта сразу получает автоответ, а менеджер — уведомление в Telegram. Никто не ждёт, пока её заметят в почте.",
                     metrics: [
-                      { label: "Было", val: "2 часа", color: "text-red-400" },
-                      { label: "Стало", val: "5 минут", color: "text-emerald-400" },
+                      { label: "Было", val: "часы", color: "text-red-400" },
+                      { label: "Стало", val: "сразу", color: "text-emerald-400" },
                     ],
                   },
                   {
                     icon: "Link2",
                     gradient: "from-cyan-500 to-blue-600",
                     tag: "Интеграция",
-                    title: "Убрали потерю заявок и ручной труд",
-                    desc: "Интегрировали сайт с CRM — все заявки автоматически попадают в систему, менеджеры больше не копируют данные вручную.",
+                    title: "Данные не нужно переносить вручную",
+                    desc: "Сайт связан с CRM: заявки попадают туда сами, менеджеры не копируют их из почты и таблиц.",
                     metrics: [
-                      { label: "Потери", val: "0%", color: "text-emerald-400" },
-                      { label: "Ручной труд", val: "−80%", color: "text-cyan-400" },
+                      { label: "Было", val: "вручную", color: "text-red-400" },
+                      { label: "Стало", val: "само", color: "text-emerald-400" },
                     ],
                   },
                 ].map((item, i) => (
@@ -110,10 +110,10 @@ export default function ProcessSection({ scrollTo }: { scrollTo: (href: string) 
                   </div>
                   <div className="space-y-2.5">
                     {[
-                      { icon: "Rocket", text: "Быстрый запуск — от 7 дней" },
-                      { icon: "Settings", text: "Решения под задачи вашего бизнеса, а не шаблоны" },
-                      { icon: "Target", text: "Фокус на результате, а не на процессе" },
-                      { icon: "CheckCircle", text: "Простые и эффективные внедрения без лишней сложности" },
+                      { icon: "Package", text: "Делаем свои сервисы — знаем, как это работает на практике" },
+                      { icon: "Coins", text: "Можно начать с небольшого пробного проекта" },
+                      { icon: "FileText", text: "Цена и сроки — в договоре" },
+                      { icon: "MessageCircle", text: "Честно скажем, если автоматизация вам не нужна" },
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
@@ -127,7 +127,7 @@ export default function ProcessSection({ scrollTo }: { scrollTo: (href: string) 
                     onClick={() => { ymGoal("cta_click", { source: "why_us" }); scrollTo("#contacts"); }}
                     className="mt-5 w-full glass border border-amber-500/30 hover:border-amber-500/60 py-3 rounded-xl text-sm font-semibold text-amber-300 hover:text-amber-200 transition-all flex items-center justify-center gap-2"
                   >
-                    Получить бесплатный разбор
+                    Записаться на консультацию
                     <Icon name="ArrowRight" size={15} />
                   </button>
                 </div>
