@@ -77,15 +77,27 @@ function generateSlug(title) {
 }
 
 async function fetchPosts() {
-  try {
-    const res = await fetch(BLOG_API, { signal: AbortSignal.timeout(15000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return (data.posts || []).filter((p) => p.content && p.title);
-  } catch (e) {
-    console.warn(`[seo-prerender] статьи блога не загружены: ${e.message}`);
-    return [];
+  const cacheFile = path.join(path.dirname(DIST), "blog-cache.json");
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(BLOG_API, { signal: AbortSignal.timeout(20000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const posts = (data.posts || []).filter((p) => p.content && p.title);
+      if (posts.length) {
+        try { fs.writeFileSync(cacheFile, JSON.stringify(posts), "utf-8"); } catch { /* read-only */ }
+      }
+      return posts;
+    } catch (e) {
+      console.warn(`[seo-prerender] попытка ${attempt}: статьи блога не загружены: ${e.message}`);
+    }
   }
+  if (fs.existsSync(cacheFile)) {
+    const cached = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
+    console.warn(`[seo-prerender] беру статьи из сохранённой копии: ${cached.length}`);
+    return cached;
+  }
+  return [];
 }
 
 export async function prerender() {
