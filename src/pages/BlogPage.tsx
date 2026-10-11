@@ -5,8 +5,8 @@ import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { type BlogPost } from "@/components/BlogModal";
 import { generateSlug } from "@/lib/slug";
+import { BUNDLED_POSTS, loadBlogPosts } from "@/lib/blog";
 
-const BLOG_URL = "https://functions.poehali.dev/f6938906-b3c4-4bf7-b1f9-96560e19ef1b";
 const SITE_URL = "https://mat-labs.ru";
 
 function renderLine(text: string) {
@@ -64,21 +64,22 @@ export default function BlogPage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    const bundled = BUNDLED_POSTS.find((p) => generateSlug(p.title) === slug) || null;
+    setPost(bundled);
+    setLoading(!bundled);
     setNotFound(false);
-    fetch(`${BLOG_URL}/`)
-      .then((r) => r.json())
-      .then((data) => {
-        const posts: BlogPost[] = data.posts || [];
+    let alive = true;
+    loadBlogPosts()
+      .then((posts) => {
+        if (!alive) return;
         const found = posts.find((p) => generateSlug(p.title) === slug);
-        if (!found) {
-          setNotFound(true);
-        } else {
-          setPost(found);
-        }
+        if (found) setPost(found);
+        else if (!bundled) setNotFound(true);
       })
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
   }, [slug]);
 
   useEffect(() => {

@@ -76,28 +76,37 @@ function generateSlug(title) {
     .replace(/-+/g, "-");
 }
 
+function readBundledPosts() {
+  const file = path.join(__dirname, "src", "data", "blog-posts.json");
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf-8")).filter((p) => p.content && p.title);
+  } catch {
+    return [];
+  }
+}
+
+function mergeWithBundled(live) {
+  const bundled = readBundledPosts();
+  const seen = new Set(live.map((p) => generateSlug(p.title)));
+  return [...live, ...bundled.filter((p) => !seen.has(generateSlug(p.title)))];
+}
+
 async function fetchPosts() {
-  const cacheFile = path.join(path.dirname(DIST), "blog-cache.json");
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const res = await fetch(BLOG_API, { signal: AbortSignal.timeout(20000) });
+      const res = await fetch(BLOG_API, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const posts = (data.posts || []).filter((p) => p.content && p.title);
-      if (posts.length) {
-        try { fs.writeFileSync(cacheFile, JSON.stringify(posts), "utf-8"); } catch { /* read-only */ }
-      }
-      return posts;
+      if (posts.length) return mergeWithBundled(posts);
+      throw new Error("пустой список");
     } catch (e) {
-      console.warn(`[seo-prerender] попытка ${attempt}: статьи блога не загружены: ${e.message}`);
+      console.warn(`[seo-prerender] попытка ${attempt}: статьи блога не загружены с сервера: ${e.message}`);
     }
   }
-  if (fs.existsSync(cacheFile)) {
-    const cached = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
-    console.warn(`[seo-prerender] беру статьи из сохранённой копии: ${cached.length}`);
-    return cached;
-  }
-  return [];
+  const bundled = readBundledPosts();
+  console.warn(`[seo-prerender] беру статьи из копии в проекте: ${bundled.length}`);
+  return bundled;
 }
 
 export async function prerender() {
