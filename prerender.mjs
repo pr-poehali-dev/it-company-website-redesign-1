@@ -467,13 +467,15 @@ for (const p of blogPosts) {
     title: fitTitle(p.title, " | Блог МАТ-Лабс", 70),
     description,
     h1: p.title,
-    bodyHtml: mdToHtml(p.content),
+    bodyHtml: mdToHtml(p.content) + (p.source_url ? `\n<p>Впервые опубликовано на <a href="${esc(p.source_url)}">учисьпро.рф</a> — образовательном проекте МАТ-Лабс.</p>` : ""),
     ogType: "article",
     image: p.cover_url || null,
     lastmod: modified,
+    canonical: p.source_url || null,
     schema: {
       "@context": "https://schema.org",
       "@type": "Article",
+      ...(p.source_url ? { isBasedOn: p.source_url } : {}),
       headline: p.title,
       description,
       ...(p.cover_url ? { image: p.cover_url } : {}),
@@ -531,7 +533,8 @@ if (blogPosts.length) {
 const tpl = fs.readFileSync(path.join(DIST, "index.html"), "utf-8");
 
 function buildHead(r) {
-  const canonical = SITE + r.url;
+  const canonical = r.canonical || SITE + r.url;
+  const pageUrl = SITE + r.url;
   const crumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -554,7 +557,7 @@ function buildHead(r) {
     <meta property="og:site_name" content="ООО МАТ-Лабс">
     <meta property="og:title" content="${esc(r.title)}">
     <meta property="og:description" content="${esc(r.description)}">
-    <meta property="og:url" content="${canonical}">
+    <meta property="og:url" content="${pageUrl}">
     <meta property="og:image" content="${esc(r.image || OG_IMAGE)}">${r.image ? "" : `
     <meta property="og:image:width" content="1024">
     <meta property="og:image:height" content="1024">`}
@@ -581,7 +584,7 @@ function updateSitemap() {
   if (!fs.existsSync(file)) return 0;
   let xml = fs.readFileSync(file, "utf-8");
   const extra = routes.filter(
-    (r) => (r.url.startsWith("/blog") || r.url === "/gotovyy-biznes" || r.url === "/investors") && !xml.includes(`<loc>${SITE}${r.url}</loc>`),
+    (r) => !r.canonical && (r.url.startsWith("/blog") || r.url === "/gotovyy-biznes" || r.url === "/investors") && !xml.includes(`<loc>${SITE}${r.url}</loc>`),
   );
   if (!extra.length) return 0;
   const today = new Date().toISOString().slice(0, 10);

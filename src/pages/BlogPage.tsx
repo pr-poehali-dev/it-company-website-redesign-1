@@ -87,7 +87,8 @@ export default function BlogPage() {
     }
   }, [notFound, navigate]);
 
-  const canonicalUrl = `${SITE_URL}/blog/${slug}`;
+  const pageUrl = `${SITE_URL}/blog/${slug}`;
+  const canonicalUrl = post?.source_url || pageUrl;
   const plainContent = post?.content?.replace(/[#*`_~]/g, "").replace(/\n+/g, " ").trim() ?? "";
   const description = plainContent.slice(0, 160);
 
@@ -108,7 +109,8 @@ export default function BlogPage() {
         },
         ...(post.cover_url ? { image: post.cover_url } : {}),
         description,
-        url: canonicalUrl,
+        url: pageUrl,
+        ...(post.source_url ? { isBasedOn: post.source_url } : {}),
       }
     : null;
 
@@ -121,7 +123,7 @@ export default function BlogPage() {
           <link rel="canonical" href={canonicalUrl} />
           <meta property="og:title" content={`${post.title} | Блог МАТ-Лабс`} />
           <meta property="og:description" content={description} />
-          <meta property="og:url" content={canonicalUrl} />
+          <meta property="og:url" content={pageUrl} />
           <meta property="og:type" content="article" />
           {post.cover_url && <meta property="og:image" content={post.cover_url} />}
           <meta name="twitter:card" content="summary_large_image" />
@@ -201,13 +203,23 @@ export default function BlogPage() {
               ) : (
                 <p className="text-white/40 text-sm">Содержимое статьи скоро появится.</p>
               )}
+
+              {post.source_url && (
+                <div className="mt-10 glass border border-white/10 rounded-2xl p-5 text-sm text-white/60">
+                  Впервые опубликовано на{" "}
+                  <a href={post.source_url} target="_blank" rel="noopener" className="text-violet-300 hover:text-violet-200 underline underline-offset-2">
+                    учисьпро.рф
+                  </a>{" "}
+                  — образовательном проекте МАТ-Лабс.
+                </div>
+              )}
             </div>
 
             <div className="mt-8 glass neon-border rounded-2xl p-6">
               <p className="text-white/40 text-xs uppercase tracking-wider mb-4">Поделиться статьёй</p>
               <div className="flex flex-wrap gap-3">
                 <a
-                  href={`https://vk.com/share.php?url=${encodeURIComponent(canonicalUrl)}&title=${encodeURIComponent(post.title)}`}
+                  href={`https://vk.com/share.php?url=${encodeURIComponent(pageUrl)}&title=${encodeURIComponent(post.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 glass border border-white/10 hover:border-[#0077ff]/50 hover:bg-[#0077ff]/10 px-4 py-2.5 rounded-xl text-sm text-white/70 hover:text-white transition-all"
@@ -218,7 +230,7 @@ export default function BlogPage() {
                   ВКонтакте
                 </a>
                 <a
-                  href={`https://t.me/share/url?url=${encodeURIComponent(canonicalUrl)}&text=${encodeURIComponent(post.title)}`}
+                  href={`https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(post.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 glass border border-white/10 hover:border-[#29b6f6]/50 hover:bg-[#29b6f6]/10 px-4 py-2.5 rounded-xl text-sm text-white/70 hover:text-white transition-all"
@@ -230,7 +242,7 @@ export default function BlogPage() {
                 </a>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(canonicalUrl);
+                    navigator.clipboard.writeText(pageUrl);
                   }}
                   className="flex items-center gap-2 glass border border-white/10 hover:border-white/30 hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm text-white/70 hover:text-white transition-all"
                 >

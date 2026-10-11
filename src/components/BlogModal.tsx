@@ -9,6 +9,7 @@ export interface BlogPost {
   color: string;
   content?: string;
   cover_url?: string | null;
+  source_url?: string | null;
 }
 
 interface BlogModalProps {

@@ -44,6 +44,7 @@ def row_to_post(row) -> dict:
         'created_at': row[7].isoformat(),
         'updated_at': row[8].isoformat() if row[8] else row[7].isoformat(),
         'cover_url': row[9],
+        'source_url': row[10] if len(row) > 10 else None,
     }
 
 
@@ -71,9 +72,9 @@ def handler(event: dict, context) -> dict:
         # GET /  — список опубликованных (публично) или всех (admin)
         if method == 'GET' and (path.endswith('/') or path.endswith('/blog-admin')):
             if is_admin():
-                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url FROM blog_posts ORDER BY created_at DESC")
+                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url, source_url FROM blog_posts ORDER BY created_at DESC")
             else:
-                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url FROM blog_posts WHERE published = true ORDER BY created_at DESC")
+                cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url, source_url FROM blog_posts WHERE published = true ORDER BY created_at DESC")
             rows = cur.fetchall()
             posts = [row_to_post(r) for r in rows]
             return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'posts': posts}, ensure_ascii=False)}
@@ -81,7 +82,7 @@ def handler(event: dict, context) -> dict:
         # GET /{id}
         if method == 'GET':
             post_id = path.rstrip('/').split('/')[-1]
-            cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url FROM blog_posts WHERE id = %s", (post_id,))
+            cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url, source_url FROM blog_posts WHERE id = %s", (post_id,))
             row = cur.fetchone()
             if not row:
                 return {'statusCode': 404, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'Не найдено'})}
