@@ -585,7 +585,7 @@ def action_batch_send(body: dict) -> dict:
                 f"""
                 SELECT id FROM {S}.prospects
                 WHERE status = 'new'
-                  AND (auto_email_sent IS NULL OR auto_email_sent = FALSE)
+                  AND (auto_email_sent IS NULL OR auto_email_sent = FALSE) AND campaign IS NULL
                   AND email IS NOT NULL
                   AND email <> ''
                 ORDER BY id
@@ -706,7 +706,7 @@ def action_batch_uchispro(body: dict) -> dict:
                 f"""
                 SELECT id, company_name, email, industry, description, source
                 FROM {S}.prospects
-                WHERE (auto_email_sent IS NULL OR auto_email_sent = FALSE)
+                WHERE (auto_email_sent IS NULL OR auto_email_sent = FALSE) AND campaign IS NULL
                   AND email IS NOT NULL AND email <> ''
                 ORDER BY id
                 LIMIT 300
@@ -837,7 +837,7 @@ def action_batch_segment(body: dict) -> dict:
                 f"""
                 SELECT id, company_name, email, industry, description, source
                 FROM {S}.prospects
-                WHERE (auto_email_sent IS NULL OR auto_email_sent = FALSE)
+                WHERE (auto_email_sent IS NULL OR auto_email_sent = FALSE) AND campaign IS NULL
                   AND email IS NOT NULL AND email <> ''
                 ORDER BY id
                 LIMIT 500

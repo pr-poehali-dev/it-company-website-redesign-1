@@ -1,0 +1,7 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "Overview без авторизации", "method": "GET", "path": "/", "expectedStatus": 401, "expectedBody": {"error": "Не авторизован"}, "bodyMatcher": "partial"},
+    {"name": "Отправка без авторизации", "method": "POST", "path": "/", "body": {"action": "send", "ids": [1]}, "expectedStatus": 401, "expectedBody": {"error": "Не авторизован"}, "bodyMatcher": "partial"}
+  ]
+}

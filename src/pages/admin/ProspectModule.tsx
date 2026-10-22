@@ -6,12 +6,13 @@ import TechRadar from "./prospects/TechRadar";
 import ProspectModuleHeader from "./prospects/ProspectModuleHeader";
 import ProspectCrmTab from "./prospects/ProspectCrmTab";
 import ProspectAnalyticsTab from "./prospects/ProspectAnalyticsTab";
+import CampaignsTab from "./prospects/CampaignsTab";
 import {
   PROSPECTS_URL, Project, Prospect, SearchResult, Activity, AiAnalysis,
 } from "./prospects/types";
 
 export default function ProspectModule({ token }: { token: string }) {
-  const [tab, setTab] = useState<"search" | "crm" | "analytics" | "radar">("search");
+  const [tab, setTab] = useState<"search" | "crm" | "campaigns" | "analytics" | "radar">("search");
 
   // Data
   const [projects, setProjects]       = useState<Project[]>([]);
@@ -212,6 +213,10 @@ export default function ProspectModule({ token }: { token: string }) {
 
       {tab === "radar" && (
         <TechRadar token={token} />
+      )}
+
+      {tab === "campaigns" && (
+        <CampaignsTab token={token} />
       )}
 
       {tab === "crm" && (

@@ -233,6 +233,7 @@ def action_schedule_followups(body: dict) -> dict:
                 SELECT p.id
                 FROM {S}.prospects p
                 WHERE p.status IN ('new', 'contacted')
+                  AND p.campaign IS NULL
                   AND p.email IS NOT NULL
                   AND p.email <> ''
                   -- нет pending-задачи для этого лида
@@ -304,6 +305,7 @@ def action_run_followups(body: dict) -> dict:
                 FROM {S}.followup_tasks
                 WHERE status = 'pending'
                   AND scheduled_at <= NOW()
+                  AND NOT EXISTS (SELECT 1 FROM {S}.prospects cp WHERE cp.id = prospect_id AND cp.campaign IS NOT NULL)
                 ORDER BY scheduled_at
                 LIMIT 10
                 """,

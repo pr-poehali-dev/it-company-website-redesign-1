@@ -1,6 +1,6 @@
 import Icon from "@/components/ui/icon";
 
-type Tab = "search" | "crm" | "analytics" | "radar";
+type Tab = "search" | "crm" | "campaigns" | "analytics" | "radar";
 
 interface Props {
   tab: Tab;
@@ -23,6 +23,7 @@ export default function ProspectModuleHeader({ tab, onTabChange }: Props) {
         {([
           { key: "search",    label: "Поиск",    icon: "Search" },
           { key: "crm",       label: "CRM",       icon: "LayoutList" },
+          { key: "campaigns", label: "Кампании", icon: "Mail" },
           { key: "radar",     label: "Радар",     icon: "Radar" },
           { key: "analytics", label: "Аналитика", icon: "BarChart2" },
         ] as const).map(t => (
