@@ -31,6 +31,8 @@ export default function CampaignsTab({ token }: Props) {
   const [sending, setSending] = useState("");
   const [sendMsg, setSendMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [testTo, setTestTo] = useState("");
+  const [testing, setTesting] = useState("");
   const autoImported = useRef(false);
 
   const load = useCallback(async () => {
@@ -102,6 +104,16 @@ export default function CampaignsTab({ token }: Props) {
     setReloadKey(k => k + 1);
   }
 
+  async function sendTest(template: string) {
+    setTesting(template);
+    setSendMsg(null);
+    const data = await campaignsApi(token, "test_send", { template, to: testTo || settings.reply_to || "" });
+    setTesting("");
+    setSendMsg(data.error
+      ? { ok: false, text: data.error }
+      : { ok: true, text: `Тестовое письмо отправлено (пример — ${data.company}). Проверьте папки «Входящие» и «Спам».` });
+  }
+
   async function saveSettings() {
     await campaignsApi(token, "save_settings", settingsForm);
     setShowSettings(false);
@@ -158,6 +170,14 @@ export default function CampaignsTab({ token }: Props) {
         </div>
       )}
 
+      <div className="glass border border-white/10 rounded-2xl p-3 flex flex-wrap items-center gap-2">
+        <Icon name="FlaskConical" size={14} className="text-violet-300" />
+        <span className="text-sm text-white/70">Перед рассылкой отправьте тест себе:</span>
+        <input value={testTo} onChange={e => setTestTo(e.target.value)} placeholder={settings.reply_to || "ваш@email.ru"}
+          className="flex-1 min-w-48 glass border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 bg-transparent focus:outline-none" />
+        <span className="text-xs text-white/40">Кнопка «Тест» — в карточке шаблона</span>
+      </div>
+
       {sendMsg && (
         <div className={`text-sm rounded-xl p-3 border ${sendMsg.ok ? "border-emerald-500/30 text-emerald-300 bg-emerald-500/10" : "border-amber-500/30 text-amber-200 bg-amber-500/10"}`}>
           {sendMsg.text}
@@ -195,6 +215,11 @@ export default function CampaignsTab({ token }: Props) {
                 <button onClick={() => setPreview({ template: t.code })} disabled={!st.total}
                   className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 text-xs text-white/70 hover:text-white disabled:opacity-40">
                   <Icon name="Eye" size={13} />Пример
+                </button>
+                <button onClick={() => sendTest(t.code)} disabled={!!testing || noLink || !(testTo || settings.reply_to)}
+                  title={!(testTo || settings.reply_to) ? "Укажите свой email выше" : "Отправить тест себе"}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 text-xs text-white/70 hover:text-white disabled:opacity-40">
+                  <Icon name={testing === t.code ? "Loader2" : "FlaskConical"} size={13} className={testing === t.code ? "animate-spin" : ""} />Тест
                 </button>
               </div>
               <div className="flex gap-2 items-center">

@@ -52,7 +52,7 @@ export const PLACEHOLDERS: { key: string; label: string }[] = [
   { key: "{grant_year}", label: "Год гранта" },
   { key: "{grant_phrase}", label: "«Компания получила грант фонда в … году»" },
   { key: "{article_url}", label: "Ссылка на статью" },
-  { key: "{multi_year_phrase}", label: "«…получала её 4 года из последних шести» — если 3+ лет" },
+  { key: "{multi_year_phrase_lead}", label: "«(Москва, поддержка 4 года из последних шести)»" },
   { key: "{regular_phrase}", label: "«регулярно» — если 3+ года или выплаты" },
   { key: "{rating_phrase}", label: "Место в рейтинге — для топ-20 АПК" },
 ];

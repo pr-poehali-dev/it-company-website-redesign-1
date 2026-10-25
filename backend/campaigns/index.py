@@ -65,6 +65,17 @@ def plural_years(n):
     return 'лет'
 
 
+def pretty_name(raw):
+    """ООО "ЛИФТ ЦЕНТР" -> ООО «ЛИФТ ЦЕНТР». Регистр не трогаем, чтобы не исказить имена собственные."""
+    raw = re.sub(r'\s+', ' ', (raw or '').strip())
+    m = re.match(r'^([^"]*?) ?"(.+?)"?$', raw)
+    if not m or not m.group(2).strip():
+        return raw.replace('"', '')
+    head = re.sub(r' ?- ?', '-', m.group(1).strip())
+    name = re.sub(r'\s+', ' ', m.group(2).replace('"', ' ')).strip()
+    return f'{head} «{name}»' if head else f'«{name}»'
+
+
 def get_settings(cur):
     cur.execute(f"SELECT key, value FROM {S}.campaign_settings")
     return {r['key']: r['value'] for r in cur.fetchall()}
@@ -72,7 +83,7 @@ def get_settings(cur):
 
 def variables(p, tpl):
     """Значения для подстановки в шаблон."""
-    company = (p.get('company_name') or '').strip()
+    company = pretty_name(p.get('company_name'))
     region = (p.get('region') or '').strip()
     year = p.get('grant_year')
     years = p.get('support_years') or 0
@@ -83,8 +94,10 @@ def variables(p, tpl):
         'region': region,
         'grant_year': str(year) if year else '',
         'article_url': (tpl.get('article_url') or '').strip(),
-        'grant_phrase': f'Ваша компания {company} получила грант фонда в {year} году' if year else f'Ваша компания {company} — среди получателей грантов фонда',
+        'grant_phrase': f'{company} в {year} году получила грант Фонда содействия инновациям' if year else f'{company} — среди получателей грантов Фонда содействия инновациям',
         'multi_year_phrase': f', причём получала её {years} {plural_years(years)} из последних шести' if years >= 3 else '',
+        'multi_year_phrase_lead': f' ({region}, поддержка {years} {plural_years(years)} из последних шести)' if years >= 3 and region
+                                  else (f' ({region})' if region else ''),
         'regular_phrase': ' регулярно' if years >= 3 or payments >= 3 else '',
         'rating_phrase': f', а в рейтинге 2024–2026 годов — на {place} месте' if place else '',
     }
@@ -103,12 +116,24 @@ def unresolved(text):
     return sorted(set(re.findall(r'\{(\w+)\}', text or '')))
 
 
+def idna_url(url):
+    m = re.match(r'^(https?://)([^/?#]+)(.*)$', url)
+    if not m:
+        return url
+    try:
+        host = m.group(2).encode('idna').decode()
+    except Exception:
+        host = m.group(2)
+    return m.group(1) + host + m.group(3)
+
+
 def to_html(text, settings):
     paras = [p.strip() for p in (text or '').split('\n\n') if p.strip()]
     body = ''
     for p in paras:
         safe = html.escape(p).replace('\n', '<br>')
-        safe = re.sub(r'(https?://[^\s<]+?)([.,;:!?)]*)(?=\s|<|$)', r'<a href="\1" style="color:#6d28d9;">\1</a>\2', safe)
+        safe = re.sub(r'(https?://[^\s<]+?)([.,;:!?)]*)(?=\s|<|$)',
+                      lambda m: f'<a href="{idna_url(html.unescape(m.group(1)))}" style="color:#6d28d9;">{m.group(1)}</a>{m.group(2)}', safe)
         body += f'<p style="margin:0 0 14px;">{safe}</p>'
     name = html.escape(settings.get('sender_name', ''))
     phone = html.escape(settings.get('sender_phone', ''))
@@ -117,16 +142,28 @@ def to_html(text, settings):
     return f'<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"></head><body style="margin:0;padding:24px;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#222;"><div style="max-width:620px;">{body}{sign}{unsub}</div></body></html>'
 
 
-def send_email(to_email, to_name, subject, body_html, reply_to=''):
+def from_name(settings):
+    name = (settings.get('sender_name') or '').strip()
+    return f'{name} | МАТ-Лабс' if name else 'МАТ-Лабс'
+
+
+def to_plain(text, settings):
+    sign = '\n\n' + settings.get('sender_name', '') + '\nМАТ-Лабс, mat-labs.ru'
+    if settings.get('sender_phone'):
+        sign += '\n' + settings['sender_phone']
+    return (text or '').strip() + sign + '\n\nЕсли тема неактуальна — ответьте «нет», и я больше не напишу.'
+
+
+def send_email(to_email, to_name, subject, body_html, reply_to='', plain='', from_name=''):
     api_key = os.environ.get('UNISENDER_API_KEY', '')
     if not api_key:
         raise ValueError('Не задан ключ отправки писем UNISENDER_API_KEY')
     msg = {
         'recipients': [{'email': to_email, 'substitutions': {'to_name': to_name or to_email}}],
         'sender_email': os.environ.get('UNISENDER_SENDER_EMAIL', 'info@mat-labs.ru'),
-        'sender_name': os.environ.get('UNISENDER_SENDER_NAME', 'МАТ-Лабс'),
+        'sender_name': from_name or os.environ.get('UNISENDER_SENDER_NAME', 'МАТ-Лабс'),
         'subject': subject,
-        'body': {'html': body_html},
+        'body': {'html': body_html, 'plaintext': plain} if plain else {'html': body_html},
         'track_links': 0,
         'track_read': 0,
     }
@@ -377,6 +414,38 @@ def action_set_email(body):
     return resp({'ok': True})
 
 
+def action_test_send(body):
+    """Тестовое письмо на свой адрес: реальное оформление, данные конкретной компании."""
+    to = (body.get('to') or '').strip().lower()
+    code = body.get('template')
+    step = 2 if int(body.get('step') or 1) == 2 else 1
+    if not EMAIL_RE.match(to):
+        return err('Укажите свой email для теста')
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    settings = get_settings(cur)
+    cur.execute(f"""SELECT * FROM {S}.prospects WHERE campaign = %s AND campaign_template = %s
+                    ORDER BY campaign_priority DESC NULLS LAST LIMIT 1""", (CAMPAIGN, code))
+    p = cur.fetchone()
+    if not p:
+        conn.close()
+        return err('Нет компаний для этого шаблона')
+    try:
+        subject, text, body_html, problems = build_message(cur, dict(p), step, settings)
+    except ValueError as e:
+        conn.close()
+        return err(str(e))
+    conn.close()
+    if problems:
+        return err('В шаблоне не заполнено: ' + ', '.join(problems))
+    try:
+        send_email(to, p['company_name'], '[ТЕСТ] ' + subject, body_html, settings.get('reply_to', ''),
+                   to_plain(text, settings), from_name(settings))
+    except Exception as e:
+        return err(f'Не отправилось: {str(e)[:200]}')
+    return resp({'ok': True, 'company': p['company_name'], 'subject': subject})
+
+
 def action_send(body):
     """Отправляет письмо (step=1) или напоминание (step=2) выбранным компаниям."""
     step = 2 if int(body.get('step') or 1) == 2 else 1
@@ -428,7 +497,8 @@ def action_send(body):
             return err('В шаблоне не заполнено: ' + ', '.join(problems) +
                        '. Укажите ссылку на статью в настройках шаблона.')
         try:
-            send_email(email, p['company_name'], subject, body_html, settings.get('reply_to', ''))
+            send_email(email, p['company_name'], subject, body_html, settings.get('reply_to', ''),
+                       to_plain(text, settings), from_name(settings))
         except Exception as e:
             errors.append({'id': p['id'], 'company': p['company_name'], 'error': str(e)[:160]})
             cur.execute(f"UPDATE {S}.prospects SET email_delivery_status = 'failed' WHERE id = %s", (p['id'],))
@@ -479,6 +549,7 @@ def handler(event: dict, context) -> dict:
         'save_settings': action_save_settings,
         'set_email': action_set_email,
         'send': action_send,
+        'test_send': action_test_send,
     }
     fn = routes.get(action)
     if not fn:

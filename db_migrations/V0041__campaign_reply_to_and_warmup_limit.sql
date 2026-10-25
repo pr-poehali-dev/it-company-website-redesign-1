@@ -1,0 +1,2 @@
+UPDATE t_p88532089_it_company_website_r.campaign_settings SET value = 'maksT77@yandex.ru' WHERE key = 'reply_to' AND value = '';
+UPDATE t_p88532089_it_company_website_r.campaign_settings SET value = '20' WHERE key = 'daily_limit' AND value = '50';
