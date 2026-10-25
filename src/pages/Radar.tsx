@@ -117,8 +117,8 @@ export default function Radar() {
               {[
                 [tot ? tot.companies.toLocaleString("ru-RU") : "18 219", "компаний-получателей"],
                 [tot ? fmtMoney(tot.total) : "189 млрд ₽", "господдержки за 2024–2026"],
-                [tot ? String(tot.regions) : "86", "регионов России"],
-                [tot ? tot.last_30_days.toLocaleString("ru-RU") : "—", "получили деньги за последние 30 дней"],
+                [tot ? tot.with_contacts.toLocaleString("ru-RU") : "—", "с телефоном или почтой — и каждый день больше"],
+                [tot ? tot.with_head.toLocaleString("ru-RU") : "—", "с руководителем из ЕГРЮЛ"],
               ].map(([v, l]) => (
                 <div key={l} className="bg-white/[0.04] backdrop-blur-sm border border-violet-500/25 rounded-2xl p-5">
                   <div className="font-['Oswald',sans-serif] text-3xl md:text-4xl font-bold bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">{v}</div>

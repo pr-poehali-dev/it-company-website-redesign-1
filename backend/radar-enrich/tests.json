@@ -1,0 +1,4 @@
+{"tests": [
+ {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+ {"name": "Без авторизации", "method": "POST", "path": "/", "body": {"action": "stats"}, "expectedStatus": 401}
+]}

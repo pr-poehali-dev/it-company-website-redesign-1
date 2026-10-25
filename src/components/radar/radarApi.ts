@@ -21,11 +21,20 @@ export interface RadarItem {
   offer: string;
   score: number;
   has_contacts: boolean;
+  has_site?: boolean;
+  has_head?: boolean;
+  egrul_status?: string;
+  registered_at?: string | null;
 }
 
 export interface RadarCompany extends RadarItem {
   ogrn: string;
   head: string;
+  head_post: string;
+  address: string;
+  okved: string;
+  website_confidence: string;
+  contacts_source: string;
   phones: string;
   emails: string;
   website: string;
@@ -43,7 +52,7 @@ export interface Facets {
   source: Facet[];
   size: Facet[];
   segment: Facet[];
-  totals: { companies: number; total: number; regions: number; updated: string; last_30_days: number };
+  totals: { companies: number; total: number; regions: number; updated: string; last_30_days: number; with_contacts: number; with_head: number };
   months: { m: string; n: number }[];
 }
 
@@ -56,11 +65,12 @@ export interface Filters {
   year: string;
   min_amount: string;
   min_staff: string;
+  has_contacts: string;
   sort: string;
 }
 
 export const EMPTY_FILTERS: Filters = {
-  q: "", region: "", industry: "", source: "", size: "", year: "", min_amount: "", min_staff: "", sort: "fresh",
+  q: "", region: "", industry: "", source: "", size: "", year: "", min_amount: "", min_staff: "", has_contacts: "", sort: "fresh",
 };
 
 export async function radarGet<T>(params: Record<string, string>): Promise<T> {

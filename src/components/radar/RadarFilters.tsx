@@ -66,6 +66,11 @@ export default function RadarFilters({ facets, value, onChange }: Props) {
           <option value="staff">По численности</option>
         </select>
       </div>
+      <label className="inline-flex items-center gap-2 text-sm text-white/70 cursor-pointer">
+        <input type="checkbox" checked={value.has_contacts === "1"} className="accent-violet-500"
+          onChange={e => onChange({ ...value, has_contacts: e.target.checked ? "1" : "" })} />
+        Только компании с найденными контактами
+      </label>
       {active > 0 && (
         <button onClick={() => onChange({ ...EMPTY_FILTERS, sort: value.sort })}
           className="text-xs text-violet-300 hover:text-white flex items-center gap-1">

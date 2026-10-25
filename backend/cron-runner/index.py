@@ -21,6 +21,8 @@ CORS_HEADERS = {
 RADAR_URL    = 'https://functions.poehali.dev/2725883d-2720-4230-8bac-e2703f726abc'
 EMAILER_URL  = 'https://functions.poehali.dev/977f553d-a834-4fba-9f2f-349939384e9e'
 FOLLOWUP_URL = 'https://functions.poehali.dev/b11d9fef-38cd-4721-9bb3-4d7e7d97927f'
+ENRICH_URL   = 'https://functions.poehali.dev/20860635-2c65-4f0f-a935-45ea680e49aa'
+ENRICH_SECONDS = 150
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 INTERVAL_HOURS = 24
 
@@ -143,6 +145,23 @@ def handler(event: dict, context) -> dict:
     log.append({'step': 'run_followups', 'ok': r5.get('ok', False), 'sent': r5.get('sent', 0)})
     print(f"[cron-runner] followups: sent={r5.get('sent', 0)}")
 
+    enr = {'egrul': 0, 'site': 0, 'email': 0, 'batches': 0}
+    enr_deadline = datetime.now(timezone.utc) + timedelta(seconds=ENRICH_SECONDS)
+    stage_cycle = ['verify', 'search', 'search', 'egrul']
+    i = 0
+    while datetime.now(timezone.utc) < enr_deadline:
+        stage = stage_cycle[i % len(stage_cycle)]
+        i += 1
+        r = call(ENRICH_URL, {'action': stage, 'trigger': 'cron', 'size': 10}, timeout=12)
+        if not r.get('ok'):
+            continue
+        enr['batches'] += 1
+        enr['egrul'] += r.get('done', 0) if stage == 'egrul' else 0
+        enr['site'] += r.get('site', 0)
+        enr['email'] += r.get('email', 0)
+    log.append({'step': 'radar_enrich', 'ok': True, **enr})
+    print(f"[cron-runner] enrich: {enr}")
+
     finished_at = datetime.now(timezone.utc)
     summary = {
         'ok': True,
@@ -153,6 +172,8 @@ def handler(event: dict, context) -> dict:
         'emails_sent': r3.get('sent', 0),
         'followups_scheduled': r4.get('scheduled', 0),
         'followups_sent': r5.get('sent', 0),
+        'enrich_sites': enr['site'],
+        'enrich_emails': enr['email'],
         'log': log,
     }
 

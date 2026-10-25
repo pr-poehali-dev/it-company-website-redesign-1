@@ -31,7 +31,8 @@ SORTS = {
 PER_PAGE = 30
 PUBLIC_COLS = ('inn, name, region, industry, activity, segment, subsegment, size, employees, msp_year, source, '
                'source_full, last_date, last_amount, total_amount, payments, support_years, offer, score, '
-               "(phones <> '' OR emails <> '' OR website <> '') AS has_contacts")
+               "(phones <> '' OR emails <> '') AS has_contacts, (website <> '') AS has_site, (head <> '') AS has_head, "
+               "egrul_status, registered_at")
 
 
 def db():
@@ -69,6 +70,10 @@ def build_where(p):
         else:
             where.append('(name ILIKE %s OR activity ILIKE %s)')
             args += [f'%{q}%', f'%{q}%']
+    if p.get('has_contacts') == '1':
+        where.append("(phones <> '' OR emails <> '')")
+    if p.get('hide_closed', '1') == '1':
+        where.append("egrul_status NOT IN ('LIQUIDATED', 'LIQUIDATING', 'BANKRUPT')")
     for key, col in (('region', 'region'), ('industry', 'industry'), ('source', 'source'), ('size', 'size'),
                      ('segment', 'segment')):
         v = (p.get(key) or '').strip()
@@ -111,7 +116,9 @@ def action_facets():
                         WHERE {col} <> '' GROUP BY 1 ORDER BY 2 DESC""")
         out[col] = [dict(r) for r in cur.fetchall()]
     cur.execute(f"""SELECT COUNT(*) AS companies, SUM(total_amount) AS total, COUNT(DISTINCT region) AS regions,
-                    MAX(last_date) AS updated FROM {S}.radar_companies""")
+                    MAX(last_date) AS updated, COUNT(*) FILTER (WHERE phones <> '' OR emails <> '') AS with_contacts,
+                    COUNT(*) FILTER (WHERE head <> '') AS with_head
+                    FROM {S}.radar_companies""")
     out['totals'] = dict(cur.fetchone())
     cur.execute(f"""SELECT COUNT(*) AS n FROM {S}.radar_companies
                     WHERE last_date >= (SELECT MAX(last_date) FROM {S}.radar_companies) - INTERVAL '30 days'""")
@@ -129,8 +136,8 @@ def action_company(p, admin):
         return err('Не указан ИНН')
     conn = db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(f"SELECT {PUBLIC_COLS}, ogrn, head, phones, emails, website FROM {S}.radar_companies WHERE inn = %s",
-                (inn,))
+    cur.execute(f"""SELECT {PUBLIC_COLS}, ogrn, head, head_post, phones, emails, website, website_confidence, address, okved,
+                    contacts_source FROM {S}.radar_companies WHERE inn = %s""", (inn,))
     r = cur.fetchone()
     if not r:
         conn.close()
@@ -140,7 +147,8 @@ def action_company(p, admin):
         c['head'] = mask(c['head'])
         c['phones'] = mask_phone(c['phones'])
         c['emails'] = mask_email(c['emails'])
-        c['website'] = '••••••.ru' if c['website'] else ''
+        c['website'] = mask_site(c['website'])
+        c['address'] = mask_address(c['address'])
         c['locked'] = True
     cur.execute(f"""SELECT inn, name, total_amount, last_date, employees FROM {S}.radar_companies
                     WHERE region = %s AND industry = %s AND inn <> %s ORDER BY total_amount DESC LIMIT 6""",
@@ -160,6 +168,20 @@ def mask(v):
     if not v:
         return ''
     return ' '.join(w[0] + '•' * (len(w) - 1) for w in v.split())
+
+
+def mask_site(v):
+    if not v:
+        return ''
+    parts = v.split('.')
+    return '•' * min(8, max(3, len(parts[0]))) + '.' + parts[-1]
+
+
+def mask_address(v):
+    if not v:
+        return ''
+    head = ', '.join(v.split(',')[:2])
+    return head + ', •••' if len(v) > len(head) else head
 
 
 def mask_phone(v):
@@ -190,6 +212,8 @@ def signals(c):
         out.append({'kind': 'big', 'text': 'Крупная сумма последней выплаты — вероятны закупки оборудования и подрядов'})
     if (c.get('support_years') or 0) >= 3:
         out.append({'kind': 'regular', 'text': f"Получает поддержку {c['support_years']} лет — опытный заявитель, ведёт отчётность"})
+    if c.get('egrul_status') in ('LIQUIDATED', 'LIQUIDATING', 'BANKRUPT'):
+        out.insert(0, {'kind': 'closed', 'text': 'По данным ЕГРЮЛ компания ликвидирована или в процессе ликвидации'})
     if (c.get('employees') or 0) >= 100:
         out.append({'kind': 'staff', 'text': 'Больше 100 сотрудников — есть отделы закупок и ИТ'})
     if 'Минпромторг' in (c.get('source') or ''):

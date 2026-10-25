@@ -118,6 +118,8 @@ export default function RadarCompany() {
                   <Row label="Дата последней выплаты" value={fmtDate(c.last_date)} />
                   <Row label="Лет с поддержкой (2021–2026)" value={c.support_years} />
                   <Row label="В реестре МСП с" value={c.msp_year} />
+                  {c.registered_at && <Row label="Зарегистрирована" value={fmtDate(c.registered_at)} />}
+                  {c.okved && <Row label="Код ОКВЭД" value={c.okved} />}
                   <Row label="Отрасль" value={c.industry} />
                 </section>
 
@@ -148,17 +150,26 @@ export default function RadarCompany() {
                   <h2 className="font-semibold text-white mb-2 flex items-center gap-2">
                     <Icon name={c.locked ? "Lock" : "LockOpen"} size={16} className="text-violet-300" />Контакты
                   </h2>
-                  <Row label="Руководитель" value={c.head} />
+                  <Row label={c.head_post || "Руководитель"} value={c.head} />
                   <Row label="Телефон" value={c.phones} />
                   <Row label="Email" value={c.emails} />
-                  <Row label="Сайт" value={c.website} />
+                  <Row label="Сайт" value={!c.locked && c.website
+                    ? <a href={`https://${c.website}`} target="_blank" rel="noreferrer nofollow" className="text-cyan-300 hover:underline">{c.website}</a>
+                    : c.website} />
+                  <Row label="Адрес" value={c.address} />
+                  {c.website && (
+                    <p className="text-[11px] text-white/40 mt-2 flex items-center gap-1.5">
+                      <Icon name="ShieldCheck" size={12} className={c.website_confidence === "high" ? "text-emerald-300" : "text-amber-300"} />
+                      {c.website_confidence === "high" ? "Сайт подтверждён: на нём указан ИНН компании" : "Сайт подтверждён по названию и региону"}
+                    </p>
+                  )}
                   {c.locked && !showForm && (
                     <button onClick={() => setShowForm(true)} className="w-full mt-4 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 transition-colors px-4 py-3 rounded-xl font-semibold text-white text-sm flex items-center justify-center gap-2">
                       <Icon name="LockOpen" size={16} />Открыть контакты
                     </button>
                   )}
-                  {c.locked && !c.head && !c.phones && !c.emails && (
-                    <p className="text-xs text-white/40 mt-3">Контакты этой компании ещё собираются — по подписке найдём их по запросу.</p>
+                  {c.locked && !c.phones && !c.emails && (
+                    <p className="text-xs text-white/40 mt-3">Телефон и почта этой компании ещё собираются — по подписке найдём их по запросу.</p>
                   )}
                 </div>
                 {showForm && (
