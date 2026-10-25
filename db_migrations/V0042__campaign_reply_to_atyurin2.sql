@@ -1,0 +1,1 @@
+UPDATE t_p88532089_it_company_website_r.campaign_settings SET value = 'atyurin2@yandex.ru' WHERE key = 'reply_to';
