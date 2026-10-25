@@ -1891,4 +1891,11 @@
     <priority>0.7</priority>
   </url>
 
+  <url>
+    <loc>https://mat-labs.ru/radar</loc>
+    <lastmod>2026-10-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
 </urlset>

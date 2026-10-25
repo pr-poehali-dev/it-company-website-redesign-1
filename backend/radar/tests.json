@@ -1,0 +1,26 @@
+{
+ "tests": [
+  {
+   "name": "OPTIONS",
+   "method": "OPTIONS",
+   "path": "/",
+   "expectedStatus": 200
+  },
+  {
+   "name": "Список компаний",
+   "method": "GET",
+   "path": "/?action=list",
+   "expectedStatus": 200,
+   "expectedBody": {
+    "page": 1
+   },
+   "bodyMatcher": "partial"
+  },
+  {
+   "name": "Карточка без ИНН",
+   "method": "GET",
+   "path": "/?action=company",
+   "expectedStatus": 400
+  }
+ ]
+}
