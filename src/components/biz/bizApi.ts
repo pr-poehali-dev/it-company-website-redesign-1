@@ -167,3 +167,81 @@ export function fmtYear(ms: number | null) {
   if (!ms) return "—";
   return new Date(ms).toLocaleDateString("ru-RU");
 }
+
+export interface DbFilters {
+  okved2?: string[];
+  okved?: string[];
+  region?: string[];
+  msp_cat?: string[];
+  tax_mode?: string[];
+  min_revenue?: number;
+  max_revenue?: number;
+  min_staff?: number;
+  max_staff?: number;
+  min_debt?: number;
+  msp_year_from?: number;
+  profitable?: boolean;
+  no_debt?: boolean;
+  grants?: boolean;
+  has_contacts?: boolean;
+  loss?: boolean;
+}
+
+export interface BizDatabase {
+  slug: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  category: "industry" | "region" | "segment";
+  icon: string;
+  filters: DbFilters;
+  price: number;
+  stats: { companies: number; revenue: number; with_revenue: number; profitable: number; staff: number; regions: number; with_contacts: number } | null;
+}
+
+export interface DbAnalysis {
+  metrics: MarketMetrics & { osn: number };
+  by_region: { region: string; name: string; companies: number; revenue: number; staff: number }[];
+  by_okved: { code: string; name: string; companies: number; revenue: number }[];
+  size_dist: { label: string; companies: number; revenue: number }[];
+  cohorts: { y: number; n: number }[];
+  tax: { mode: string; n: number }[];
+}
+
+export interface DbCompany {
+  inn: string;
+  name: string;
+  region: string;
+  region_name: string;
+  city: string;
+  okved: string;
+  revenue: number | null;
+  expenses: number | null;
+  staff: number | null;
+  msp_cat: number;
+  msp_year: number;
+  tax_mode: string;
+  tax_debt: number;
+  locked?: boolean;
+}
+
+export interface DbResponse {
+  meta: Omit<BizDatabase, "stats"> | null;
+  filters: DbFilters;
+  analysis: DbAnalysis;
+  items: DbCompany[];
+  page: number;
+  per_page: number;
+  price: number;
+  full_access: boolean;
+  insights: { kind: string; text: string }[];
+}
+
+export function encodeFilters(f: DbFilters): string {
+  return encodeURIComponent(JSON.stringify(f));
+}
+
+export function decodeFilters(s: string | null): DbFilters {
+  if (!s) return {};
+  try { return JSON.parse(decodeURIComponent(s)); } catch { return {}; }
+}

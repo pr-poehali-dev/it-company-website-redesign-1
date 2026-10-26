@@ -204,12 +204,12 @@ SOURCE = ('Источники: открытые данные ФНС России
 
 # ── Рынок ───────────────────────────────────────────────────────────────────
 
-def market_pdf(d, conclusions, order):
+def market_pdf(d, conclusions, order, kind='Отчёт о рынке'):
     ensure_fonts()
     m, nat = d['metrics'], d['national']
     s = []
-    cover(s, 'Отчёт о рынке', d['okved_name'], f'{d["region_name"]} · ОКВЭД {d["okved"] if d["okved"] != "ALL" else "все"} · '
-          f'данные за 2025 год', order)
+    cover(s, kind, d['okved_name'], f'{d["region_name"]} · ОКВЭД {d["okved"] if d["okved"] != "ALL" else "все"} · '
+          f'данные за 2025 год · {num(m["companies"])} компаний', order)
     s.append(kpis([
         (money(m['revenue']), 'объём рынка, выручка 2025'),
         (num(m['companies']), f'компаний, из них с отчётностью {num(m["with_revenue"])}'),
@@ -244,7 +244,7 @@ def market_pdf(d, conclusions, order):
     s.append(Paragraph('Структура рынка', ST['h2']))
     if d['segments']:
         body = [[x['code'], x['name'] or '—', num(x['companies']), money(x['revenue']),
-                 pf(x["revenue"], tot), num(x['staff'])] for x in d['segments']]
+                 pf(x["revenue"], tot), num(x.get('staff') or 0)] for x in d['segments']]
         s.append(table(['Код', 'Сегмент', 'Компаний', 'Выручка', 'Доля', 'Штат'], body, [14, 88, 18, 24, 14, 22],
                        align_right=(2, 3, 4, 5)))
         s.append(Spacer(1, 4 * mm))
@@ -259,7 +259,7 @@ def market_pdf(d, conclusions, order):
                            'Приток новых игроков: год входа в реестр МСП', color=CYAN, h=50))
 
     s.append(Paragraph('География', ST['h2']))
-    body = [[i + 1, g['name'], num(g['companies']), money(g['revenue']), money(g['median'])] for i, g in enumerate(d['geo'])]
+    body = [[i + 1, g['name'], num(g['companies']), money(g['revenue']), money(g['median']) if g.get('median') else '—'] for i, g in enumerate(d['geo'])]
     s.append(table(['#', 'Регион', 'Компаний', 'Выручка', 'Медиана'], body, [8, 70, 30, 36, 36], align_right=(2, 3, 4)))
 
     s.append(Paragraph('Финансы и риски рынка', ST['h2']))
@@ -308,9 +308,35 @@ def money_fmt(ws, cols):
             c.number_format = '#,##0'
 
 
+XL_LIMIT = 3000
+CSV_HEAD = ['Компания', 'ИНН', 'Код региона', 'Город', 'ОКВЭД', 'Вид деятельности', 'Выручка 2025, ₽', 'Расходы 2025, ₽',
+            'Доходы − расходы, ₽', 'Штат', 'Размер', 'В реестре МСП с', 'Налоговый режим', 'Недоимка, ₽', 'Руководитель',
+            'Сайт', 'Телефоны', 'Email']
+
+
+def company_row(x, names):
+    return [pretty(x['name']), x['inn'], x['region'], x.get('city') or '', x['okved'],
+            names.get(x['okved'][:5]) or names.get(x['okved'][:4]) or '',
+            x['revenue'], x['expenses'],
+            (x['revenue'] - x['expenses']) if x['revenue'] is not None and x['expenses'] is not None else None,
+            x['staff'], MSP.get(x['msp_cat'], ''), x['msp_year'] or None, x['tax_mode'], x['tax_debt'] or 0,
+            x.get('head') or '', x.get('website') or '', x.get('phones') or '', x.get('emails') or '']
+
+
+def full_csv(d):
+    import csv
+    buf = io.StringIO()
+    w = csv.writer(buf, delimiter=';')
+    w.writerow(CSV_HEAD)
+    names = d['okved_names']
+    for x in d['all']:
+        w.writerow(['' if v is None else v for v in company_row(x, names)])
+    return ('\ufeff' + buf.getvalue()).encode('utf-8')
+
+
 def market_xlsx(d, conclusions, order):
     m = d['metrics']
-    wb = Workbook()
+    wb = Workbook(write_only=False)
     summary = [['Отрасль', d['okved_name']], ['Код ОКВЭД', d['okved']], ['Регион', d['region_name']], ['Период', '2025 год'],
                ['Компаний', m['companies']], ['С отчётностью о выручке', m['with_revenue']],
                ['Объём рынка (выручка), ₽', int(m['revenue'])], ['Расходы, ₽', int(m['expenses'])],
@@ -327,21 +353,21 @@ def market_xlsx(d, conclusions, order):
         if isinstance(r[1].value, int) and r[1].value > 9999:
             r[1].number_format = '#,##0'
     names = d['okved_names']
-    rows_ = [[pretty(x['name']), x['inn'], x['region'], x.get('city') or '', x['okved'],
-              names.get(x['okved'][:5]) or names.get(x['okved'][:4]) or '',
-              x['revenue'], x['expenses'], (x['revenue'] - x['expenses']) if x['revenue'] is not None and x['expenses'] is not None else None,
-              x['staff'], MSP.get(x['msp_cat'], ''), x['msp_year'] or None, x['tax_mode'], x['tax_debt'] or 0,
-              x.get('head') or '', x.get('website') or '', x.get('phones') or '', x.get('emails') or '']
-             for x in d['all']]
-    ws = xl_sheet(wb, 'Все компании', ['Компания', 'ИНН', 'Код региона', 'Город', 'ОКВЭД', 'Вид деятельности', 'Выручка 2025, ₽',
-                                       'Расходы 2025, ₽', 'Доходы − расходы, ₽', 'Штат', 'Размер', 'В реестре МСП с',
-                                       'Налоговый режим', 'Недоимка, ₽', 'Руководитель', 'Сайт', 'Телефоны', 'Email'],
-                  rows_, [42, 13, 8, 16, 10, 36, 16, 16, 16, 8, 14, 10, 10, 12, 26, 22, 24, 30])
-    money_fmt(ws, [7, 8, 9, 14])
-    rows_ = [[x['code'], x['name'], x['companies'], int(x['revenue']), int(x['staff'])] for x in d['segments']]
+    big = len(d['all']) > XL_LIMIT
+    rows_ = [company_row(x, names) for x in d['all'][:XL_LIMIT]]
+    ws = xl_sheet(wb, f'Топ-{num(XL_LIMIT)}' if big else 'Все компании', CSV_HEAD, rows_,
+                  [42, 13, 8, 16, 10, 36, 16, 16, 16, 8, 14, 10, 10, 12, 26, 22, 24, 30])
+    if not big:
+        money_fmt(ws, [7, 8, 9, 14])
+    else:
+        ws.insert_rows(1)
+        ws['A1'] = f'Первые {num(XL_LIMIT)} компаний по выручке. Полный список ({num(len(d["all"]))}) — в файле CSV в этом же архиве.'
+        ws['A1'].font = Font(bold=True, color='6D28D9')
+        ws.freeze_panes = 'A3'
+    rows_ = [[x['code'], x['name'], x['companies'], int(x['revenue']), int(x.get('staff') or 0)] for x in d['segments']]
     ws = xl_sheet(wb, 'Сегменты', ['Код', 'Сегмент', 'Компаний', 'Выручка, ₽', 'Штат'], rows_, [10, 70, 12, 18, 12])
     money_fmt(ws, [4])
-    rows_ = [[g['name'], g['region'], g['companies'], int(g['revenue']), int(g['median'])] for g in d['geo']]
+    rows_ = [[g['name'], g['region'], g['companies'], int(g['revenue']), int(g.get('median') or 0)] for g in d['geo']]
     ws = xl_sheet(wb, 'Регионы', ['Регион', 'Код', 'Компаний', 'Выручка, ₽', 'Медиана, ₽'], rows_, [30, 8, 12, 18, 16])
     money_fmt(ws, [4, 5])
     if d['grants']:

@@ -31,6 +31,9 @@ const MarketReport = lazy(() => import("./pages/analytics/MarketReport"));
 const CompanyReport = lazy(() => import("./pages/analytics/CompanyReport"));
 const RatingPage = lazy(() => import("./pages/analytics/RatingPage"));
 const PricesPage = lazy(() => import("./pages/analytics/PricesPage"));
+const DatabasesPage = lazy(() => import("./pages/analytics/DatabasesPage"));
+const DatabaseView = lazy(() => import("./pages/analytics/DatabaseView"));
+const CompetitorsPage = lazy(() => import("./pages/analytics/CompetitorsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => <div className="min-h-screen bg-[#080812]" />;
@@ -66,6 +69,9 @@ const App = () => (
           <Route path="/analytics/company/:inn" element={<CompanyReport />} />
           <Route path="/analytics/rating" element={<RatingPage />} />
           <Route path="/analytics/prices" element={<PricesPage />} />
+          <Route path="/analytics/databases" element={<DatabasesPage />} />
+          <Route path="/analytics/databases/:slug" element={<DatabaseView />} />
+          <Route path="/analytics/vs-sber" element={<CompetitorsPage />} />
           <Route path="/presentation" element={<Presentation />} />
           <Route path="/skolko-stoit-avtomatizaciya" element={<PriceCalculator />} />
           <Route path="/avtomatizaciya-biznesa" element={<CitiesIndex />} />

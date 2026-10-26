@@ -354,3 +354,48 @@ def company(inn):
         'contacts': {k: (rc or {}).get(k) or '' for k in ('website', 'phones', 'emails')},
         'risk': risk(c, d), 'egrul': bool(eg),
     }
+
+
+def database(db_slug, extra):
+    """Данные для выгрузки базы: те же разделы, что в отчёте о рынке, но по произвольным фильтрам."""
+    import databases as dbs
+    conn = db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    title, base = 'Своя база компаний', {}
+    if db_slug:
+        cur.execute(f'SELECT title, filters FROM {S}.biz_databases WHERE slug = %s', (db_slug,))
+        r = cur.fetchone()
+        if r:
+            title, base = r['title'], dbs.norm_filters(r['filters'])
+    f = {**base, **dbs.norm_filters(extra)}
+    an = dbs.analyze(cur, S, f, REGIONS, okved_names)
+    m = an['metrics']
+    joins, w, a = dbs.build_where(f)
+    joins = joins.replace('{S}', S)
+    cur.execute(f"""SELECT b.inn, b.name, b.region, b.city, b.okved, b.revenue, b.expenses, b.staff, b.msp_cat, b.msp_year,
+                    b.tax_mode, b.tax_debt FROM {S}.biz_companies b{joins}{w} AND b.revenue > 0
+                    ORDER BY b.revenue DESC LIMIT 50""", a)
+    top = rows(cur)
+    tot = float(m['revenue'] or 0) or 1
+    m['top10_share'] = round(sum(float(t['revenue']) for t in top[:10]) / tot * 100, 1)
+    cur.execute(f"SELECT b.revenue FROM {S}.biz_companies b{joins}{w} AND b.revenue > 0", a)
+    m['hhi'] = round(sum((float(r['revenue']) / tot * 100) ** 2 for r in cur.fetchall()), 1)
+    gj = joins if joins else ''
+    cur.execute(f"""SELECT r2.inn, r2.name, r2.total_amount, r2.last_date, r2.source FROM {S}.radar_companies r2
+                    JOIN {S}.biz_companies b ON b.inn = r2.inn{gj}{w} ORDER BY r2.total_amount DESC LIMIT 30""", a)
+    grants = rows(cur)
+    cur.execute(f"""SELECT b.inn, b.name, b.region, b.city, b.okved, b.revenue, b.expenses, b.staff, b.msp_cat, b.msp_year,
+                    b.tax_mode, b.tax_debt, rc.website, rc.phones, rc.emails, rc.head
+                    FROM {S}.biz_companies b{joins} LEFT JOIN {S}.radar_companies rc ON rc.inn = b.inn{w}
+                    ORDER BY b.revenue DESC NULLS LAST LIMIT 150000""", a)
+    all_rows = rows(cur)
+    names = okved_names(cur, list({x['okved'][:5] for x in all_rows if x['okved']} | {x['okved'][:4] for x in all_rows if x['okved']})[:3000])
+    conn.close()
+    geo = [{'region': r['region'], 'name': r['name'], 'companies': r['companies'], 'revenue': r['revenue'], 'median': 0} for r in an['by_region']]
+    regions_txt = ', '.join(REGIONS.get(x, x) for x in f.get('region', [])) or 'Россия'
+    return {
+        'okved': ','.join(f.get('okved2', []) + f.get('okved', [])) or 'ALL', 'region': 'RU' if not f.get('region') else ','.join(f['region']),
+        'okved_name': title, 'section': '', 'region_name': regions_txt, 'metrics': m, 'national': None, 'top': top,
+        'segments': an['by_okved'], 'geo': geo, 'cohorts': an['cohorts'], 'size_dist': an['size_dist'], 'grants': grants,
+        'all': all_rows, 'okved_names': {k: v['name'] for k, v in names.items()}, 'filters': f,
+    }

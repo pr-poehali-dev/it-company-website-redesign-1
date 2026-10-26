@@ -4,7 +4,7 @@ export type OrderStatus = "new" | "invoiced" | "paid" | "sent";
 
 export interface ReportOrder {
   id: number;
-  report_type: "market" | "company" | "check" | "custom";
+  report_type: "market" | "company" | "check" | "custom" | "database";
   report_key: string;
   report_title: string;
   price: number;
@@ -42,7 +42,7 @@ export const STATUS_META: Record<OrderStatus, { label: string; cls: string; icon
 export const STATUS_ORDER: OrderStatus[] = ["new", "invoiced", "paid", "sent"];
 
 export const TYPE_LABEL: Record<string, string> = {
-  market: "Рынок", company: "Компания", check: "Проверка", custom: "Исследование",
+  market: "Рынок", company: "Компания", check: "Проверка", custom: "Исследование", database: "База",
 };
 
 export const isTest = (o: ReportOrder) =>
@@ -64,7 +64,12 @@ export async function ordersPost<T = { ok?: boolean; error?: string }>(body: Rec
     headers: { "Content-Type": "application/json", "X-Session-Token": token() },
     body: JSON.stringify(body),
   });
-  return res.json();
+  const data = await res.json().catch(() => ({ error: "Сервер вернул пустой ответ" }));
+  if (data && data.errorType === "JobExecutionTimeoutExceeded") {
+    return { ...data, error: "Не хватило времени на сборку: база слишком большая. Увеличьте таймаут функции biz-report до 60 секунд или сузьте фильтры заказа." };
+  }
+  if (data && !data.ok && !data.error && data.errorMessage) return { ...data, error: data.errorMessage };
+  return data;
 }
 
 export function fmtDT(v: string | null) {

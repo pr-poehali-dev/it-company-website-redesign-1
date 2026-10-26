@@ -4,7 +4,7 @@ import { bizOrder } from "./bizApi";
 import { ymLead } from "@/lib/ym";
 
 interface Props {
-  reportType: "market" | "company" | "check" | "custom";
+  reportType: "market" | "company" | "check" | "custom" | "database";
   reportKey?: string;
   title: string;
   price?: number;
@@ -28,7 +28,7 @@ export default function BizOrderModal({ reportType, reportKey = "", title, price
     if (!f.name.trim() || !(f.phone.trim() || f.email.trim())) return setError("Укажите имя и телефон или email");
     if (!agree) return setError("Нужно согласие на обработку персональных данных");
     setState("sending");
-    const r = await bizOrder({ ...f, report_type: reportType, report_key: reportKey, report_title: title }).catch(() => ({ error: "Нет связи, попробуйте ещё раз" }));
+    const r = await bizOrder({ ...f, report_type: reportType, report_key: reportKey, report_title: title, price: String(price || 0) }).catch(() => ({ error: "Нет связи, попробуйте ещё раз" }));
     if (r.error) { setError(r.error); setState("idle"); return; }
     ymLead("biz_order", { reportType });
     setOrderId(r.order_id);

@@ -92,6 +92,27 @@ def build(order):
         if rtype == 'check':
             return render.company_pdf(c, order, check_only=True), None, f'proverka-{inn}'
         return render.company_pdf(c, order), render.company_xlsx(c, order), f'kompaniya-{inn}'
+    if rtype == 'database':
+        try:
+            spec = json.loads(key or '{}')
+        except Exception:
+            raise ValueError('Не удалось разобрать параметры базы в заказе')
+        d = data.database(spec.get('slug') or '', spec.get('filters') or {})
+        if not d['metrics']['companies']:
+            raise ValueError('По фильтрам заказа компаний нет')
+        concl = data.market_conclusions(d)
+        base = f'baza-{slug(spec.get("slug") or "custom")}'
+        pdf = render.market_pdf(d, concl, order, kind='Выгрузка базы компаний')
+        xlsx = render.market_xlsx(d, concl, order)
+        if len(d['all']) > render.XL_LIMIT:
+            import io
+            import zipfile
+            z = io.BytesIO()
+            with zipfile.ZipFile(z, 'w', zipfile.ZIP_DEFLATED, compresslevel=5) as zf:
+                zf.writestr(f'{base}.xlsx', xlsx)
+                zf.writestr(f'{base}-vse-kompanii.csv', render.full_csv(d))
+            return pdf, ('zip', z.getvalue()), base
+        return pdf, xlsx, base
     raise ValueError('Индивидуальное исследование готовится вручную — автоматическая выдача недоступна')
 
 
@@ -110,8 +131,12 @@ def action_generate(conn, oid):
     tag = hashlib.sha1(f'{oid}{stamp}{salt}'.encode()).hexdigest()[:10]
     prefix = f'reports/{oid}-{stamp}-{tag}'
     pdf_url = s3_put(f'{prefix}/{base}.pdf', pdf, 'application/pdf')
-    xlsx_url = s3_put(f'{prefix}/{base}.xlsx', xlsx,
-                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') if xlsx else ''
+    if isinstance(xlsx, tuple):
+        xlsx = xlsx[1]
+        xlsx_url = s3_put(f'{prefix}/{base}.zip', xlsx, 'application/zip')
+    else:
+        xlsx_url = s3_put(f'{prefix}/{base}.xlsx', xlsx,
+                          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') if xlsx else ''
     cur.execute(f"""UPDATE {S}.biz_report_orders SET pdf_url=%s, xlsx_url=%s, generated_at=NOW(), updated_at=NOW()
                     WHERE id=%s""", (pdf_url, xlsx_url, oid))
     conn.commit()

@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 const ITEMS = [
   { to: "/analytics", label: "Обзор", icon: "LayoutDashboard" },
   { to: "/analytics/market", label: "Рынки", icon: "PieChart" },
+  { to: "/analytics/databases", label: "Базы компаний", icon: "Database" },
   { to: "/analytics/company", label: "Компании и проверка", icon: "ShieldCheck" },
   { to: "/analytics/rating", label: "Рейтинги", icon: "Trophy" },
   { to: "/radar", label: "Радар господдержки", icon: "Radar" },

@@ -16,6 +16,8 @@ from email.utils import formataddr
 import psycopg2
 import psycopg2.extras
 
+import databases as dbs
+
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -23,8 +25,8 @@ CORS = {
     'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token',
 }
 NOTIFY_EMAIL = 'atyurin2@yandex.ru'
-PRICES = {'market': 4900, 'company': 1490, 'check': 490, 'custom': 0}
-REPORT_NAMES = {'market': 'Отчёт о рынке', 'company': 'Отчёт о компании', 'check': 'Проверка контрагента',
+PRICES = {'market': 4900, 'company': 1490, 'check': 490, 'custom': 0, 'database': 0}
+REPORT_NAMES = {'database': 'Выгрузка базы компаний', 'market': 'Отчёт о рынке', 'company': 'Отчёт о компании', 'check': 'Проверка контрагента',
                 'custom': 'Индивидуальное исследование'}
 REGIONS = {
     '01': 'Адыгея', '02': 'Башкортостан', '03': 'Бурятия', '04': 'Алтай Респ.', '05': 'Дагестан', '06': 'Ингушетия',
@@ -544,6 +546,12 @@ def action_order(body):
     if (body.get('website') or '').strip():
         return resp({'ok': True})
     rtype = body.get('report_type') if body.get('report_type') in PRICES else 'custom'
+    price = PRICES[rtype]
+    if rtype == 'database':
+        try:
+            price = max(0, min(int(body.get('price') or 0), 200000))
+        except (TypeError, ValueError):
+            price = 0
     name = (body.get('name') or '').strip()[:200]
     phone = (body.get('phone') or '').strip()[:60]
     email = (body.get('email') or '').strip()[:200]
@@ -551,7 +559,7 @@ def action_order(body):
         return err('Укажите имя и телефон или email')
     if email and not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
         return err('Проверьте email')
-    key = (body.get('report_key') or '')[:100]
+    key = (body.get('report_key') or '')[:1500]
     title = (body.get('report_title') or REPORT_NAMES[rtype])[:300]
     company = (body.get('company') or '').strip()[:300]
     inn = re.sub(r'\D', '', body.get('inn') or '')[:12]
@@ -560,9 +568,9 @@ def action_order(body):
     cur = conn.cursor()
     cur.execute(f"""INSERT INTO {S}.biz_report_orders (report_type, report_key, report_title, price, name, phone, email, company, inn, comment)
                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
-                (rtype, key, title, PRICES[rtype], name, phone, email, company, inn, comment))
+                (rtype, key, title, price, name, phone, email, company, inn, comment))
     oid = cur.fetchone()[0]
-    msg = (f"Заказ №{oid}: {REPORT_NAMES[rtype]}\n{title}\nЦена: {PRICES[rtype]:,} ₽\n".replace(',', ' ') +
+    msg = (f"Заказ №{oid}: {REPORT_NAMES[rtype]}\n{title}\nЦена: {price:,} ₽\n".replace(',', ' ') +
            f"Ключ отчёта: {key or '—'}\nКомпания клиента: {company or '—'} {('ИНН ' + inn) if inn else ''}\nКомментарий: {comment or '—'}")
     cur.execute(f"""INSERT INTO {S}.contact_requests (name, email, phone, company, message, source)
                     VALUES (%s,%s,%s,%s,%s,'analytics')""", (name, email or '—', phone or '—', company or None, msg))
@@ -581,6 +589,73 @@ def action_orders(admin):
     out = rows(cur)
     conn.close()
     return resp({'items': out})
+
+
+def refresh_db_stats(conn, slug, filters):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    st = dbs.compute_stats(cur, S, dbs.norm_filters(filters))
+    cur.execute(f"UPDATE {S}.biz_databases SET stats=%s, stats_at=NOW() WHERE slug=%s", (json.dumps(st, default=str), slug))
+    conn.commit()
+    return st
+
+
+def action_databases():
+    conn = db()
+    items = dbs.list_databases(conn, S, refresh_db_stats)
+    conn.close()
+    return resp({'items': items}, cache=1800)
+
+
+def db_price(f, companies):
+    """Цена выгрузки: от 2 900 ₽, растёт с размером базы, потолок 49 900 ₽."""
+    if companies <= 0:
+        return 0
+    p = 2900 + int(companies ** 0.5 * 25)
+    if f.get('has_contacts'):
+        p = int(p * 1.5)
+    return min(49900, max(2900, round(p / 100) * 100))
+
+
+def action_db(p, body, admin):
+    """Анализ базы: готовой (slug) или собранной в конструкторе (filters)."""
+    slug = re.sub(r'[^a-z0-9-]', '', (body.get('slug') or p.get('slug') or ''))[:60]
+    raw = body.get('filters') if body else None
+    if raw is None:
+        raw = p.get('filters')
+    conn = db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    meta = None
+    if slug:
+        cur.execute(f"SELECT slug, title, subtitle, description, category, icon, filters, price FROM {S}.biz_databases WHERE slug=%s AND is_active", (slug,))
+        meta = cur.fetchone()
+        if not meta:
+            conn.close()
+            return err('База не найдена', 404)
+        meta = dict(meta)
+    base_f = dbs.norm_filters(meta['filters']) if meta else {}
+    extra = dbs.norm_filters(raw)
+    f = {**base_f, **extra}
+    if not f:
+        conn.close()
+        return err('Выберите хотя бы один фильтр: отрасль, регион или выручку')
+    key = 'db:' + hashlib.md5(json.dumps(f, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    cur.execute(f"SELECT data FROM {S}.biz_market_cache WHERE key=%s AND updated_at > NOW() - INTERVAL '7 days'", (key,))
+    hit = cur.fetchone()
+    if hit:
+        an = hit['data']
+    else:
+        an = dbs.analyze(cur, S, f, REGIONS, okved_names)
+        cur.execute(f"""INSERT INTO {S}.biz_market_cache (key, data) VALUES (%s, %s)
+                        ON CONFLICT (key) DO UPDATE SET data=EXCLUDED.data, updated_at=NOW()""", (key, json.dumps(an, default=str)))
+        conn.commit()
+    sort = p.get('sort') or body.get('sort') or 'revenue'
+    page = max(1, min(int(p.get('page') or body.get('page') or 1), 50))
+    items = dbs.companies_page(cur, S, f, sort, page, 25, admin, REGIONS)
+    conn.close()
+    companies = int(an['metrics']['companies'] or 0)
+    price = meta['price'] if meta and not extra else db_price(f, companies)
+    return resp({'meta': meta, 'filters': f, 'analysis': an, 'items': items, 'page': page, 'per_page': 25,
+                 'price': price, 'full_access': admin, 'insights': market_insights(an['metrics'], None, 'RU') if companies else []})
 
 
 def handler(event: dict, context) -> dict:
@@ -604,6 +679,10 @@ def handler(event: dict, context) -> dict:
         return action_search(p)
     if action == 'rating':
         return action_rating(p, admin)
+    if action == 'databases':
+        return action_databases()
+    if action == 'db':
+        return action_db(p, body, admin)
     if action == 'order' and method == 'POST':
         return action_order(body)
     if action == 'orders':
