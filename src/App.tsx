@@ -25,6 +25,12 @@ const Turnkey = lazy(() => import("./pages/Turnkey"));
 const Investors = lazy(() => import("./pages/Investors"));
 const Radar = lazy(() => import("./pages/Radar"));
 const RadarCompany = lazy(() => import("./pages/RadarCompany"));
+const AnalyticsHome = lazy(() => import("./pages/analytics/AnalyticsHome"));
+const MarketIndex = lazy(() => import("./pages/analytics/MarketIndex"));
+const MarketReport = lazy(() => import("./pages/analytics/MarketReport"));
+const CompanyReport = lazy(() => import("./pages/analytics/CompanyReport"));
+const RatingPage = lazy(() => import("./pages/analytics/RatingPage"));
+const PricesPage = lazy(() => import("./pages/analytics/PricesPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => <div className="min-h-screen bg-[#080812]" />;
@@ -52,6 +58,14 @@ const App = () => (
           <Route path="/investors" element={<Investors />} />
           <Route path="/radar" element={<Radar />} />
           <Route path="/radar/:inn" element={<RadarCompany />} />
+          <Route path="/analytics" element={<AnalyticsHome />} />
+          <Route path="/analytics/market" element={<MarketIndex />} />
+          <Route path="/analytics/market/:okved" element={<MarketReport />} />
+          <Route path="/analytics/market/:okved/:region" element={<MarketReport />} />
+          <Route path="/analytics/company" element={<CompanyReport />} />
+          <Route path="/analytics/company/:inn" element={<CompanyReport />} />
+          <Route path="/analytics/rating" element={<RatingPage />} />
+          <Route path="/analytics/prices" element={<PricesPage />} />
           <Route path="/presentation" element={<Presentation />} />
           <Route path="/skolko-stoit-avtomatizaciya" element={<PriceCalculator />} />
           <Route path="/avtomatizaciya-biznesa" element={<CitiesIndex />} />

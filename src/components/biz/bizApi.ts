@@ -1,0 +1,169 @@
+export const BIZ_URL = "https://functions.poehali.dev/d42f7944-adbd-48ff-a58d-caa1119b0e77";
+
+export interface MarketMetrics {
+  companies: number;
+  with_revenue: number;
+  revenue: number;
+  expenses: number;
+  profitable: number;
+  staff: number;
+  median_revenue: number;
+  top10_share: number;
+  hhi: number | null;
+  micro: number;
+  small: number;
+  medium: number;
+  non_msp: number;
+  new_3y: number;
+  with_debt: number;
+  debt_sum: number;
+  usn: number;
+  grants_companies: number;
+  grants_sum: number;
+}
+
+export interface TopCompany {
+  rank: number;
+  inn: string;
+  name: string;
+  region: string;
+  city?: string;
+  okved: string;
+  revenue: number;
+  expenses: number | null;
+  staff: number | null;
+  msp_cat: number;
+  share?: number;
+  locked?: boolean;
+  region_name?: string;
+}
+
+export interface MarketReport {
+  okved: string;
+  region: string;
+  okved_name: string;
+  section: string;
+  region_name: string;
+  metrics: MarketMetrics;
+  national: MarketMetrics | null;
+  segments: { code: string; name: string; companies: number; revenue: number; staff: number }[];
+  geo: { region: string; name: string; companies: number; revenue: number; median_revenue?: number }[];
+  size_dist: { label: string; companies: number; revenue: number }[];
+  cohorts: { y: number; n: number }[];
+  top: TopCompany[];
+  grants: { n: number; s: number };
+  insights: { kind: string; text: string }[];
+  period: string;
+  full_access: boolean;
+}
+
+export interface Overview {
+  total: MarketMetrics;
+  industries: { okved2: string; name: string; section: string; companies: number; revenue: number; median_revenue: number; top10_share: number; profitable: number; with_revenue: number; staff: number; grants_sum: number }[];
+  regions: { region: string; name: string; companies: number; revenue: number; staff: number; median_revenue: number; with_revenue: number; profitable: number; new_3y: number; grants_sum: number }[];
+  period: string;
+}
+
+export interface RiskFactor { level: "high" | "mid" | "good"; text: string }
+
+export interface CompanyReport {
+  inn: string;
+  name: string;
+  short_name: string;
+  ogrn: string;
+  kpp: string;
+  status: string;
+  registered: number | null;
+  liquidated: number | null;
+  region: string;
+  region_name: string;
+  city: string;
+  address: string;
+  okved: string;
+  okved_name: string;
+  okved2: string;
+  okved2_name: string;
+  head: string;
+  head_post: string;
+  opf: string;
+  capital: number | null;
+  branches: number | null;
+  msp: string;
+  msp_year: number | null;
+  staff: number | null;
+  tax_mode: string;
+  tax_debt: number;
+  finance: { revenue: number | null; expenses: number | null; profit: number | null; margin: number | null; rev_per_staff: number | null };
+  peers: { n: number; med: number; med_margin: number | null; med_rps: number | null; rank: number; rank_ru: number; n_ru: number } | null;
+  competitors: { inn: string; name: string; revenue: number; staff: number | null; locked?: boolean }[];
+  grant: { total_amount: number; last_date: string; last_amount: number; source: string; source_full: string; payments: number } | null;
+  risk: { score: number; level: "low" | "mid" | "high"; factors: RiskFactor[] };
+  egrul_live: boolean;
+  full_access: boolean;
+}
+
+export interface SearchItem { inn: string; name: string; region: string; region_name: string; okved: string; revenue: number | null; address?: string }
+
+function token() {
+  return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
+}
+
+export async function bizGet<T>(params: Record<string, string>): Promise<T & { error?: string }> {
+  const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== "" && v != null));
+  const t = token();
+  const res = await fetch(`${BIZ_URL}/?${new URLSearchParams(clean).toString()}`, { headers: t ? { "X-Session-Token": t } : {} });
+  return res.json();
+}
+
+export async function bizOrder(body: Record<string, string>) {
+  const res = await fetch(`${BIZ_URL}/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "order", ...body }),
+  });
+  return res.json();
+}
+
+export function money(v: number | string | null | undefined, short = false): string {
+  const n = Number(v) || 0;
+  const a = Math.abs(n);
+  const f = (x: number, d = 1) => x.toLocaleString("ru-RU", { maximumFractionDigits: d });
+  if (a >= 1e12) return `${f(n / 1e12)} трлн${short ? "" : " ₽"}`;
+  if (a >= 1e9) return `${f(n / 1e9)} млрд${short ? "" : " ₽"}`;
+  if (a >= 1e6) return `${f(n / 1e6)} млн${short ? "" : " ₽"}`;
+  if (a >= 1e3) return `${f(n / 1e3, 0)} тыс.${short ? "" : " ₽"}`;
+  return `${f(n, 0)}${short ? "" : " ₽"}`;
+}
+
+export const num = (v: number | string | null | undefined) => (Number(v) || 0).toLocaleString("ru-RU");
+export const pct = (a: number, b: number) => (b ? Math.round((a / b) * 1000) / 10 : 0);
+
+export function prettyName(raw: string): string {
+  let s = (raw || "").replace(/\s+/g, " ").trim();
+  const OPF: [RegExp, string][] = [
+    [/^ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ\s*/i, "ООО "],
+    [/^ПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО\s*/i, "ПАО "],
+    [/^НЕПУБЛИЧНОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО\s*/i, "АО "],
+    [/^АКЦИОНЕРНОЕ ОБЩЕСТВО\s*/i, "АО "],
+    [/^ЗАКРЫТОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО\s*/i, "ЗАО "],
+    [/^ОТКРЫТОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО\s*/i, "ОАО "],
+    [/^СЕЛЬСКОХОЗЯЙСТВЕННЫЙ ПРОИЗВОДСТВЕННЫЙ КООПЕРАТИВ\s*/i, "СПК "],
+    [/^КРЕСТЬЯНСКОЕ \(ФЕРМЕРСКОЕ\) ХОЗЯЙСТВО\s*/i, "КФХ "],
+    [/^ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ УНИТАРНОЕ ПРЕДПРИЯТИЕ\s*/i, "ФГУП "],
+    [/^МУНИЦИПАЛЬНОЕ УНИТАРНОЕ ПРЕДПРИЯТИЕ\s*/i, "МУП "],
+    [/^АВТОНОМНАЯ НЕКОММЕРЧЕСКАЯ ОРГАНИЗАЦИЯ\s*/i, "АНО "],
+  ];
+  for (const [re, r] of OPF) if (re.test(s)) { s = s.replace(re, r); break; }
+  const m = s.match(/^(\S+(?: \S+)?) "(.+)"$/);
+  if (m) return `${m[1]} «${m[2].replace(/"/g, "")}»`;
+  return s.replace(/"([^"]+)"/g, "«$1»");
+}
+
+export const MSP_LABEL: Record<number, string> = { 0: "Крупная / без статуса", 1: "Микро", 2: "Малое", 3: "Среднее" };
+
+export const PRICES = { market: 4900, company: 1490, check: 490 } as const;
+
+export function fmtYear(ms: number | null) {
+  if (!ms) return "—";
+  return new Date(ms).toLocaleDateString("ru-RU");
+}

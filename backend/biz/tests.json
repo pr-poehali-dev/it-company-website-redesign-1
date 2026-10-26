@@ -1,0 +1,5 @@
+{"tests": [
+ {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+ {"name": "Неизвестное действие", "method": "GET", "path": "/?action=xxx", "expectedStatus": 400},
+ {"name": "Проверка без ИНН", "method": "GET", "path": "/?action=company", "expectedStatus": 400}
+]}
