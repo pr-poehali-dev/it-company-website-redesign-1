@@ -14,9 +14,10 @@ import AutomationHub from "./admin/AutomationHub";
 import FunnelDashboard from "./admin/FunnelDashboard";
 import SalesPlan from "./admin/SalesPlan";
 import RadarEnrichModule from "./admin/radar/RadarEnrichModule";
+import ReportOrdersModule from "./admin/orders/ReportOrdersModule";
 import { AUTH_URL, BLOG_URL, GENERATE_PDF_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "plan" | "blog" | "tenders" | "grants" | "prospects" | "radar" | "requests" | "chats" | "agent" | "legal" | "automation" | "funnel";
+type Section = "plan" | "blog" | "tenders" | "grants" | "prospects" | "radar" | "orders" | "requests" | "chats" | "agent" | "legal" | "automation" | "funnel";
 
 function getStoredToken(): string {
   return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
@@ -215,6 +216,7 @@ export default function Admin() {
     { id: "grants", label: "Гранты", icon: "Award" },
     { id: "prospects", label: "Клиенты", icon: "Users" },
     { id: "radar", label: "Радар: контакты", icon: "Radar" },
+    { id: "orders", label: "Заказы отчётов", icon: "ShoppingBag" },
     { id: "requests", label: "Заявки", icon: "Mail" },
     { id: "chats", label: "Диалоги", icon: "MessagesSquare" },
     { id: "agent", label: "AI-агент", icon: "BrainCircuit" },
@@ -333,6 +335,10 @@ export default function Admin() {
         {/* REQUESTS SECTION */}
         {section === "radar" && (
           <RadarEnrichModule />
+        )}
+
+        {section === "orders" && (
+          <ReportOrdersModule />
         )}
 
         {section === "requests" && (
