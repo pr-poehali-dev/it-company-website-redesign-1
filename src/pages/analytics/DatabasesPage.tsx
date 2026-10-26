@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { Card, SourceNote } from "@/components/biz/BizUi";
+import { ItemListSchema } from "@/components/biz/SeoSchema";
 import { BizDatabase, bizGet, money, num, pct } from "@/components/biz/bizApi";
 
 const TABS = [
@@ -34,6 +35,7 @@ export default function DatabasesPage() {
     <BizShell title="Базы компаний России по отраслям и регионам с аналитикой | МАТ-Лабс"
       description="Готовые базы компаний: строительство, оптовая и розничная торговля, производство, АПК, ИТ, логистика, регионы, крупный бизнес. Выручка 2025, штат, налоги, контакты. Анализ бесплатно, выгрузка в Excel."
       path="/analytics/databases" crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Базы компаний" }]}>
+      {items.length > 0 && <ItemListSchema name="Базы компаний России" items={items.map(i => ({ name: i.title, url: `https://mat-labs.ru/analytics/databases/${i.slug}` }))} />}
       <header className="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div>
           <h1 className="font-['Oswald',sans-serif] text-3xl md:text-5xl font-bold mb-3">Справочник баз компаний</h1>

@@ -25,8 +25,8 @@ CORS = {
     'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token',
 }
 NOTIFY_EMAIL = 'atyurin2@yandex.ru'
-PRICES = {'market': 4900, 'company': 1490, 'check': 490, 'custom': 0, 'database': 0}
-REPORT_NAMES = {'database': 'Выгрузка базы компаний', 'market': 'Отчёт о рынке', 'company': 'Отчёт о компании', 'check': 'Проверка контрагента',
+PRICES = {'market': 4900, 'company': 1490, 'check': 490, 'custom': 0, 'database': 0, 'service': 0}
+REPORT_NAMES = {'service': 'Услуга под ключ', 'database': 'Выгрузка базы компаний', 'market': 'Отчёт о рынке', 'company': 'Отчёт о компании', 'check': 'Проверка контрагента',
                 'custom': 'Индивидуальное исследование'}
 REGIONS = {
     '01': 'Адыгея', '02': 'Башкортостан', '03': 'Бурятия', '04': 'Алтай Респ.', '05': 'Дагестан', '06': 'Ингушетия',
@@ -547,7 +547,7 @@ def action_order(body):
         return resp({'ok': True})
     rtype = body.get('report_type') if body.get('report_type') in PRICES else 'custom'
     price = PRICES[rtype]
-    if rtype == 'database':
+    if rtype in ('database', 'service'):
         try:
             price = max(0, min(int(body.get('price') or 0), 200000))
         except (TypeError, ValueError):
@@ -658,6 +658,44 @@ def action_db(p, body, admin):
                  'price': price, 'full_access': admin, 'insights': market_insights(an['metrics'], None, 'RU') if companies else []})
 
 
+def action_benchmark(p):
+    """Где компания с заданной выручкой и штатом находится среди рынка (отрасль × регион)."""
+    okved = re.sub(r'[^\d]', '', p.get('okved') or '')[:2]
+    region = re.sub(r'[^\d]', '', p.get('region') or '')[:2]
+    try:
+        rev = float(p.get('revenue') or 0)
+        staff = float(p.get('staff') or 0)
+        margin = float(p.get('margin')) if p.get('margin') not in (None, '') else None
+    except ValueError:
+        return err('Неверные числа')
+    if not okved or rev <= 0:
+        return err('Укажите отрасль и выручку')
+    conn = db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    w = 'okved2 = %s AND revenue > 0' + (' AND region = %s' if region else '')
+    a = [okved] + ([region] if region else [])
+    cur.execute(f"""SELECT COUNT(*) AS n, COUNT(*) FILTER (WHERE revenue < %s) AS below,
+        PERCENTILE_CONT(ARRAY[0.25, 0.5, 0.75, 0.9]) WITHIN GROUP (ORDER BY revenue) AS rq,
+        PERCENTILE_CONT(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY (revenue - expenses)::float / revenue) AS mq,
+        PERCENTILE_CONT(ARRAY[0.25, 0.5, 0.75]) WITHIN GROUP (ORDER BY revenue::float / NULLIF(staff, 0)) FILTER (WHERE staff > 0) AS pq,
+        COUNT(*) FILTER (WHERE staff > 0 AND revenue::float / staff < %s) AS p_below, COUNT(*) FILTER (WHERE staff > 0) AS p_n,
+        COUNT(*) FILTER (WHERE (revenue - expenses)::float / revenue < %s) AS m_below
+        FROM {S}.biz_companies WHERE {w}""", [rev, rev / staff if staff else 0, (margin or 0) / 100] + a)
+    r = dict(cur.fetchone())
+    names = okved_names(cur, [okved])
+    conn.close()
+    if not r['n']:
+        return err('По этому рынку нет данных', 404)
+    out = {
+        'okved': okved, 'okved_name': (names.get(okved) or {}).get('name', ''), 'region': region or 'RU',
+        'region_name': REGIONS.get(region, 'Россия') if region else 'Россия', 'n': r['n'],
+        'revenue': {'pct': round(r['below'] / r['n'] * 100, 1), 'q': r['rq']},
+        'margin': {'pct': round(r['m_below'] / r['n'] * 100, 1) if margin is not None else None, 'q': r['mq']},
+        'productivity': {'pct': round(r['p_below'] / r['p_n'] * 100, 1) if staff and r['p_n'] else None, 'q': r['pq']},
+    }
+    return resp(out, cache=600)
+
+
 def handler(event: dict, context) -> dict:
     """Бизнес-аналитика: обзор, рынки, рейтинги, отчёт о компании, проверка контрагента, заказы отчётов."""
     method = event.get('httpMethod', 'GET')
@@ -681,6 +719,8 @@ def handler(event: dict, context) -> dict:
         return action_rating(p, admin)
     if action == 'databases':
         return action_databases()
+    if action == 'benchmark':
+        return action_benchmark(p)
     if action == 'db':
         return action_db(p, body, admin)
     if action == 'order' and method == 'POST':

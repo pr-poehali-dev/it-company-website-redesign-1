@@ -29,7 +29,7 @@ export default function RatingPage() {
   return (
     <BizShell title="Рейтинг крупнейших компаний России по выручке 2025 | МАТ-Лабс"
       description="Рейтинги компаний по выручке, прибыли и численности за 2025 год — по любой отрасли и региону. Открытые данные ФНС."
-      path="/analytics/rating" crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Рейтинги" }]}>
+      path="/analytics/rating" noindex={okved !== "ALL" || region !== "RU" || sort !== "revenue"} crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Рейтинги" }]}>
       <h1 className="font-['Oswald',sans-serif] text-3xl md:text-5xl font-bold mb-3">Рейтинги компаний</h1>
       <p className="text-white/60 mb-6">Топ по выручке, прибыли или численности за 2025 год. Первые 10 — бесплатно, топ-100 с ИНН — в полном отчёте.</p>
       <MarketPicker okved={okved} region={region} onChange={(o, r) => { const n = new URLSearchParams(sp); n.set("okved", o); n.set("region", r); setSp(n, { replace: true }); }} />

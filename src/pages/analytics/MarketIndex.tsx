@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import MarketPicker from "@/components/biz/MarketPicker";
 import { Card, SourceNote } from "@/components/biz/BizUi";
+import { ItemListSchema } from "@/components/biz/SeoSchema";
 import { Overview, bizGet, money, num, pct } from "@/components/biz/bizApi";
 
 type Sort = "revenue" | "companies" | "median" | "profit" | "conc";
@@ -41,6 +42,7 @@ export default function MarketIndex() {
     <BizShell title="Рынки России по отраслям: объём, число компаний, концентрация 2025 | МАТ-Лабс"
       description="88 отраслей ОКВЭД: выручка 2025 года, число компаний, медианная выручка, доля прибыльных, концентрация топ-10. Отчёт по любой отрасли и региону."
       path="/analytics/market" crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Рынки" }]}>
+      {rows.length > 0 && <ItemListSchema name="Рынки России по отраслям" items={rows.map(r => ({ name: r.name, url: `https://mat-labs.ru/analytics/market/${r.okved2}` }))} />}
       <h1 className="font-['Oswald',sans-serif] text-3xl md:text-5xl font-bold mb-2">Отчёты о рынках</h1>
       <p className="text-white/60 mb-6 max-w-3xl">Выберите отрасль (до 5-го знака ОКВЭД) и регион — откроется отчёт с объёмом рынка, лидерами, сегментами, географией и рисками. {bySection.size ? `${rows.length} отраслей в ${bySection.size} разделах.` : ""}</p>
       <MarketPicker okved="ALL" region="RU" onChange={(o, r) => navigate(`/analytics/market/${o}${r !== "RU" ? `/${r}` : ""}`)} />

@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import BizOrderModal from "@/components/biz/BizOrderModal";
 import { Card } from "@/components/biz/BizUi";
+import { FaqSchema } from "@/components/biz/SeoSchema";
 
 type T = "market" | "company" | "check" | "custom";
 
@@ -32,6 +33,7 @@ export default function PricesPage() {
     <BizShell title="Тарифы на отчёты о рынках, компаниях и проверку контрагентов | МАТ-Лабс"
       description="Разовые отчёты без подписки: проверка контрагента 490 ₽, отчёт о компании 1 490 ₽, отчёт о рынке 4 900 ₽. Пакеты и годовой доступ для отдела продаж."
       path="/analytics/prices" crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Тарифы" }]}>
+      <FaqSchema items={FAQ as [string, string][]} />
       <h1 className="font-['Oswald',sans-serif] text-3xl md:text-5xl font-bold mb-3">Тарифы</h1>
       <p className="text-white/60 mb-8 max-w-3xl">Платите за конкретный отчёт — без годовых подписок. Превью любого отчёта бесплатно, полный — по счёту для юрлиц и ИП.</p>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

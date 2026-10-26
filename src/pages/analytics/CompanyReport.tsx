@@ -92,7 +92,7 @@ export default function CompanyReport() {
   return (
     <BizShell title={d ? `${name} (ИНН ${d.inn}) — выручка ${money(f?.revenue)}, проверка контрагента | МАТ-Лабс` : "Отчёт о компании | МАТ-Лабс"}
       description={d ? `${name}, ИНН ${d.inn}, ${d.region_name}. Выручка за 2025 год ${money(f?.revenue)}, сотрудников ${d.staff ?? "—"}. Индекс риска ${d.risk.score}/100, налоговая недоимка ${money(d.tax_debt)}.` : ""}
-      path={`/analytics/company/${inn}`}
+      path={`/analytics/company/${inn}`} noindex={!!error}
       crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Компании", href: "/analytics/company" }, { label: name || inn }]}>
       <div className="max-w-xl mb-6"><CompanySearch onPick={i => navigate(`/analytics/company/${i}`)} placeholder="Проверить другую компанию" /></div>
 

@@ -5,13 +5,14 @@ import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { Card, Kpi, BarRow, SourceNote } from "@/components/biz/BizUi";
 import CompanySearch from "@/components/biz/CompanySearch";
+import { ItemListSchema } from "@/components/biz/SeoSchema";
 import { Overview, bizGet, money, num, pct } from "@/components/biz/bizApi";
 
 const PRODUCTS = [
   { icon: "PieChart", title: "Отчёт о рынке", price: "4 900 ₽", to: "/analytics/market", text: "Объём, лидеры и их доли, концентрация, сегменты, география, доля новых игроков, риски — для любой отрасли и региона" },
   { icon: "Building2", title: "Отчёт о компании", price: "1 490 ₽", to: "/analytics/company", text: "Выручка, прибыль, рентабельность, место среди конкурентов, господдержка, руководитель — по ИНН" },
   { icon: "ShieldCheck", title: "Проверка контрагента", price: "490 ₽", to: "/analytics/company", text: "Статус в ЕГРЮЛ, налоговые долги, убыточность, признаки транзитной компании — индекс риска 0–100" },
-  { icon: "Microscope", title: "Исследование под задачу", price: "от 25 000 ₽", to: "/analytics/prices", text: "Аналитик соберёт выборку и выводы под ваш вопрос: вход на рынок, поиск поставщиков, оценка ниши" },
+  { icon: "Microscope", title: "Аналитика под ключ", price: "от 9 900 ₽", to: "/analytics/services", text: "Исследования рынка, опросы, тайный покупатель, парсинг, обогащение базы, дашборды — с калькулятором цены" },
 ];
 
 const COLORS = ["#7c3aed", "#0891b2", "#6d28d9", "#0e7490", "#5b21b6", "#155e75", "#4c1d95", "#164e63"];
@@ -52,6 +53,15 @@ export default function AnalyticsHome() {
       description="Аналитика по 2,16 млн компаний России на открытых данных ФНС за 2025 год: объём рынков по отраслям и регионам, лидеры, финансы компаний, проверка контрагентов."
       path="/analytics" crumbs={[{ label: "Бизнес-аналитика" }]}>
 
+      <ItemListSchema name="Бизнес-аналитика МАТ-Лабс" items={[
+        { name: "Отчёты о рынках", url: "https://mat-labs.ru/analytics/market" },
+        { name: "Базы компаний", url: "https://mat-labs.ru/analytics/databases" },
+        { name: "Отчёт о компании и проверка контрагента", url: "https://mat-labs.ru/analytics/company" },
+        { name: "Рейтинги компаний", url: "https://mat-labs.ru/analytics/rating" },
+        { name: "Облачный BI", url: "https://mat-labs.ru/analytics/bi" },
+        { name: "Аналитика под ключ", url: "https://mat-labs.ru/analytics/services" },
+        { name: "Тарифы", url: "https://mat-labs.ru/analytics/prices" },
+      ]} />
       <header className="mb-10">
         <div className="inline-flex items-center gap-2 bg-white/[0.04] px-4 py-1.5 rounded-full text-sm text-violet-300 border border-violet-500/30 mb-5">
           <Icon name="Database" size={14} />Данные ФНС за 2025 год · обновлено 25.09.2026

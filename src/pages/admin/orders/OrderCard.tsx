@@ -16,7 +16,7 @@ export default function OrderCard({ o, selected, onSelect, onChange, onDeleted }
   const [email, setEmail] = useState(o.email);
   const [note, setNote] = useState(o.admin_note);
   const [open, setOpen] = useState(false);
-  const canAuto = o.report_type !== "custom";
+  const canAuto = o.report_type !== "custom" && o.report_type !== "service";
 
   async function setStatus(s: OrderStatus) {
     setBusy("status");
@@ -103,7 +103,7 @@ export default function OrderCard({ o, selected, onSelect, onChange, onDeleted }
                 <Icon name={busy === "gen" ? "Loader2" : "FileCog"} size={15} className={busy === "gen" ? "animate-spin" : ""} />
                 {o.pdf_url ? "Пересобрать отчёт" : "Сформировать PDF и Excel"}
               </button>
-            ) : <span className="text-xs text-white/40">Исследование готовится вручную</span>}
+            ) : <span className="text-xs text-white/40">{o.report_type === "service" ? "Услуга под ключ — КП и договор вручную" : "Исследование готовится вручную"}</span>}
             {o.pdf_url && <a href={o.pdf_url} target="_blank" rel="noreferrer" className="text-sm px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 hover:bg-rose-500/20 flex items-center gap-1.5"><Icon name="FileText" size={14} />PDF</a>}
             {o.xlsx_url && <a href={o.xlsx_url} target="_blank" rel="noreferrer" className="text-sm px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 hover:bg-emerald-500/20 flex items-center gap-1.5"><Icon name="FileSpreadsheet" size={14} />Excel</a>}
             {o.pdf_url && (

@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
+import { OG_IMAGE } from "@/components/biz/BizShell";
 import RadarAccessForm from "@/components/radar/RadarAccessForm";
 import { RadarCompany as Company, RADAR_URL, fmtMoney, fmtDate, prettyName, SOURCE_LABEL } from "@/components/radar/radarApi";
 
@@ -50,6 +51,21 @@ export default function RadarCompany() {
         <title>{title}</title>
         {desc && <meta name="description" content={desc} />}
         <link rel="canonical" href={`https://mat-labs.ru/radar/${inn}`} />
+        <meta name="robots" content={error ? "noindex, follow" : "index, follow, max-image-preview:large"} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={title} />
+        {desc && <meta property="og:description" content={desc} />}
+        <meta property="og:url" content={`https://mat-labs.ru/radar/${inn}`} />
+        <meta property="og:site_name" content="МАТ-Лабс" />
+        <meta property="og:locale" content="ru_RU" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
+        {c && <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org", "@type": "Organization", name: name, taxID: c.inn,
+          ...(c.ogrn ? { identifier: c.ogrn } : {}),
+          address: { "@type": "PostalAddress", addressRegion: c.region, addressCountry: "RU" },
+          ...(c.activity ? { description: c.activity } : {}),
+        })}</script>}
       </Helmet>
       <div className="min-h-screen bg-[#080812] text-white font-['Golos_Text',sans-serif] overflow-x-hidden">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />

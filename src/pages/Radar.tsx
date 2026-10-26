@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
+import { OG_IMAGE } from "@/components/biz/BizShell";
 import RadarFilters from "@/components/radar/RadarFilters";
 import RadarList from "@/components/radar/RadarList";
 import RadarPricing from "@/components/radar/RadarPricing";
@@ -83,6 +84,11 @@ export default function Radar() {
         <meta property="og:title" content={TITLE} />
         <meta property="og:description" content={DESCRIPTION} />
         <meta property="og:url" content={PAGE_URL} />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <meta property="og:site_name" content="МАТ-Лабс" />
+        <meta property="og:locale" content="ru_RU" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
 
       <div className="min-h-screen bg-[#080812] text-white font-['Golos_Text',sans-serif] overflow-x-hidden">

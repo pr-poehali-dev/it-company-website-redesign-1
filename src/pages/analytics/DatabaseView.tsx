@@ -6,6 +6,7 @@ import BizShell from "@/components/biz/BizShell";
 import { BarRow, Card, INSIGHT_ICON, Kpi, SourceNote } from "@/components/biz/BizUi";
 import BizOrderModal from "@/components/biz/BizOrderModal";
 import DbFilterPanel from "@/components/biz/DbFilterPanel";
+import { DatasetSchema } from "@/components/biz/SeoSchema";
 import { DbFilters, DbResponse, MSP_LABEL, bizGet, decodeFilters, money, num, pct, prettyName } from "@/components/biz/bizApi";
 
 const TT = { background: "#10101c", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, fontSize: 12 };
@@ -86,9 +87,11 @@ export default function DatabaseView() {
   return (
     <BizShell title={`${title}: ${m ? num(m.companies) + " компаний, " : ""}анализ и выгрузка | МАТ-Лабс`}
       description={d?.meta?.description || "Конструктор базы компаний России: отрасль, регион, выручка, штат, налоги. Бесплатный анализ, выгрузка в Excel."}
-      path={`/analytics/databases/${slug}`}
+      path={`/analytics/databases/${slug}`} noindex={isConstructor || Object.keys(extra).length > 0 || page > 1 || sort !== "revenue"}
       crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Базы компаний", href: "/analytics/databases" }, { label: title }]}>
 
+      {d?.meta && m && <DatasetSchema name={`База компаний: ${d.meta.title}`} url={`https://mat-labs.ru/analytics/databases/${slug}`}
+        description={`${num(m.companies)} компаний, выручка ${money(m.revenue)} за 2025 год. ${d.meta.description}`} />}
       <div className="grid lg:grid-cols-[300px_1fr] gap-5">
         <aside className="lg:sticky lg:top-4 self-start space-y-3">
           <DbFilterPanel value={panelValue} onApply={applyFilters} />

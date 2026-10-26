@@ -5,6 +5,7 @@ import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { BarRow, Card, INSIGHT_ICON, Kpi, Locked, SourceNote } from "@/components/biz/BizUi";
 import BizOrderModal from "@/components/biz/BizOrderModal";
+import { DatasetSchema } from "@/components/biz/SeoSchema";
 import MarketPicker from "@/components/biz/MarketPicker";
 import { MSP_LABEL, MarketReport as Report, PRICES, bizGet, money, num, pct, prettyName } from "@/components/biz/bizApi";
 
@@ -49,6 +50,8 @@ export default function MarketReport() {
       path={`/analytics/market/${okved}${region !== "RU" ? `/${region}` : ""}`}
       crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Рынки", href: "/analytics/market" }, { label: d?.okved_name || okved }]}>
 
+      {d && m && <DatasetSchema name={`Рынок «${d.okved_name}» — ${d.region_name}, 2025`} url={`https://mat-labs.ru/analytics/market/${okved}${region !== "RU" ? `/${region}` : ""}`}
+        description={`${num(m.companies)} компаний, выручка ${money(m.revenue)}, медиана ${money(m.median_revenue)}, доля топ-10 ${Number(m.top10_share).toFixed(0)}%. Данные ФНС за 2025 год.`} />}
       <MarketPicker okved={okved} region={region} onChange={(o, r) => navigate(`/analytics/market/${o}${r !== "RU" ? `/${r}` : ""}`)} />
 
       {error && <Card><p className="text-white/60 text-center py-8">{error}. Попробуйте другой код или регион.</p></Card>}

@@ -4,7 +4,7 @@ import { bizOrder } from "./bizApi";
 import { ymLead } from "@/lib/ym";
 
 interface Props {
-  reportType: "market" | "company" | "check" | "custom" | "database";
+  reportType: "market" | "company" | "check" | "custom" | "database" | "service";
   reportKey?: string;
   title: string;
   price?: number;
