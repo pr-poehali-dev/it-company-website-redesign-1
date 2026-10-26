@@ -37,6 +37,7 @@ const CompetitorsPage = lazy(() => import("./pages/analytics/CompetitorsPage"));
 const ServicesPage = lazy(() => import("./pages/analytics/ServicesPage"));
 const ServiceDetail = lazy(() => import("./pages/analytics/ServiceDetail"));
 const BiPage = lazy(() => import("./pages/analytics/BiPage"));
+const BiSharedPage = lazy(() => import("./pages/analytics/BiSharedPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => <div className="min-h-screen bg-[#080812]" />;
@@ -78,6 +79,7 @@ const App = () => (
           <Route path="/analytics/services" element={<ServicesPage />} />
           <Route path="/analytics/services/:slug" element={<ServiceDetail />} />
           <Route path="/analytics/bi" element={<BiPage />} />
+          <Route path="/analytics/bi/s/:id" element={<BiSharedPage />} />
           <Route path="/presentation" element={<Presentation />} />
           <Route path="/skolko-stoit-avtomatizaciya" element={<PriceCalculator />} />
           <Route path="/avtomatizaciya-biznesa" element={<CitiesIndex />} />

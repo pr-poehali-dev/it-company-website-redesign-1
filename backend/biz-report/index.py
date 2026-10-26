@@ -261,7 +261,7 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"""DELETE FROM {S}.biz_report_orders
                             WHERE name ILIKE '%%тест%%' OR report_title ILIKE '%%тест%%' OR email ILIKE 'test@%%'""")
             n = cur.rowcount
-            cur.execute(f"""DELETE FROM {S}.contact_requests WHERE source IN ('analytics','radar')
+            cur.execute(f"""DELETE FROM {S}.contact_requests WHERE source IN ('analytics','radar','bi')
                             AND (name ILIKE '%%тест%%' OR email ILIKE 'test@%%')""")
             n2 = cur.rowcount
             conn.commit()

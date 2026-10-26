@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 
 Disallow: /admin
+Disallow: /analytics/bi/s/
 Disallow: /chatgpt
 
 Sitemap: https://mat-labs.ru/sitemap.xml

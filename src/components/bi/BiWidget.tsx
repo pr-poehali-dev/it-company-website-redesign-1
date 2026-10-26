@@ -14,9 +14,10 @@ interface Props {
   onEdit: () => void;
   onRemove: () => void;
   onDrill?: (column: string, value: string) => void;
+  readOnly?: boolean;
 }
 
-export default function BiWidget({ w, ds, rows, onEdit, onRemove, onDrill }: Props) {
+export default function BiWidget({ w, ds, rows, onEdit, onRemove, onDrill, readOnly }: Props) {
   const data = useMemo(() => aggregate(rows, w, ds), [rows, w, ds]);
   const wide = w.type !== "kpi" && w.type !== "pie";
   const click = (label?: string) => { if (onDrill && w.dim && label && !label.startsWith("Прочие")) onDrill(w.dim, label); };
@@ -28,10 +29,10 @@ export default function BiWidget({ w, ds, rows, onEdit, onRemove, onDrill }: Pro
           <div className="text-sm font-semibold text-white truncate">{w.title}</div>
           {w.type !== "kpi" && <div className="text-[11px] text-white/40">{AGG_LABEL[w.agg]}{w.measure ? ` · ${w.measure}` : ""}</div>}
         </div>
-        <div className="flex gap-1 opacity-60 group-hover:opacity-100 shrink-0">
+        {!readOnly && <div className="flex gap-1 opacity-60 group-hover:opacity-100 shrink-0">
           <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-white/10 text-white/60" title="Настроить"><Icon name="Settings2" size={14} /></button>
           <button onClick={onRemove} className="p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-rose-300" title="Удалить"><Icon name="X" size={14} /></button>
-        </div>
+        </div>}
       </div>
       {typeof data === "number" ? (
         <div className="font-['Oswald',sans-serif] text-3xl font-bold bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">{fmt(data)}</div>

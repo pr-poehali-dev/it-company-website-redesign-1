@@ -1,0 +1,6 @@
+{"tests": [
+ {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+ {"name": "Неверная ссылка", "method": "GET", "path": "/?action=get&id=bad", "expectedStatus": 404},
+ {"name": "Список без авторизации", "method": "GET", "path": "/?action=list", "expectedStatus": 401},
+ {"name": "Публикация без контактов", "method": "POST", "path": "/", "body": {"action": "publish", "dashboard": {"dataset": {"name": "t", "columns": [{"name": "a", "type": "number"}], "rows": [{"a": 1}]}, "widgets": [], "filters": []}}, "expectedStatus": 400}
+]}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import OrderCard from "./OrderCard";
+import BiSharesPanel from "./BiSharesPanel";
 import { OrderStatus, OrdersResponse, ReportOrder, STATUS_META, STATUS_ORDER, ordersGet, ordersPost } from "./ordersApi";
 
 export default function ReportOrdersModule() {
@@ -94,6 +95,8 @@ export default function ReportOrdersModule() {
         )}
       </div>
       {info && <div className="text-sm text-emerald-300">{info}</div>}
+
+      <BiSharesPanel />
 
       {loading && !data ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-36 rounded-2xl bg-white/5 animate-pulse" />)}</div>

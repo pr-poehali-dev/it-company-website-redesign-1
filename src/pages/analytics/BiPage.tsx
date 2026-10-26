@@ -1,19 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { Card } from "@/components/biz/BizUi";
 import { FaqSchema, ServiceSchema } from "@/components/biz/SeoSchema";
-import BiWidget from "@/components/bi/BiWidget";
+import DashboardView from "@/components/bi/DashboardView";
+import { useRows } from "@/components/bi/useRows";
+import ShareDialog from "@/components/bi/ShareDialog";
+import { OwnedShare, ownedShares } from "@/components/bi/shareApi";
 import WidgetEditor from "@/components/bi/WidgetEditor";
 import MarketBenchmark from "@/components/bi/MarketBenchmark";
-import { Dashboard, Dataset, Filter, Widget, applyFilters, autoWidgets, demoDataset, exportCsv, readFile } from "@/components/bi/biEngine";
+import { Dashboard, Dataset, Widget, autoWidgets, demoDataset, exportCsv, readFile } from "@/components/bi/biEngine";
 
 const STORE = "matlabs_bi_v1";
+const STORE_SHARE = "matlabs_bi_current_share";
 const MAX_SAVE = 4_000_000;
 
 const FAQ: [string, string][] = [
-  ["Куда загружаются мои данные?", "Никуда: файл обрабатывается прямо в вашем браузере и не отправляется на сервер. Дашборд сохраняется только на этом устройстве."],
+  ["Куда загружаются мои данные?", "Никуда: файл обрабатывается прямо в вашем браузере и не отправляется на сервер. Дашборд сохраняется только на этом устройстве — пока вы сами не нажмёте «Поделиться»."],
+  ["Как показать дашборд коллегам?", "Нажмите «Поделиться» — получите ссылку, которая открывается без регистрации и работает 90 дней. Графики и фильтры доступны, изменить дашборд может только автор. Обновить данные можно по той же ссылке."],
   ["Какие файлы подходят?", "Excel (.xlsx, .xls) и CSV до 200 000 строк. Первая строка — заголовки колонок. Даты, числа и категории распознаются автоматически."],
   ["Чем отличается от Yandex DataLens или PIX BI?", "Не нужно ничего устанавливать и подключать: загрузили таблицу — получили дашборд за секунды. И есть то, чего нет в коробочных BI, — сравнение ваших показателей с рынком по данным ФНС."],
   ["Можно подключить 1С или CRM с автообновлением?", "Да, это услуга «Дашборды и BI под ключ»: подключим источники, настроим автообновление и доступы для команды."],
@@ -31,6 +36,12 @@ export default function BiPage() {
   const [edit, setEdit] = useState<Widget | null | "new">(null);
   const [tab, setTab] = useState<"dash" | "data">("dash");
   const [saved, setSaved] = useState<"ok" | "big" | "">("");
+  const [share, setShare] = useState<OwnedShare | null>(() => {
+    const id = localStorage.getItem(STORE_SHARE);
+    return (id && ownedShares().find(s => s.id === id)) || null;
+  });
+  const [shareOpen, setShareOpen] = useState(false);
+  const changeShare = (s: OwnedShare | null) => { setShare(s); if (s) localStorage.setItem(STORE_SHARE, s.id); else localStorage.removeItem(STORE_SHARE); };
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,7 +59,7 @@ export default function BiPage() {
     try { localStorage.setItem(STORE, s); setSaved("ok"); } catch { setSaved("big"); }
   }, [dash]);
 
-  const start = (ds: Dataset) => { setDash({ dataset: ds, widgets: autoWidgets(ds), filters: [] }); setTab("dash"); setError(""); };
+  const start = (ds: Dataset) => { setDash({ dataset: ds, widgets: autoWidgets(ds), filters: [] }); setTab("dash"); setError(""); changeShare(null); };
 
   const onFile = useCallback(async (f?: File | null) => {
     if (!f) return;
@@ -61,23 +72,12 @@ export default function BiPage() {
       start(ds);
     } catch (e) { setError((e as Error).message || "Не удалось прочитать файл"); }
     setBusy(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ds = dash?.dataset;
-  const rows = useMemo(() => (ds && dash ? applyFilters(ds.rows, dash.filters) : []), [ds, dash]);
-  const filterable = useMemo(() => (ds ? ds.columns.filter(c => c.type !== "number" && c.unique > 1 && c.unique <= 300) : []), [ds]);
-  const values = useCallback((col: string) => {
-    if (!ds) return [];
-    const m = new Map<string, number>();
-    ds.rows.forEach(r => { const k = String(r[col] ?? "—"); m.set(k, (m.get(k) || 0) + 1); });
-    return Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
-  }, [ds]);
-
-  const setFilter = (column: string, vals: string[]) => setDash(d => d && ({ ...d, filters: [...d.filters.filter(f => f.column !== column), ...(vals.length ? [{ column, values: vals }] : [])] }));
-  const drill = (column: string, value: string) => {
-    const cur = dash?.filters.find(f => f.column === column)?.values || [];
-    setFilter(column, cur.length === 1 && cur[0] === value ? [] : [value]);
-  };
+  const rows = useRows(dash);
+  const setD = (fn: (d: Dashboard) => Dashboard) => setDash(d => (d ? fn(d) : d));
   const saveWidget = (w: Widget) => { setDash(d => d && ({ ...d, widgets: d.widgets.some(x => x.id === w.id) ? d.widgets.map(x => (x.id === w.id ? w : x)) : [...d.widgets, w] })); setEdit(null); };
 
   const download = () => {
@@ -98,7 +98,7 @@ export default function BiPage() {
       {!dash ? (
         <>
           <header className="mb-8 max-w-4xl">
-            <div className="inline-flex items-center gap-2 bg-white/[0.04] px-4 py-1.5 rounded-full text-sm text-violet-300 border border-violet-500/30 mb-5"><Icon name="ShieldCheck" size={14} />Бесплатно · без регистрации · данные не уходят на сервер</div>
+            <div className="inline-flex items-center gap-2 bg-white/[0.04] px-4 py-1.5 rounded-full text-sm text-violet-300 border border-violet-500/30 mb-5"><Icon name="ShieldCheck" size={14} />Бесплатно · без регистрации · файл обрабатывается в браузере</div>
             <h1 className="font-['Oswald',sans-serif] text-4xl md:text-5xl font-bold leading-[1.05] mb-4">Дашборд из Excel <span className="bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">за одну минуту</span></h1>
             <p className="text-white/60 text-lg">Загрузите выгрузку продаж, CRM или 1С — графики, фильтры и детализация построятся автоматически. А потом сравните себя с рынком по данным ФНС.</p>
           </header>
@@ -119,7 +119,7 @@ export default function BiPage() {
               ["Wand2", "Автодашборд", "Распознаём даты, суммы и категории и сами подбираем графики"],
               ["MousePointerClick", "Детализация кликом", "Нажмите на столбец — весь дашборд отфильтруется по этому значению"],
               ["Scale", "Сравнение с рынком", "Ваша выручка, маржа и выработка на сотрудника против отрасли по данным ФНС"],
-              ["Lock", "Приватно", "Файл обрабатывается в браузере и не загружается на наши серверы"],
+              ["Share2", "Ссылка для коллег", "Поделитесь дашбордом с руководителем — откроется в браузере без регистрации"],
             ].map(([i, h, t]) => <Card key={h}><Icon name={i} fallback="Sparkles" size={20} className="text-cyan-300 mb-2" /><div className="font-semibold text-white mb-1">{h}</div><p className="text-sm text-white/55">{t}</p></Card>)}
           </div>
           <Card title="Вопросы" icon="HelpCircle">
@@ -133,6 +133,7 @@ export default function BiPage() {
               <h1 className="font-['Oswald',sans-serif] text-2xl md:text-3xl font-bold">{ds.name}</h1>
               <div className="text-sm text-white/50">{rows.length.toLocaleString("ru-RU")} из {ds.rows.length.toLocaleString("ru-RU")} строк · {ds.columns.length} колонок
                 {saved === "ok" && <span className="text-emerald-300/80"> · сохранено в браузере</span>}
+                {share && <button onClick={() => setShareOpen(true)} className="text-violet-300 hover:text-white"> · опубликован по ссылке</button>}
                 {saved === "big" && <span className="text-amber-300/80"> · слишком большой для автосохранения</span>}
               </div>
             </div>
@@ -142,7 +143,8 @@ export default function BiPage() {
                   <button key={k} onClick={() => setTab(k)} className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 ${tab === k ? "bg-violet-600 text-white" : "text-white/60"}`}><Icon name={i} size={14} />{l}</button>
                 ))}
               </div>
-              <button onClick={() => setEdit("new")} className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-sm font-semibold text-white flex items-center gap-1.5"><Icon name="Plus" size={15} />График</button>
+              <button onClick={() => setShareOpen(true)} className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-sm font-semibold text-white flex items-center gap-1.5"><Icon name="Share2" size={15} />{share ? "Ссылка" : "Поделиться"}</button>
+              <button onClick={() => setEdit("new")} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white/75 flex items-center gap-1.5"><Icon name="Plus" size={15} />График</button>
               <button onClick={() => setDash(d => d && ({ ...d, widgets: autoWidgets(d.dataset) }))} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white/75 flex items-center gap-1.5" title="Пересобрать автоматически"><Icon name="Wand2" size={15} />Авто</button>
               <button onClick={download} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white/75 flex items-center gap-1.5"><Icon name="Download" size={15} />CSV</button>
               <button onClick={() => window.print()} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white/75 flex items-center gap-1.5"><Icon name="Printer" size={15} />PDF</button>
@@ -150,43 +152,10 @@ export default function BiPage() {
             </div>
           </header>
 
-          {filterable.length > 0 && (
-            <div className="flex gap-2 flex-wrap items-center">
-              <Icon name="Filter" size={15} className="text-white/40" />
-              {filterable.slice(0, 6).map(c => {
-                const cur = dash!.filters.find(f => f.column === c.name)?.values || [];
-                return (
-                  <details key={c.name} className="relative">
-                    <summary className={`list-none cursor-pointer px-3 py-1.5 rounded-xl text-sm border flex items-center gap-1.5 ${cur.length ? "border-violet-500/60 bg-violet-600/20 text-white" : "border-white/10 text-white/65"}`}>
-                      {c.name}{cur.length ? `: ${cur.length === 1 ? cur[0] : cur.length}` : ""}<Icon name="ChevronDown" size={13} />
-                    </summary>
-                    <div className="absolute z-30 mt-1 w-64 max-h-72 overflow-y-auto bg-[#12121f] border border-white/10 rounded-xl p-2 shadow-2xl">
-                      {values(c.name).slice(0, 200).map(([v, n]) => (
-                        <label key={v} className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-white/5 text-sm text-white/80 cursor-pointer">
-                          <input type="checkbox" checked={cur.includes(v)} onChange={e => setFilter(c.name, e.target.checked ? [...cur, v] : cur.filter(x => x !== v))} className="accent-violet-500" />
-                          <span className="truncate flex-1">{v}</span><span className="text-[11px] text-white/35">{n}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </details>
-                );
-              })}
-              {dash!.filters.length > 0 && <button onClick={() => setDash(d => d && ({ ...d, filters: [] }))} className="text-sm text-violet-300 hover:text-white">Сбросить фильтры</button>}
-              <span className="text-[11px] text-white/35 ml-auto">Клик по столбцу или сектору — фильтр по значению</span>
-            </div>
-          )}
-
+          {tab === "data" && <DashboardFiltersOnly dash={dash!} setDash={setD} />}
           {tab === "dash" ? (
             <>
-              <div className="grid md:grid-cols-4 gap-4">
-                {dash!.widgets.map(w => (
-                  <BiWidget key={w.id} w={w} ds={ds} rows={rows} onEdit={() => setEdit(w)} onDrill={drill}
-                    onRemove={() => setDash(d => d && ({ ...d, widgets: d.widgets.filter(x => x.id !== w.id) }))} />
-                ))}
-                <button onClick={() => setEdit("new")} className="border-2 border-dashed border-white/10 hover:border-violet-500/50 rounded-2xl p-6 text-white/45 hover:text-white flex flex-col items-center justify-center gap-2 min-h-[120px]">
-                  <Icon name="Plus" size={22} />Добавить график
-                </button>
-              </div>
+              <DashboardView dash={dash!} setDash={setD} onEdit={w => setEdit(w)} />
               <MarketBenchmark ds={ds} rows={rows} />
             </>
           ) : (
@@ -223,7 +192,12 @@ export default function BiPage() {
         </div>
       )}
 
+      {shareOpen && dash && <ShareDialog dash={dash} existing={share} onChange={changeShare} onClose={() => setShareOpen(false)} />}
       {edit && ds && <WidgetEditor ds={ds} initial={edit === "new" ? undefined : edit} onSave={saveWidget} onClose={() => setEdit(null)} />}
     </BizShell>
   );
+}
+
+function DashboardFiltersOnly({ dash, setDash }: { dash: Dashboard; setDash: (fn: (d: Dashboard) => Dashboard) => void }) {
+  return <div className="[&>div:nth-child(2)]:hidden"><DashboardView dash={{ ...dash, widgets: [] }} setDash={setDash} readOnly /></div>;
 }
