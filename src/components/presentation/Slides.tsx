@@ -275,14 +275,27 @@ export function Guarantees({ n, total }: { n: number; total: number }) {
     <Frame n={n} total={total}>
       <Tag>Почему нам доверяют</Tag>
       <H>Вы рискуете <Grad>только временем</Grad> на разговор</H>
-      <div className="grid grid-cols-4 gap-5 mt-12">
-        {GUARANTEES.map(g => (
-          <div key={g.title} className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 h-[290px]">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 border border-emerald-400/30 flex items-center justify-center mb-5"><Icon name={g.icon} size={25} className="text-emerald-200" /></div>
-            <div className="text-[22px] font-semibold">{g.title}</div>
-            <div className="text-[16px] text-white/60 mt-3 leading-relaxed">{g.desc}</div>
+      <div className="flex gap-8 mt-8 items-center">
+        <div className="flex-1 grid grid-cols-2 gap-4">
+          {GUARANTEES.map(g => (
+            <div key={g.title} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 h-[164px] flex gap-4">
+              <div className="w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 border border-emerald-400/30 flex items-center justify-center"><Icon name={g.icon} size={23} className="text-emerald-200" /></div>
+              <div>
+                <div className="text-[21px] font-semibold">{g.title}</div>
+                <div className="text-[16px] text-white/60 mt-2 leading-relaxed">{g.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="w-[250px] shrink-0 flex flex-col items-center">
+          <div tabIndex={0} className="relative z-10 w-[212px] cursor-zoom-in outline-none transition-transform duration-500 ease-out origin-right hover:z-30 hover:scale-[1.85] focus:z-30 focus:scale-[1.85]">
+            <img src={IMG.certificate} alt="Сертификат партнёра Точка Банка" className="w-full rounded-xl ring-1 ring-white/20 shadow-[0_20px_60px_-10px_rgba(124,58,237,.7)]" />
           </div>
-        ))}
+          <div className="mt-4 text-center">
+            <div className="text-[15px] font-semibold">Партнёр Точка Банка</div>
+            <div className="deck-hint text-[12px] text-white/45 mt-0.5">наведите, чтобы увеличить</div>
+          </div>
+        </div>
       </div>
       <div className="mt-auto mb-8 rounded-2xl border border-violet-400/30 bg-violet-500/10 px-7 py-5 flex items-center gap-4">
         <Icon name="MapPin" size={22} className="text-violet-200" />

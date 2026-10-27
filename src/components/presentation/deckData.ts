@@ -2,6 +2,7 @@ export const IMG = {
   cover: "/presentation/cover.jpg",
   people: "/presentation/people.jpg",
   data: "/presentation/data.jpg",
+  certificate: "/presentation/certificate-tochka.jpg",
 };
 
 export const CONTACTS = {

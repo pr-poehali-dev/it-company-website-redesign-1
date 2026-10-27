@@ -104,6 +104,7 @@ export default function Presentation() {
       <style>{`
         .deck-grid{background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%)}
         @keyframes deckIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+        .print-stack .deck-hint{display:none}
         .deck-in{animation:deckIn .45s cubic-bezier(.2,.7,.2,1)}
         @page{size:1280px 720px;margin:0}
         @media print{.no-print{display:none!important}.print-stack{display:block!important}.print-stack .deck-slide{break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}.screen-only{display:none!important}}
