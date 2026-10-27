@@ -16,6 +16,9 @@ import { Route as ConsultantRouteImport } from './routes/consultant'
 import { Route as GotovyyBiznesRouteImport } from './routes/gotovyy-biznes'
 import { Route as InvestorsRouteImport } from './routes/investors'
 import { Route as PresentationRouteImport } from './routes/presentation'
+import { Route as SitemapBlogDotxmlRouteImport } from './routes/sitemap-blog[.]xml'
+import { Route as SitemapRadarChar123partChar125DotxmlRouteImport } from './routes/sitemap-radar-{$part}[.]xml'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SkolkoStoitAvtomatizaciyaRouteImport } from './routes/skolko-stoit-avtomatizaciya'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics.index'
 import { Route as AnalyticsPricesRouteImport } from './routes/analytics.prices'
@@ -75,6 +78,22 @@ const InvestorsRoute = InvestorsRouteImport.update({
 const PresentationRoute = PresentationRouteImport.update({
   id: '/presentation',
   path: '/presentation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapBlogDotxmlRoute = SitemapBlogDotxmlRouteImport.update({
+  id: '/sitemap-blog.xml',
+  path: '/sitemap-blog.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapRadarChar123partChar125DotxmlRoute =
+  SitemapRadarChar123partChar125DotxmlRouteImport.update({
+    id: '/sitemap-radar-{$part}.xml',
+    path: '/sitemap-radar-{$part}.xml',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SkolkoStoitAvtomatizaciyaRoute =
@@ -217,6 +236,9 @@ export interface FileRoutesByFullPath {
   '/gotovyy-biznes': typeof GotovyyBiznesRoute
   '/investors': typeof InvestorsRoute
   '/presentation': typeof PresentationRoute
+  '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
+  '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/rating': typeof AnalyticsRatingRoute
@@ -251,6 +273,9 @@ export interface FileRoutesByTo {
   '/gotovyy-biznes': typeof GotovyyBiznesRoute
   '/investors': typeof InvestorsRoute
   '/presentation': typeof PresentationRoute
+  '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
+  '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/rating': typeof AnalyticsRatingRoute
@@ -286,6 +311,9 @@ export interface FileRoutesById {
   '/gotovyy-biznes': typeof GotovyyBiznesRoute
   '/investors': typeof InvestorsRoute
   '/presentation': typeof PresentationRoute
+  '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
+  '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/rating': typeof AnalyticsRatingRoute
@@ -322,6 +350,9 @@ export interface FileRouteTypes {
     | '/gotovyy-biznes'
     | '/investors'
     | '/presentation'
+    | '/sitemap-blog.xml'
+    | '/sitemap-radar-{$part}.xml'
+    | '/sitemap.xml'
     | '/skolko-stoit-avtomatizaciya'
     | '/analytics/prices'
     | '/analytics/rating'
@@ -356,6 +387,9 @@ export interface FileRouteTypes {
     | '/gotovyy-biznes'
     | '/investors'
     | '/presentation'
+    | '/sitemap-blog.xml'
+    | '/sitemap-radar-{$part}.xml'
+    | '/sitemap.xml'
     | '/skolko-stoit-avtomatizaciya'
     | '/analytics/prices'
     | '/analytics/rating'
@@ -390,6 +424,9 @@ export interface FileRouteTypes {
     | '/gotovyy-biznes'
     | '/investors'
     | '/presentation'
+    | '/sitemap-blog.xml'
+    | '/sitemap-radar-{$part}.xml'
+    | '/sitemap.xml'
     | '/skolko-stoit-avtomatizaciya'
     | '/analytics/prices'
     | '/analytics/rating'
@@ -425,6 +462,9 @@ export interface RootRouteChildren {
   GotovyyBiznesRoute: typeof GotovyyBiznesRoute
   InvestorsRoute: typeof InvestorsRoute
   PresentationRoute: typeof PresentationRoute
+  SitemapBlogDotxmlRoute: typeof SitemapBlogDotxmlRoute
+  SitemapRadarChar123partChar125DotxmlRoute: typeof SitemapRadarChar123partChar125DotxmlRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SkolkoStoitAvtomatizaciyaRoute: typeof SkolkoStoitAvtomatizaciyaRoute
   AnalyticsPricesRoute: typeof AnalyticsPricesRoute
   AnalyticsRatingRoute: typeof AnalyticsRatingRoute
@@ -501,6 +541,27 @@ declare module '@tanstack/react-router' {
       path: '/presentation'
       fullPath: '/presentation'
       preLoaderRoute: typeof PresentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-blog.xml': {
+      id: '/sitemap-blog.xml'
+      path: '/sitemap-blog.xml'
+      fullPath: '/sitemap-blog.xml'
+      preLoaderRoute: typeof SitemapBlogDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-radar-{$part}.xml': {
+      id: '/sitemap-radar-{$part}.xml'
+      path: '/sitemap-radar-{$part}.xml'
+      fullPath: '/sitemap-radar-{$part}.xml'
+      preLoaderRoute: typeof SitemapRadarChar123partChar125DotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/skolko-stoit-avtomatizaciya': {
@@ -689,6 +750,10 @@ const rootRouteChildren: RootRouteChildren = {
   GotovyyBiznesRoute: GotovyyBiznesRoute,
   InvestorsRoute: InvestorsRoute,
   PresentationRoute: PresentationRoute,
+  SitemapBlogDotxmlRoute: SitemapBlogDotxmlRoute,
+  SitemapRadarChar123partChar125DotxmlRoute:
+    SitemapRadarChar123partChar125DotxmlRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SkolkoStoitAvtomatizaciyaRoute: SkolkoStoitAvtomatizaciyaRoute,
   AnalyticsPricesRoute: AnalyticsPricesRoute,
   AnalyticsRatingRoute: AnalyticsRatingRoute,

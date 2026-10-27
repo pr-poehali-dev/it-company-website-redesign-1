@@ -271,6 +271,24 @@ def action_request(body):
     return resp({'ok': True})
 
 
+SITEMAP_PAGE = 10000
+
+
+def action_sitemap(p):
+    """ИНН и дата обновления карточек для карты сайта, порциями по 10 000."""
+    part = max(1, min(int(p.get('part') or 1), 50))
+    conn = db()
+    cur = conn.cursor()
+    cur.execute(f'SELECT COUNT(*) FROM {S}.radar_companies')
+    total = cur.fetchone()[0]
+    cur.execute(f"""SELECT inn, to_char(GREATEST(COALESCE(last_date, updated_at::date), updated_at::date), 'YYYY-MM-DD')
+                    FROM {S}.radar_companies ORDER BY inn LIMIT %s OFFSET %s""",
+                (SITEMAP_PAGE, (part - 1) * SITEMAP_PAGE))
+    items = [[r[0], r[1]] for r in cur.fetchall()]
+    conn.close()
+    return resp({'total': total, 'parts': max(1, -(-total // SITEMAP_PAGE)), 'items': items}, cache=3600)
+
+
 def handler(event: dict, context) -> dict:
     """Радар заказчиков: каталог получателей господдержки, карточки компаний, заявки на доступ."""
     method = event.get('httpMethod', 'GET')
@@ -288,6 +306,8 @@ def handler(event: dict, context) -> dict:
             return action_facets()
         if action == 'company':
             return action_company(p, admin)
+        if action == 'sitemap':
+            return action_sitemap(p)
         return err('Неизвестное действие')
 
     if action == 'request':
