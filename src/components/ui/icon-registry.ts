@@ -207,10 +207,20 @@ import {
   XCircle,
   Youtube,
   Zap,
+  PhoneMissed,
+  BellRing,
+  KeyRound,
+  Maximize,
+  Rows3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export const iconRegistry: Record<string, LucideIcon> = {
+  PhoneMissed,
+  BellRing,
+  KeyRound,
+  Maximize,
+  Rows3,
   Activity,
   AlertCircle,
   AlertTriangle,

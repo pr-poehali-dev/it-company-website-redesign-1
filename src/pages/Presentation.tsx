@@ -1,435 +1,163 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Helmet } from "@/lib/helmet";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import Icon from "@/components/ui/icon";
-import { services, portfolio, technologies } from "@/components/shared";
+import { SLIDES } from "@/components/presentation/Slides";
 
-const IMG_HERO = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/fe63940b-c7be-4f2d-b4f3-7deca4d6794e.jpg";
-const IMG_AUTOMATION = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/65b16de8-4d39-4397-95d7-4a042ff7df40.jpg";
-const IMG_ANALYTICS = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/712f5769-495c-40d3-b8b5-d5a7b7bf3d07.jpg";
-const IMG_PARTNERSHIP = "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/735b25a2-6fe9-45b6-a943-2f4f7d75c5cf.jpg";
-
-const stats = [
-  { value: "12+", label: "Запущенных продуктов" },
-  { value: "7–14", label: "Дней до первого результата" },
-  { value: "6", label: "Направлений разработки" },
-  { value: "24/7", label: "Работа AI-решений" },
-];
-
-const problems = [
-  { icon: "Clock", title: "Рутина съедает время", desc: "Менеджеры вручную обрабатывают заявки, переносят данные, отвечают на одни и те же вопросы." },
-  { icon: "TrendingDown", title: "Заявки теряются", desc: "Клиенты не получают ответ вовремя и уходят к конкурентам. Нет единой точки контроля." },
-  { icon: "EyeOff", title: "Нет прозрачности", desc: "Руководитель не видит реальную картину: откуда приходят клиенты и где теряются деньги." },
-];
-
-const solutions = [
-  { icon: "Bot", title: "AI берёт рутину на себя", desc: "Умные ассистенты обрабатывают заявки и отвечают клиентам 24/7 — без расширения штата." },
-  { icon: "Zap", title: "Все процессы связаны", desc: "Сайт, CRM, мессенджеры и почта работают как единый автоматический поток." },
-  { icon: "BarChart3", title: "Полная аналитика", desc: "Дашборды в реальном времени: заявки, конверсия, работа менеджеров — как на ладони." },
-];
-
-const workflow = [
-  { step: "01", title: "Бесплатный разбор", desc: "Изучаем процессы, находим точки роста и оцениваем эффект" },
-  { step: "02", title: "План внедрения", desc: "Конкретный план с задачами, сроками и ожидаемым результатом" },
-  { step: "03", title: "Разработка", desc: "Создаём и настраиваем решение под ваши процессы" },
-  { step: "04", title: "Интеграция", desc: "Подключаем к вашим системам: сайт, CRM, мессенджеры" },
-  { step: "05", title: "Запуск и поддержка", desc: "Запускаем, обучаем команду, сопровождаем" },
-];
-
-const Slide = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <section className={`slide relative min-h-screen w-full flex flex-col justify-center px-8 md:px-20 py-16 ${className}`}>
-    {children}
-  </section>
-);
-
-const Kicker = ({ children }: { children: React.ReactNode }) => (
-  <div className="inline-block px-4 py-1.5 rounded-full text-sm text-violet-700 bg-violet-50 border border-violet-200 mb-6 font-medium">
-    {children}
-  </div>
-);
-
-const PortfolioCard = ({ p }: { p: (typeof portfolio)[number] }) => (
-  <a href={p.url} target="_blank" rel="noopener noreferrer" className="p-card rounded-2xl p-5 flex flex-col hover:ring-2 hover:ring-violet-300 transition-all">
-    <div className="flex items-center gap-3 mb-3">
-      <img src={p.icon} alt={p.title} className={`w-11 h-11 rounded-xl object-cover ring-1 ring-slate-200 bg-gradient-to-br ${p.color} flex-shrink-0`} />
-      <div className="min-w-0">
-        <h3 className="font-oswald text-lg font-bold text-slate-900 leading-tight truncate">{p.title}</h3>
-        <span className="text-[11px] text-slate-400">{p.category}</span>
-      </div>
-    </div>
-    <p className="text-xs text-slate-500 flex-1 mb-3 leading-relaxed">{p.desc}</p>
-    <div className="flex flex-wrap gap-1.5 mb-3">
-      {p.tech.map((t, k) => (
-        <span key={k} className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{t}</span>
-      ))}
-    </div>
-    <div className="flex items-center gap-1 text-xs text-violet-600 font-medium mt-auto">
-      <Icon name="ExternalLink" size={12} />
-      {p.url.replace(/^https?:\/\//, "")}
-    </div>
-  </a>
-);
+const W = 1280;
+const H = 720;
 
 export default function Presentation() {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [downloading, setDownloading] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.5);
+  const [cur, setCur] = useState(0);
+  const [mode, setMode] = useState<"deck" | "scroll">("deck");
+  const [pdf, setPdf] = useState<"" | number>("");
+  const total = SLIDES.length;
 
-  const handleDownloadPdf = async () => {
-    const root = rootRef.current;
-    if (!root || downloading) return;
-    setDownloading(true);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("view") === "scroll") setMode("scroll");
+    const s = Number(q.get("slide"));
+    if (s >= 1 && s <= total) setCur(s - 1);
+  }, [total]);
 
-    // Фиксируем десктопную ширину, чтобы вёрстка не «плыла» на мобильных
-    root.classList.add("pdf-mode");
-    // Даём браузеру пересчитать layout и подождать подгрузку картинок
-    await new Promise((r) => setTimeout(r, 300));
-    await Promise.all(
-      Array.from(root.querySelectorAll("img")).map((img) =>
-        img.complete
-          ? Promise.resolve()
-          : new Promise<void>((res) => {
-              img.onload = () => res();
-              img.onerror = () => res();
-            })
-      )
-    );
+  const fit = useCallback(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const w = el.clientWidth;
+    const h = mode === "deck" ? el.clientHeight : Infinity;
+    setScale(Math.min(w / W, h / H));
+  }, [mode]);
 
+  useEffect(() => {
+    fit();
+    const el = stageRef.current;
+    const ro = el ? new ResizeObserver(fit) : null;
+    if (el && ro) ro.observe(el);
+    document.addEventListener("fullscreenchange", fit);
+    return () => { ro?.disconnect(); document.removeEventListener("fullscreenchange", fit); };
+  }, [fit]);
+
+  const go = useCallback((d: number) => setCur(c => Math.max(0, Math.min(total - 1, c + d))), [total]);
+
+  useEffect(() => {
+    if (mode !== "deck") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(1); }
+      if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); go(-1); }
+      if (e.key === "Home") setCur(0);
+      if (e.key === "End") setCur(total - 1);
+      if (e.key === "f" || e.key === "а") fullscreen();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go, mode, total]);
+
+  const touch = useRef(0);
+
+  function fullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else document.documentElement.requestFullscreen().catch(() => {});
+  }
+
+  async function downloadPdf() {
+    const root = exportRef.current;
+    if (!root || pdf !== "") return;
+    setPdf(0);
+    const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+    await document.fonts?.ready;
+    await Promise.all(Array.from(root.querySelectorAll("img")).map(img => (img.complete ? null : new Promise(r => { img.onload = img.onerror = r; }))));
     try {
-      const slides = Array.from(root.querySelectorAll<HTMLElement>(".slide"));
-      // Альбомная A4 — под широкие слайды
-      const pdf = new jsPDF("l", "mm", "a4");
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-
+      const doc = new jsPDF({ orientation: "l", unit: "px", format: [W, H], hotfixes: ["px_scaling"] });
+      const slides = Array.from(root.querySelectorAll<HTMLElement>(".deck-slide"));
       for (let i = 0; i < slides.length; i++) {
-        const el = slides[i];
-        // Небольшая пауза для стабильной отрисовки каждого слайда
-        await new Promise((r) => setTimeout(r, 120));
-        const rect = el.getBoundingClientRect();
-        const slideHeight = Math.ceil(rect.height);
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          windowWidth: 1280,
-          windowHeight: slideHeight,
-          width: 1280,
-          height: slideHeight,
-          scrollX: 0,
-          scrollY: 0,
-        });
-
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        // Вписываем слайд целиком в страницу без обрезки, сохраняя пропорции
-        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-        const imgW = canvas.width * ratio;
-        const imgH = canvas.height * ratio;
-        const x = (pageW - imgW) / 2;
-        const y = (pageH - imgH) / 2;
-
-        if (i > 0) pdf.addPage();
-        pdf.setFillColor(255, 255, 255);
-        pdf.rect(0, 0, pageW, pageH, "F");
-        pdf.addImage(imgData, "JPEG", x, y, imgW, imgH);
+        setPdf(i + 1);
+        const canvas = await html2canvas(slides[i], { scale: 1.6, useCORS: true, backgroundColor: "#07070f", width: W, height: H, windowWidth: W, windowHeight: H, logging: false });
+        if (i > 0) doc.addPage([W, H], "l");
+        doc.addImage(canvas.toDataURL("image/jpeg", 0.9), "JPEG", 0, 0, W, H);
       }
-      pdf.save("Презентация-МАТ-Лабс.pdf");
-    } catch (e) {
+      doc.save("МАТ-Лабс — презентация.pdf");
+    } catch {
       window.print();
     } finally {
-      root.classList.remove("pdf-mode");
-      setDownloading(false);
+      setPdf("");
     }
-  };
+  }
+
+  const Btn = ({ onClick, icon, label, primary, disabled }: { onClick: () => void; icon: string; label?: string; primary?: boolean; disabled?: boolean }) => (
+    <button onClick={onClick} disabled={disabled} title={label}
+      className={`h-10 px-3.5 rounded-xl flex items-center gap-2 text-sm font-medium transition disabled:opacity-40 ${primary ? "bg-gradient-to-r from-violet-600 to-cyan-600 text-white hover:brightness-110" : "bg-white/10 text-white/85 hover:bg-white/15 border border-white/10"}`}>
+      <Icon name={icon} size={16} />{label && <span className="hidden md:inline">{label}</span>}
+    </button>
+  );
 
   return (
-    <div ref={rootRef} className="bg-white text-slate-900 min-h-screen">
+    <div className="h-[100dvh] flex flex-col bg-[#030308] text-white overflow-hidden print:h-auto print:overflow-visible">
       <Helmet>
-        <title>Презентация — ООО МАТ-Лабс</title>
+        <title>Презентация МАТ-Лабс: AI, автоматизация и аналитика для бизнеса</title>
+        <meta name="description" content="AI-автоматизация, аналитика, сайты и приложения для бизнеса: направления, пакеты, процесс работы и кейсы МАТ-Лабс." />
         <meta name="robots" content="noindex" />
       </Helmet>
-
       <style>{`
-        .p-card { background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .pdf-mode { width: 1280px !important; }
-        .pdf-mode .slide {
-          min-height: 0 !important;
-          width: 1280px !important;
-          padding-top: 56px !important;
-          padding-bottom: 56px !important;
-        }
-        .pdf-mode .slide-title {
-          height: 720px !important;
-          min-height: 720px !important;
-          padding-top: 0 !important;
-          padding-bottom: 0 !important;
-        }
-        .pdf-mode .no-print { display: none !important; }
-        @media print {
-          .no-print { display: none !important; }
-          .slide { min-height: auto !important; page-break-after: always; padding-top: 40px; padding-bottom: 40px; }
-          body, .bg-white { background: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
+        .deck-grid{background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%)}
+        @keyframes deckIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+        .deck-in{animation:deckIn .45s cubic-bezier(.2,.7,.2,1)}
+        @page{size:1280px 720px;margin:0}
+        @media print{.no-print{display:none!important}.print-stack{display:block!important}.print-stack .deck-slide{break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}.screen-only{display:none!important}}
       `}</style>
 
-      {/* Floating action buttons */}
-      <div className="no-print fixed bottom-6 right-6 z-50 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <button
-          onClick={() => window.print()}
-          className="glass border border-slate-300 bg-white/90 backdrop-blur px-5 py-3 rounded-2xl font-semibold text-slate-700 flex items-center justify-center gap-2 shadow-lg hover:bg-white transition-all"
-        >
-          <Icon name="Printer" size={18} />
-          Печать
-        </button>
-        <button
-          onClick={handleDownloadPdf}
-          disabled={downloading}
-          className="btn-gradient px-5 py-3 rounded-2xl font-semibold text-white flex items-center justify-center gap-2 shadow-lg glow-purple disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          {downloading ? (
-            <><Icon name="Loader2" size={18} className="animate-spin" />Готовим PDF…</>
-          ) : (
-            <><Icon name="Download" size={18} />Скачать PDF</>
-          )}
-        </button>
+      <header className="no-print shrink-0 h-14 px-4 flex items-center gap-2 border-b border-white/10 bg-[#07070f]/90 backdrop-blur z-20">
+        <a href="/" className="flex items-center gap-2 mr-2 text-sm text-white/60 hover:text-white"><Icon name="ArrowLeft" size={16} /><span className="hidden sm:inline">На сайт</span></a>
+        <div className="font-['Oswald',sans-serif] font-semibold tracking-wide hidden sm:block">Презентация МАТ-Лабс</div>
+        <div className="ml-auto flex items-center gap-2">
+          <div className="hidden md:flex rounded-xl bg-white/5 border border-white/10 p-0.5 mr-1">
+            {([["deck", "Слайды", "Presentation"], ["scroll", "Лентой", "Rows3"]] as const).map(([m, l, i]) => (
+              <button key={m} onClick={() => setMode(m)} className={`h-9 px-3 rounded-[10px] text-sm flex items-center gap-1.5 ${mode === m ? "bg-white/15 text-white" : "text-white/55"}`}><Icon name={i} size={15} />{l}</button>
+            ))}
+          </div>
+          {mode === "deck" && <Btn onClick={fullscreen} icon="Maximize" label="На весь экран" />}
+          <Btn onClick={downloadPdf} icon={pdf !== "" ? "Loader2" : "Download"} label={pdf !== "" ? `PDF ${pdf}/${total}` : "Скачать PDF"} primary disabled={pdf !== ""} />
+        </div>
+      </header>
+
+      {mode === "deck" ? (
+        <div className="screen-only flex-1 min-h-0 flex flex-col">
+          <div ref={stageRef} className="flex-1 min-h-0 relative flex items-center justify-center p-3 md:p-6"
+            onTouchStart={e => { touch.current = e.touches[0].clientX; }}
+            onTouchEnd={e => { const d = e.changedTouches[0].clientX - touch.current; if (Math.abs(d) > 50) go(d < 0 ? 1 : -1); }}>
+            <div style={{ width: W * scale, height: H * scale }} className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-[0_30px_120px_-20px_rgba(124,58,237,.45)] ring-1 ring-white/10">
+              <div key={cur} className="deck-in w-full h-full">
+                <div className="origin-top-left" style={{ width: W, height: H, transform: `scale(${scale})` }}>
+                  {(() => { const S = SLIDES[cur]; return <S n={cur + 1} total={total} />; })()}
+                </div>
+              </div>
+            </div>
+            <button onClick={() => go(-1)} disabled={cur === 0} aria-label="Назад" className="no-print absolute left-2 md:left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 border border-white/15 backdrop-blur flex items-center justify-center disabled:opacity-0 hover:bg-black/60"><Icon name="ChevronLeft" size={22} /></button>
+            <button onClick={() => go(1)} disabled={cur === total - 1} aria-label="Вперёд" className="no-print absolute right-2 md:right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 border border-white/15 backdrop-blur flex items-center justify-center disabled:opacity-0 hover:bg-black/60"><Icon name="ChevronRight" size={22} /></button>
+          </div>
+          <div className="no-print shrink-0 h-12 flex items-center justify-center gap-1.5">
+            {SLIDES.map((_, i) => (
+              <button key={i} onClick={() => setCur(i)} aria-label={`Слайд ${i + 1}`} className={`h-1.5 rounded-full transition-all ${i === cur ? "w-8 bg-gradient-to-r from-violet-400 to-cyan-300" : "w-3 bg-white/20 hover:bg-white/40"}`} />
+            ))}
+            <span className="ml-3 text-xs text-white/40 hidden sm:inline">← → листать · F — на весь экран</span>
+          </div>
+        </div>
+      ) : (
+        <div ref={stageRef} className="screen-only flex-1 overflow-y-auto">
+          <div className="max-w-[1280px] mx-auto p-3 md:p-6 space-y-5">
+            {SLIDES.map((S, i) => (
+              <div key={i} style={{ height: H * scale }} className="rounded-xl md:rounded-2xl overflow-hidden ring-1 ring-white/10">
+                <div className="origin-top-left" style={{ width: W, height: H, transform: `scale(${scale})` }}><S n={i + 1} total={total} /></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div ref={exportRef} aria-hidden className="print-stack fixed -left-[20000px] top-0 pointer-events-none">
+        {SLIDES.map((S, i) => <S key={i} n={i + 1} total={total} />)}
       </div>
-
-      {/* SLIDE 1 — TITLE */}
-      <section className="slide slide-title relative min-h-screen w-full flex items-center justify-center px-8 md:px-20 py-16 overflow-hidden">
-        <img src={IMG_HERO} alt="Футуристичный офис МАТ-Лабс" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0618]/90 via-[#160b2e]/80 to-[#0a0618]/90" />
-        <div className="absolute inset-0 bg-black/30" />
-        <div className="relative z-10 text-center max-w-5xl">
-          <div className="w-16 h-16 rounded-2xl btn-gradient flex items-center justify-center mx-auto mb-8 shadow-lg glow-purple">
-            <span className="font-oswald font-bold text-2xl text-white">МЛ</span>
-          </div>
-          <div className="inline-block px-4 py-1.5 rounded-full text-sm text-violet-200 bg-white/10 border border-white/20 mb-8 backdrop-blur">
-            ООО «МАТ-Лабс»
-          </div>
-          <h1 className="font-oswald text-4xl md:text-7xl font-bold mb-6 text-white leading-tight">
-            Больше заявок.<br />
-            <span className="gradient-text">Меньше рутины.</span><br />
-            Всё на автопилоте.
-          </h1>
-          <p className="text-lg md:text-2xl text-white/80 max-w-3xl mx-auto mb-4">
-            Автоматизируем бизнес-процессы и увеличиваем поток заявок с помощью искусственного интеллекта
-          </p>
-          <p className="text-white/50 max-w-2xl mx-auto">
-            Прозрачные процессы и первый результат уже через 7–14 дней
-          </p>
-        </div>
-      </section>
-
-      {/* SLIDE 2 — ABOUT + STATS */}
-      <Slide>
-        <Kicker>О компании</Kicker>
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-6">
-              IT-компания полного цикла: от идеи до работающего продукта
-            </h2>
-            <p className="text-lg text-slate-600 mb-10">
-              Мы помогаем компаниям снизить ручную работу, ускорить обработку клиентов и зарабатывать больше.
-              Разрабатываем сайты, внедряем AI и строим аналитику — и создаём собственные цифровые продукты,
-              которые уже работают на рынке.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              {stats.map((s, i) => (
-                <div key={i} className="p-card rounded-2xl p-5 text-center">
-                  <div className="font-oswald text-3xl font-bold gradient-text mb-1">{s.value}</div>
-                  <div className="text-sm text-slate-500">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-3xl overflow-hidden shadow-2xl ring-1 ring-violet-200">
-            <img src={IMG_PARTNERSHIP} alt="Партнёрство человека и AI" className="w-full h-[320px] md:h-[480px] object-cover" />
-          </div>
-        </div>
-      </Slide>
-
-      {/* SLIDE 3 — PROBLEM / SOLUTION */}
-      <Slide>
-        <Kicker>Зачем это бизнесу</Kicker>
-        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-8 max-w-4xl">
-          Превращаем потери в прибыль
-        </h2>
-        <div className="rounded-3xl overflow-hidden shadow-xl ring-1 ring-slate-200 mb-10">
-          <img src={IMG_AUTOMATION} alt="Автоматизация бизнес-процессов" className="w-full h-[160px] md:h-[220px] object-cover" />
-        </div>
-        <div className="grid md:grid-cols-2 gap-10">
-          <div>
-            <div className="flex items-center gap-2 text-rose-600 mb-5 font-semibold">
-              <Icon name="AlertTriangle" size={20} /> Проблемы бизнеса
-            </div>
-            <div className="space-y-4">
-              {problems.map((p, i) => (
-                <div key={i} className="bg-rose-50 border border-rose-200 rounded-xl p-5 flex gap-4">
-                  <Icon name={p.icon} size={22} className="text-rose-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <div className="font-semibold text-slate-900 mb-1">{p.title}</div>
-                    <div className="text-sm text-slate-500">{p.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 text-emerald-600 mb-5 font-semibold">
-              <Icon name="CheckCircle2" size={20} /> Наши решения
-            </div>
-            <div className="space-y-4">
-              {solutions.map((s, i) => (
-                <div key={i} className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 flex gap-4">
-                  <Icon name={s.icon} size={22} className="text-emerald-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <div className="font-semibold text-slate-900 mb-1">{s.title}</div>
-                    <div className="text-sm text-slate-500">{s.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Slide>
-
-      {/* SLIDE 4 — SERVICES */}
-      <Slide>
-        <Kicker>Услуги</Kicker>
-        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-10 max-w-4xl">
-          6 направлений разработки
-        </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {services.map((s, i) => (
-            <div key={i} className="p-card rounded-2xl p-6 flex flex-col">
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-4`}>
-                <Icon name={s.icon} size={22} className="text-white" />
-              </div>
-              <h3 className="font-oswald text-xl font-bold text-slate-900 mb-2">{s.title}</h3>
-              <p className="text-sm text-slate-500 flex-1 mb-4">{s.desc}</p>
-              <div className={`text-sm font-semibold border rounded-lg px-3 py-1.5 w-fit ${s.tagColor}`}>
-                {s.price}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Slide>
-
-      {/* SLIDE 5 — ECOSYSTEM / PORTFOLIO (часть 1) */}
-      <Slide>
-        <Kicker>Экосистема продуктов</Kicker>
-        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-4 max-w-4xl">
-          {portfolio.length} собственных продуктов, которые уже работают
-        </h2>
-        <p className="text-slate-500 max-w-3xl mb-10">
-          Мы не только делаем проекты на заказ — мы создаём и развиваем собственные цифровые продукты.
-          Это подтверждает нашу экспертизу на реальных, живых сервисах.
-        </p>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {portfolio.slice(0, 6).map((p, i) => (
-            <PortfolioCard key={i} p={p} />
-          ))}
-        </div>
-      </Slide>
-
-      {/* SLIDE 5b — ECOSYSTEM / PORTFOLIO (часть 2) */}
-      <Slide>
-        <Kicker>Экосистема продуктов</Kicker>
-        <h2 className="font-oswald text-3xl md:text-4xl font-bold mb-10 max-w-4xl">
-          И ещё проекты нашей команды
-        </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {portfolio.slice(6).map((p, i) => (
-            <PortfolioCard key={i} p={p} />
-          ))}
-        </div>
-      </Slide>
-
-      {/* SLIDE 6 — WORKFLOW */}
-      <Slide>
-        <Kicker>Как мы работаем</Kicker>
-        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-10 max-w-4xl">
-          Прозрачный процесс за 5 шагов
-        </h2>
-        <div className="grid md:grid-cols-5 gap-4">
-          {workflow.map((w, i) => (
-            <div key={i} className="p-card rounded-2xl p-5">
-              <div className="font-oswald text-3xl font-bold gradient-text mb-3">{w.step}</div>
-              <div className="font-semibold text-slate-900 mb-2">{w.title}</div>
-              <div className="text-xs text-slate-500 leading-relaxed">{w.desc}</div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-10 grid lg:grid-cols-2 gap-6 items-stretch">
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center gap-4">
-            <Icon name="Gift" size={26} className="text-emerald-500 flex-shrink-0" />
-            <p className="text-slate-600">
-              <span className="text-slate-900 font-semibold">Первый разбор — бесплатно.</span> Покажем, что и как можно
-              автоматизировать в вашем бизнесе, без обязательств.
-            </p>
-          </div>
-          <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-slate-200">
-            <img src={IMG_ANALYTICS} alt="Аналитика и дашборды в реальном времени" className="w-full h-full min-h-[140px] object-cover" />
-          </div>
-        </div>
-      </Slide>
-
-      {/* SLIDE 7 — TECH */}
-      <Slide>
-        <Kicker>Технологии</Kicker>
-        <h2 className="font-oswald text-4xl md:text-5xl font-bold mb-10 max-w-4xl">
-          Современный и надёжный стек
-        </h2>
-        <div className="flex flex-wrap gap-3">
-          {technologies.map((t, i) => (
-            <div key={i} className="p-card rounded-xl px-5 py-3 flex items-center gap-3">
-              <span className="text-2xl">{t.icon}</span>
-              <div>
-                <div className="font-semibold text-slate-900 text-sm">{t.name}</div>
-                <div className="text-xs text-slate-400">{t.category}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Slide>
-
-      {/* SLIDE 8 — CONTACTS / CTA */}
-      <Slide className="items-center text-center bg-gradient-to-t from-violet-50 to-transparent">
-        <h2 className="font-oswald text-4xl md:text-6xl font-bold mb-6">
-          Обсудим ваш <span className="gradient-text">проект?</span>
-        </h2>
-        <p className="text-lg text-slate-600 max-w-2xl mb-8">
-          Расскажите о своих задачах — подготовим бесплатный разбор и покажем, как автоматизация
-          принесёт вам больше заявок и меньше рутины.
-        </p>
-        <div className="w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl ring-1 ring-violet-200 mb-10">
-          <img src={IMG_ANALYTICS} alt="Технологичное будущее вашего бизнеса" className="w-full h-[200px] md:h-[260px] object-cover" />
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4 mb-8 w-full max-w-2xl">
-          <a href="tel:+79277486868" className="p-card rounded-2xl p-6 flex items-center gap-4 hover:border-violet-500/50 transition-all">
-            <div className="w-11 h-11 bg-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Icon name="Phone" size={20} className="text-cyan-600" />
-            </div>
-            <div className="text-left">
-              <div className="text-xs text-slate-400">Телефон</div>
-              <div className="text-slate-900 font-semibold">+7 (927) 748-68-68</div>
-            </div>
-          </a>
-          <a href="mailto:maksT77@yandex.ru" className="p-card rounded-2xl p-6 flex items-center gap-4 hover:border-violet-500/50 transition-all">
-            <div className="w-11 h-11 bg-pink-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Icon name="Mail" size={20} className="text-pink-600" />
-            </div>
-            <div className="text-left">
-              <div className="text-xs text-slate-400">Email</div>
-              <div className="text-slate-900 font-semibold">maksT77@yandex.ru</div>
-            </div>
-          </a>
-        </div>
-        <a href="https://mat-labs.ru" className="btn-gradient px-8 py-4 rounded-2xl font-semibold text-white text-lg glow-purple inline-flex items-center gap-2">
-          Перейти на сайт mat-labs.ru <Icon name="ArrowRight" size={20} />
-        </a>
-        <p className="text-slate-400 text-sm mt-10">© 2026 ООО МАТ-Лабс. Все права защищены</p>
-      </Slide>
     </div>
   );
 }
