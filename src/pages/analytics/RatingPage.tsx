@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import MarketPicker from "@/components/biz/MarketPicker";
 import BizOrderModal from "@/components/biz/BizOrderModal";
+import { PRO_INCLUDES } from "@/components/biz/UnlockModal";
 import { Card, SourceNote } from "@/components/biz/BizUi";
 import { MSP_LABEL, PRICES, TopCompany, bizGet, money, prettyName } from "@/components/biz/bizApi";
 
@@ -31,7 +32,7 @@ export default function RatingPage() {
       description="Рейтинги компаний по выручке, прибыли и численности за 2025 год — по любой отрасли и региону. Открытые данные ФНС."
       path="/analytics/rating" noindex={okved !== "ALL" || region !== "RU" || sort !== "revenue"} crumbs={[{ label: "Бизнес-аналитика", href: "/analytics" }, { label: "Рейтинги" }]}>
       <h1 className="font-['Oswald',sans-serif] text-3xl md:text-5xl font-bold mb-3">Рейтинги компаний</h1>
-      <p className="text-white/60 mb-6">Топ по выручке, прибыли или численности за 2025 год. Первые 10 — бесплатно, топ-100 с ИНН — в полном отчёте.</p>
+      <p className="text-white/60 mb-6">Топ по выручке, прибыли или численности за 2025 год. Первые 10 — бесплатно, топ-100 с ИНН — в подписке «Аналитика Про».</p>
       <MarketPicker okved={okved} region={region} onChange={(o, r) => { const n = new URLSearchParams(sp); n.set("okved", o); n.set("region", r); setSp(n, { replace: true }); }} />
       <div className="flex gap-1.5 mb-4">
         {[["revenue", "По выручке"], ["profit", "По прибыли"], ["staff", "По численности"]].map(([k, l]) => (
@@ -71,12 +72,12 @@ export default function RatingPage() {
         )}
         {!full && !loading && (
           <button onClick={() => setOrder(true)} className="mt-4 w-full py-3 rounded-xl border border-dashed border-violet-500/40 text-sm text-violet-200 hover:bg-violet-500/10 flex items-center justify-center gap-2">
-            <Icon name="FileSpreadsheet" size={15} />Топ-100 с ИНН и Excel — в отчёте о рынке за {PRICES.market.toLocaleString("ru-RU")} ₽
+            <Icon name="Lock" size={15} />Топ-100 с ИНН — в подписке «Аналитика Про» за {PRICES.pro.toLocaleString("ru-RU")} ₽/мес
           </button>
         )}
       </Card>
       <div className="mt-5"><SourceNote /></div>
-      {order && <BizOrderModal reportType="market" reportKey={`rating:${okved}:${region}:${sort}`} title={`Рейтинг компаний: ОКВЭД ${okved === "ALL" ? "все" : okved}, ${region === "RU" ? "Россия" : region}`} price={PRICES.market} onClose={() => setOrder(false)} />}
+      {order && <BizOrderModal reportType="pro" reportKey={`rating:${okved}:${region}:${sort}`} title="Подписка «Аналитика Про» — 1 месяц" price={PRICES.pro} includes={PRO_INCLUDES} onClose={() => setOrder(false)} />}
     </BizShell>
   );
 }

@@ -1,5 +1,9 @@
 {"tests": [
  {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
  {"name": "Неизвестное действие", "method": "GET", "path": "/?action=xxx", "expectedStatus": 400},
- {"name": "Проверка без ИНН", "method": "GET", "path": "/?action=company", "expectedStatus": 400}
+ {"name": "Проверка без ИНН", "method": "GET", "path": "/?action=company", "expectedStatus": 400},
+ {"name": "Кабинет без входа", "method": "GET", "path": "/?action=me", "expectedStatus": 401},
+ {"name": "Открыть отчёт без входа", "method": "POST", "path": "/", "body": {"action": "unlock", "kind": "company", "key": "7707083893"}, "expectedStatus": 401},
+ {"name": "Слежение без секрета", "method": "POST", "path": "/", "body": {"action": "watch_run"}, "expectedStatus": 401},
+ {"name": "Аккаунты без админа", "method": "GET", "path": "/?action=admin_accounts", "expectedStatus": 401}
 ]}

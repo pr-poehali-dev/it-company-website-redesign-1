@@ -23,6 +23,7 @@ EMAILER_URL  = 'https://functions.poehali.dev/977f553d-a834-4fba-9f2f-349939384e
 FOLLOWUP_URL = 'https://functions.poehali.dev/b11d9fef-38cd-4721-9bb3-4d7e7d97927f'
 ENRICH_URL   = 'https://functions.poehali.dev/20860635-2c65-4f0f-a935-45ea680e49aa'
 PIPES_URL    = 'https://functions.poehali.dev/87ee599c-86cb-47b5-a265-9cbe79083375'
+BIZ_URL      = 'https://functions.poehali.dev/d42f7944-adbd-48ff-a58d-caa1119b0e77'
 ENRICH_SECONDS = 150
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 INTERVAL_HOURS = 24
@@ -133,8 +134,9 @@ def handler(event: dict, context) -> dict:
 
     if body_pipes_only(event):
         r = call(PIPES_URL, {'action': 'run_due'}, timeout=30)
+        w = call(BIZ_URL, {'action': 'watch_run'}, timeout=30)
         conn.close()
-        return json_resp({'ok': True, 'pipes': r})
+        return json_resp({'ok': True, 'pipes': r, 'watch': w})
 
     print(f"[cron-runner] started at {started_at.isoformat()}")
 
@@ -176,6 +178,12 @@ def handler(event: dict, context) -> dict:
 
     rp = call(PIPES_URL, {'action': 'run_due'}, timeout=30)
     log.append({'step': 'pipes', 'ok': rp.get('ok', False), 'processed': len(rp.get('processed') or [])})
+
+    for _ in range(5):
+        rw = call(BIZ_URL, {'action': 'watch_run'}, timeout=30)
+        log.append({'step': 'biz_watch', 'ok': rw.get('ok', False), 'checked': rw.get('checked', 0), 'alerts': rw.get('alerts', 0)})
+        if not rw.get('ok') or not rw.get('left'):
+            break
     print(f"[cron-runner] enrich: {enr}")
 
     finished_at = datetime.now(timezone.utc)

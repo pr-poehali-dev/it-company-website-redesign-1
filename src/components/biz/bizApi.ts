@@ -55,6 +55,7 @@ export interface MarketReport {
   insights: { kind: string; text: string }[];
   period: string;
   full_access: boolean;
+  unlocked?: boolean;
 }
 
 export interface Overview {
@@ -100,6 +101,7 @@ export interface CompanyReport {
   risk: { score: number; level: "low" | "mid" | "high"; factors: RiskFactor[] };
   egrul_live: boolean;
   full_access: boolean;
+  unlocked?: boolean;
 }
 
 export interface SearchItem { inn: string; name: string; region: string; region_name: string; okved: string; revenue: number | null; address?: string }
@@ -121,11 +123,46 @@ export async function bizPublic<T>(params: Record<string, string>): Promise<{ st
   }
 }
 
+export function userToken() {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("matlabs_pipes_token") || "";
+}
+
+function authHeaders(): Record<string, string> {
+  const h: Record<string, string> = {};
+  const t = token();
+  const u = userToken();
+  if (t) h["X-Session-Token"] = t;
+  if (u) h["X-User-Token"] = u;
+  return h;
+}
+
 export async function bizGet<T>(params: Record<string, string>): Promise<T & { error?: string }> {
   const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== "" && v != null));
-  const t = token();
-  const res = await fetch(`${BIZ_URL}/?${new URLSearchParams(clean).toString()}`, { headers: t ? { "X-Session-Token": t } : {} });
+  const res = await fetch(`${BIZ_URL}/?${new URLSearchParams(clean).toString()}`, { headers: authHeaders() });
   return res.json();
+}
+
+export async function bizPost<T>(body: Record<string, unknown>): Promise<T & { error?: string; upgrade?: boolean; ok?: boolean }> {
+  try {
+    const res = await fetch(`${BIZ_URL}/`, { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(body) });
+    const j = await res.json().catch(() => ({ error: "Сервер не ответил" }));
+    if (res.status === 401 && userToken() && body.action !== "admin_set_plan") { localStorage.removeItem("matlabs_pipes_token"); window.dispatchEvent(new Event("biz-auth")); }
+    return j;
+  } catch {
+    return { error: "Нет связи с сервером" } as T & { error: string };
+  }
+}
+
+export type BizPlanId = "free" | "pro" | "corp";
+export interface BizUsage { used: number; limit: number | null; period: "total" | "month" }
+export interface BizWatch { inn: string; name: string; snapshot: Record<string, unknown>; changes: { level: "high" | "mid" | "good"; text: string; at: string }[]; last_checked_at: string | null; last_change_at: string | null; created_at: string }
+export interface BizMe {
+  user: { id: number; email: string; name: string | null; company: string | null; biz_plan: BizPlanId; biz_plan_until: string | null };
+  plan: { title: string; price: number; company: number | null; market: number; watch: number };
+  usage: { company: BizUsage; market: BizUsage; watch: { used: number; limit: number } };
+  unlocks: { kind: "company" | "market"; key: string; title: string; created_at: string }[];
+  watch: BizWatch[];
 }
 
 export async function bizOrder(body: Record<string, string>) {
@@ -174,7 +211,7 @@ export function prettyName(raw: string): string {
 
 export const MSP_LABEL: Record<number, string> = { 0: "Крупная / без статуса", 1: "Микро", 2: "Малое", 3: "Среднее" };
 
-export const PRICES = { market: 4900, company: 1490, check: 490 } as const;
+export const PRICES = { market: 4900, company: 0, check: 0, pro: 2990, corp: 9900, research: 35000 } as const;
 
 export function fmtYear(ms: number | null) {
   if (!ms) return "—";

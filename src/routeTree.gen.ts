@@ -21,6 +21,7 @@ import { Route as SitemapRadarChar123partChar125DotxmlRouteImport } from './rout
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SkolkoStoitAvtomatizaciyaRouteImport } from './routes/skolko-stoit-avtomatizaciya'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics.index'
+import { Route as AnalyticsAccountRouteImport } from './routes/analytics.account'
 import { Route as AnalyticsPricesRouteImport } from './routes/analytics.prices'
 import { Route as AnalyticsRatingRouteImport } from './routes/analytics.rating'
 import { Route as AnalyticsVsSberRouteImport } from './routes/analytics.vs-sber'
@@ -107,6 +108,11 @@ const SkolkoStoitAvtomatizaciyaRoute =
 const AnalyticsIndexRoute = AnalyticsIndexRouteImport.update({
   id: '/analytics/',
   path: '/analytics/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsAccountRoute = AnalyticsAccountRouteImport.update({
+  id: '/analytics/account',
+  path: '/analytics/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsPricesRoute = AnalyticsPricesRouteImport.update({
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
+  '/analytics/account': typeof AnalyticsAccountRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/rating': typeof AnalyticsRatingRoute
   '/analytics/vs-sber': typeof AnalyticsVsSberRoute
@@ -291,6 +298,7 @@ export interface FileRoutesByTo {
   '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
+  '/analytics/account': typeof AnalyticsAccountRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/rating': typeof AnalyticsRatingRoute
   '/analytics/vs-sber': typeof AnalyticsVsSberRoute
@@ -331,6 +339,7 @@ export interface FileRoutesById {
   '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
+  '/analytics/account': typeof AnalyticsAccountRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
   '/analytics/rating': typeof AnalyticsRatingRoute
   '/analytics/vs-sber': typeof AnalyticsVsSberRoute
@@ -372,6 +381,7 @@ export interface FileRouteTypes {
     | '/sitemap-radar-{$part}.xml'
     | '/sitemap.xml'
     | '/skolko-stoit-avtomatizaciya'
+    | '/analytics/account'
     | '/analytics/prices'
     | '/analytics/rating'
     | '/analytics/vs-sber'
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/sitemap-radar-{$part}.xml'
     | '/sitemap.xml'
     | '/skolko-stoit-avtomatizaciya'
+    | '/analytics/account'
     | '/analytics/prices'
     | '/analytics/rating'
     | '/analytics/vs-sber'
@@ -450,6 +461,7 @@ export interface FileRouteTypes {
     | '/sitemap-radar-{$part}.xml'
     | '/sitemap.xml'
     | '/skolko-stoit-avtomatizaciya'
+    | '/analytics/account'
     | '/analytics/prices'
     | '/analytics/rating'
     | '/analytics/vs-sber'
@@ -490,6 +502,7 @@ export interface RootRouteChildren {
   SitemapRadarChar123partChar125DotxmlRoute: typeof SitemapRadarChar123partChar125DotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SkolkoStoitAvtomatizaciyaRoute: typeof SkolkoStoitAvtomatizaciyaRoute
+  AnalyticsAccountRoute: typeof AnalyticsAccountRoute
   AnalyticsPricesRoute: typeof AnalyticsPricesRoute
   AnalyticsRatingRoute: typeof AnalyticsRatingRoute
   AnalyticsVsSberRoute: typeof AnalyticsVsSberRoute
@@ -602,6 +615,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics/'
       preLoaderRoute: typeof AnalyticsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics/account': {
+      id: '/analytics/account'
+      path: '/analytics/account'
+      fullPath: '/analytics/account'
+      preLoaderRoute: typeof AnalyticsAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics/prices': {
@@ -795,6 +815,7 @@ const rootRouteChildren: RootRouteChildren = {
     SitemapRadarChar123partChar125DotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SkolkoStoitAvtomatizaciyaRoute: SkolkoStoitAvtomatizaciyaRoute,
+  AnalyticsAccountRoute: AnalyticsAccountRoute,
   AnalyticsPricesRoute: AnalyticsPricesRoute,
   AnalyticsRatingRoute: AnalyticsRatingRoute,
   AnalyticsVsSberRoute: AnalyticsVsSberRoute,

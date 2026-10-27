@@ -2,7 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { api, setToken } from "./pipesApi";
 
-export default function PipesLogin({ onDone }: { onDone: () => void }) {
+export default function PipesLogin({ onDone, source = "pipes", title = "Вход в Конвейер данных", text = "Без пароля: пришлём код на почту. Новый аккаунт создаётся автоматически — тариф «Старт» бесплатно.", bare = false }: { onDone: () => void; source?: string; title?: string; text?: string; bare?: boolean }) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
@@ -20,18 +20,19 @@ export default function PipesLogin({ onDone }: { onDone: () => void }) {
   const verify = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true); setErr("");
-    const r = await api<{ token: string }>("verify", { email, code });
+    const r = await api<{ token: string }>("verify", { email, code, source });
     setBusy(false);
     if (r.error || !r.token) return setErr(r.error || "Не удалось войти");
     setToken(r.token);
+    window.dispatchEvent(new Event("biz-auth"));
     onDone();
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white/[0.04] border border-violet-500/30 rounded-3xl p-7 md:p-9">
-      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center mb-5"><Icon name="Workflow" size={24} /></div>
-      <h1 className="font-['Oswald',sans-serif] text-3xl font-bold mb-2">Вход в Конвейер данных</h1>
-      <p className="text-white/55 text-sm mb-6">Без пароля: пришлём код на почту. Новый аккаунт создаётся автоматически — тариф «Старт» бесплатно.</p>
+    <div className={bare ? "" : "max-w-md mx-auto bg-white/[0.04] border border-violet-500/30 rounded-3xl p-7 md:p-9"}>
+      {!bare && <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center mb-5"><Icon name="Workflow" size={24} /></div>}
+      <h1 className={`font-['Oswald',sans-serif] font-bold mb-2 ${bare ? "text-2xl pr-6" : "text-3xl"}`}>{title}</h1>
+      <p className="text-white/55 text-sm mb-6">{text}</p>
       {step === "email" ? (
         <form onSubmit={send} className="space-y-3">
           <input type="email" required autoFocus value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.ru"

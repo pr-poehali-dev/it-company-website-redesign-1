@@ -5,19 +5,19 @@ import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { BarRow, Card, INSIGHT_ICON, Kpi, Locked, SourceNote } from "@/components/biz/BizUi";
-import BizOrderModal from "@/components/biz/BizOrderModal";
+import UnlockModal from "@/components/biz/UnlockModal";
 import { DatasetSchema } from "@/components/biz/SeoSchema";
 import MarketPicker from "@/components/biz/MarketPicker";
-import { MSP_LABEL, MarketReport as Report, PRICES, bizGet, money, num, pct, prettyName } from "@/components/biz/bizApi";
+import { MSP_LABEL, MarketReport as Report, bizGet, money, num, pct, prettyName, userToken } from "@/components/biz/bizApi";
 
 const TT = { background: "#10101c", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, fontSize: 12 };
 const PIE = ["#7c3aed", "#0891b2", "#a78bfa", "#22d3ee", "#475569"];
 
 const INCLUDES = [
-  "Топ-50 компаний рынка с ИНН, выручкой, долей, штатом и налоговым режимом",
-  "Excel со всеми компаниями сегмента для своей CRM",
-  "Сравнение с соседними регионами и Россией в целом",
-  "Выводы аналитика: где точки входа и кого предложить в партнёры",
+  "Топ-50 компаний рынка с ИНН, выручкой, долей и штатом — сразу на экране",
+  "Переход в карточку каждой компании с проверкой и финансами",
+  "Слежение за лидерами рынка — письмо при изменениях",
+  "Excel со всеми компаниями и выводы аналитика — разово за 4 900 ₽",
 ];
 
 export default function MarketReport() {
@@ -27,19 +27,18 @@ export default function MarketReport() {
   const [d, setD] = useState<Report | null>(loaded);
   const [error, setError] = useState("");
   const [order, setOrder] = useState(false);
+  const refetch = () => bizGet<Report>({ action: "market", okved, region }).then(r => { if (!r.error) setD(r); }).catch(() => {});
 
   useEffect(() => {
     setError("");
     if (loaded && loaded.okved === okved && (loaded.region || "RU") === region) {
       setD(loaded);
-      if (!loaded.full_access && localStorage.getItem("admin_token")) {
-        bizGet<Report>({ action: "market", okved, region }).then(r => { if (!r.error) setD(r); }).catch(() => {});
-      }
+      if (!loaded.full_access && (localStorage.getItem("admin_token") || userToken())) refetch();
       return;
     }
     setD(null);
     bizGet<Report>({ action: "market", okved, region }).then(r => (r.error ? setError(r.error) : setD(r))).catch(() => setError("Не удалось загрузить"));
-  }, [okved, region, loaded]);
+  }, [okved, region, loaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const m = d?.metrics;
   const nat = d?.national;
@@ -75,7 +74,7 @@ export default function MarketReport() {
             </div>
             {!full && (
               <button onClick={unlock} className="shrink-0 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 px-6 py-3.5 rounded-2xl font-semibold text-white flex items-center gap-2 shadow-lg shadow-violet-600/30">
-                <Icon name="FileText" size={18} />Полный отчёт · {PRICES.market.toLocaleString("ru-RU")} ₽
+                <Icon name="Gift" size={18} />Открыть полный отчёт бесплатно
               </button>
             )}
           </header>
@@ -138,7 +137,7 @@ export default function MarketReport() {
             </div>
             {!full && (
               <button onClick={unlock} className="mt-4 w-full py-3 rounded-xl border border-dashed border-violet-500/40 text-sm text-violet-200 hover:bg-violet-500/10 flex items-center justify-center gap-2">
-                <Icon name="Lock" size={14} />Ещё {Math.max(0, m.with_revenue - 3).toLocaleString("ru-RU")} компаний с ИНН и показателями — в полном отчёте
+                <Icon name="Lock" size={14} />Открыть топ-50 с ИНН бесплатно — вход по email
               </button>
             )}
           </Card>
@@ -242,7 +241,7 @@ export default function MarketReport() {
 
           {!full && (
             <Card>
-              <Locked onUnlock={unlock} label="Сравнение с конкурентами и выводы аналитика — в полном отчёте">
+              <Locked onUnlock={unlock} label="Топ-50 компаний с ИНН — после бесплатного входа">
                 <div className="grid md:grid-cols-3 gap-4 py-4">
                   {[1, 2, 3].map(i => <div key={i} className="h-24 rounded-xl bg-white/10" />)}
                 </div>
@@ -252,13 +251,14 @@ export default function MarketReport() {
 
           <div className="bg-gradient-to-br from-violet-600/25 to-cyan-600/10 border border-violet-500/40 rounded-3xl p-6 md:p-8 grid md:grid-cols-[1fr_auto] gap-6 items-center">
             <div>
+              <div className="text-xs uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-1.5"><Icon name="Gift" size={13} />Первый отчёт — в подарок</div>
               <h2 className="font-['Oswald',sans-serif] text-2xl md:text-3xl font-bold mb-3">Полный отчёт о рынке «{d.okved_name}»</h2>
               <ul className="grid sm:grid-cols-2 gap-2">
                 {INCLUDES.map(t => <li key={t} className="flex gap-2 text-sm text-white/75"><Icon name="Check" size={16} className="text-emerald-300 shrink-0 mt-0.5" />{t}</li>)}
               </ul>
             </div>
             <button onClick={unlock} className="bg-white text-[#10101c] hover:bg-violet-100 px-7 py-4 rounded-2xl font-semibold flex items-center gap-2 whitespace-nowrap">
-              Заказать за {PRICES.market.toLocaleString("ru-RU")} ₽<Icon name="ArrowRight" size={18} />
+              Открыть бесплатно<Icon name="ArrowRight" size={18} />
             </button>
           </div>
           <SourceNote />
@@ -266,8 +266,8 @@ export default function MarketReport() {
       )}
 
       {order && d && (
-        <BizOrderModal reportType="market" reportKey={`${okved}:${region}`} title={`Отчёт о рынке: ${d.okved_name} — ${d.region_name}`}
-          price={PRICES.market} includes={INCLUDES} onClose={() => setOrder(false)} />
+        <UnlockModal kind="market" unlockKey={`${okved}:${region}`} title={`Отчёт о рынке: ${d.okved_name} — ${d.region_name}`}
+          onUnlocked={refetch} onClose={() => setOrder(false)} />
       )}
     </BizShell>
   );

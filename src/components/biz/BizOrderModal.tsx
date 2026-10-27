@@ -4,7 +4,7 @@ import { bizOrder } from "./bizApi";
 import { ymLead } from "@/lib/ym";
 
 interface Props {
-  reportType: "market" | "company" | "check" | "custom" | "database" | "service";
+  reportType: "market" | "company" | "check" | "custom" | "database" | "service" | "pro" | "corp";
   reportKey?: string;
   title: string;
   price?: number;
@@ -15,6 +15,7 @@ interface Props {
 const field = "w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/35 focus:outline-none focus:border-violet-500/60";
 
 export default function BizOrderModal({ reportType, reportKey = "", title, price, includes, onClose }: Props) {
+  const isSub = reportType === "pro" || reportType === "corp";
   const [f, setF] = useState({ name: "", phone: "", email: "", company: "", inn: "", comment: "", website: "" });
   const [agree, setAgree] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
@@ -26,6 +27,7 @@ export default function BizOrderModal({ reportType, reportKey = "", title, price
     e.preventDefault();
     setError("");
     if (!f.name.trim() || !(f.phone.trim() || f.email.trim())) return setError("Укажите имя и телефон или email");
+    if (isSub && !f.email.trim()) return setError("Укажите email — на него включим доступ");
     if (!agree) return setError("Нужно согласие на обработку персональных данных");
     setState("sending");
     const r = await bizOrder({ ...f, report_type: reportType, report_key: reportKey, report_title: title, price: String(price || 0) }).catch(() => ({ error: "Нет связи, попробуйте ещё раз" }));
@@ -44,15 +46,15 @@ export default function BizOrderModal({ reportType, reportKey = "", title, price
           <div className="text-center py-6">
             <div className="w-14 h-14 mx-auto rounded-full bg-emerald-500/15 flex items-center justify-center mb-4"><Icon name="Check" size={26} className="text-emerald-300" /></div>
             <div className="font-semibold text-white text-lg mb-1">Заказ №{orderId} принят</div>
-            <p className="text-white/60 text-sm">Пришлём счёт и подготовим полный отчёт в течение рабочего дня после оплаты.</p>
+            <p className="text-white/60 text-sm">{isSub ? "Пришлём счёт в течение рабочего дня. Доступ включим на email, который вы указали, сразу после оплаты." : "Пришлём счёт и подготовим полный отчёт в течение рабочего дня после оплаты."}</p>
             <button onClick={onClose} className="mt-5 text-sm text-violet-300 hover:text-white">Закрыть</button>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
             <div>
-              <div className="text-xs text-violet-300 uppercase tracking-wider mb-1">Полный отчёт</div>
+              <div className="text-xs text-violet-300 uppercase tracking-wider mb-1">{isSub ? "Подписка по счёту" : "Полный отчёт"}</div>
               <div className="font-semibold text-white text-lg leading-snug pr-6">{title}</div>
-              {price ? <div className="text-2xl font-bold text-white mt-2">{price.toLocaleString("ru-RU")} ₽ <span className="text-sm font-normal text-white/40">с НДС</span></div> : null}
+              {price ? <div className="text-2xl font-bold text-white mt-2">{price.toLocaleString("ru-RU")} ₽{isSub ? <span className="text-base font-normal text-white/50"> / мес</span> : null} <span className="text-sm font-normal text-white/40">с НДС</span></div> : null}
             </div>
             {includes && (
               <ul className="space-y-1.5 py-1">

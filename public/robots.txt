@@ -5,6 +5,7 @@ Disallow: /admin
 Disallow: /analytics/bi/s/
 Disallow: /presentation
 Disallow: /analytics/pipes/app
+Disallow: /analytics/account
 Disallow: /chatgpt
 
 Sitemap: https://mat-labs.ru/sitemap.xml

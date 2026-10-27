@@ -17,16 +17,17 @@ import psycopg2
 import psycopg2.extras
 
 import databases as dbs
+import accounts as acc
 
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token, X-User-Token, X-Cron-Secret',
 }
 NOTIFY_EMAIL = 'atyurin2@yandex.ru'
-PRICES = {'market': 4900, 'company': 1490, 'check': 490, 'custom': 0, 'database': 0, 'service': 0}
-REPORT_NAMES = {'service': 'Услуга под ключ', 'database': 'Выгрузка базы компаний', 'market': 'Отчёт о рынке', 'company': 'Отчёт о компании', 'check': 'Проверка контрагента',
+PRICES = {'market': 4900, 'company': 0, 'check': 0, 'custom': 35000, 'database': 0, 'service': 0, 'pro': 2990, 'corp': 9900}
+REPORT_NAMES = {'pro': 'Подписка «Аналитика Про»', 'corp': 'Комплекс «Отдел продаж»', 'service': 'Услуга под ключ', 'database': 'Выгрузка базы компаний', 'market': 'Отчёт о рынке', 'company': 'Отчёт о компании', 'check': 'Проверка контрагента',
                 'custom': 'Индивидуальное исследование'}
 REGIONS = {
     '01': 'Адыгея', '02': 'Башкортостан', '03': 'Бурятия', '04': 'Алтай Респ.', '05': 'Дагестан', '06': 'Ингушетия',
@@ -167,9 +168,15 @@ def live_market(cur, okved, region):
     return m
 
 
-def action_market(p, admin):
+def action_market(p, admin, event=None):
     okved = re.sub(r'[^\d.]', '', p.get('okved') or '')[:8] or 'ALL'
     region = re.sub(r'[^\dRU]', '', p.get('region') or 'RU')[:2] or 'RU'
+    unlocked = False
+    if not admin and event is not None and acc.user_id(event):
+        c0 = db()
+        unlocked, _ = acc.access(c0, event, 'market', f'{okved}:{region}')
+        c0.close()
+        admin = unlocked
     ckey = f'market:{okved}:{region}:{int(admin)}'
     conn = db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -177,7 +184,7 @@ def action_market(p, admin):
     hit = cur.fetchone()
     if hit:
         conn.close()
-        return resp(hit['data'], cache=0 if admin else 1800)
+        return resp({**hit['data'], 'unlocked': unlocked}, cache=0 if (admin or acc.user_id(event or {})) else 1800)
     okv2 = okved[:2] if okved != 'ALL' else 'ALL'
     if len(okved) <= 2:
         cur.execute(f"SELECT {MARKET_COLS} FROM {S}.biz_markets WHERE okved2=%s AND region=%s", (okved, region))
@@ -262,7 +269,7 @@ def action_market(p, admin):
                 (ckey, json.dumps(data, ensure_ascii=False, default=str)))
     conn.commit()
     conn.close()
-    return resp(data, cache=0 if admin else 1800)
+    return resp({**data, 'unlocked': unlocked}, cache=0 if (admin or acc.user_id(event or {})) else 1800)
 
 
 def fmt_money(v):
@@ -374,10 +381,16 @@ def risk_score(c, egrul):
     return {'score': score, 'level': level, 'factors': factors}
 
 
-def action_company(p, admin):
+def action_company(p, admin, event=None):
     inn = re.sub(r'\D', '', p.get('inn') or '')[:12]
     if len(inn) not in (10, 12):
         return err('Укажите ИНН из 10 или 12 цифр')
+    unlocked = False
+    if not admin and event is not None and acc.user_id(event):
+        c0 = db()
+        unlocked, _ = acc.access(c0, event, 'company', inn)
+        c0.close()
+        admin = unlocked
     conn = db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f'SELECT * FROM {S}.biz_companies WHERE inn = %s', (inn,))
@@ -447,7 +460,7 @@ def action_company(p, admin):
         'staff': c.get('staff'), 'tax_mode': c.get('tax_mode') or '', 'tax_debt': c.get('tax_debt') or 0,
         'finance': fin, 'peers': peers, 'competitors': competitors,
         'grant': dict(grant) if grant else None, 'risk': risk_score(c, d),
-        'egrul_live': bool(egrul), 'period': '2025', 'full_access': admin,
+        'egrul_live': bool(egrul), 'period': '2025', 'full_access': admin, 'unlocked': unlocked,
     }
     if not admin:
         out['address'] = ', '.join(out['address'].split(',')[:2]) + (', •••' if out['address'].count(',') > 1 else '')
@@ -502,7 +515,11 @@ def action_search(p):
     return resp({'items': items})
 
 
-def action_rating(p, admin):
+def action_rating(p, admin, event=None):
+    if not admin and event is not None and acc.user_id(event):
+        c0 = db()
+        admin, _ = acc.access(c0, event, 'rating', '')
+        c0.close()
     region = re.sub(r'[^\dRU]', '', p.get('region') or 'RU')[:2] or 'RU'
     okved = re.sub(r'[^\d.]', '', p.get('okved') or '')[:8]
     sort = p.get('sort') if p.get('sort') in ('revenue', 'staff', 'profit') else 'revenue'
@@ -521,7 +538,7 @@ def action_rating(p, admin):
         it['region_name'] = REGIONS.get(it['region'], '')
         if not admin and i >= 10:
             it['name'], it['inn'], it['locked'] = '', '', True
-    return resp({'items': items, 'full_access': admin}, cache=0 if admin else 1800)
+    return resp({'items': items, 'full_access': admin}, cache=0 if (admin or acc.user_id(event or {})) else 1800)
 
 
 # ── Заказы ──────────────────────────────────────────────────────────────────
@@ -696,8 +713,108 @@ def action_benchmark(p):
     return resp(out, cache=600)
 
 
+def watch_build(inn):
+    conn = db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f'SELECT * FROM {S}.biz_companies WHERE inn = %s', (inn,))
+    c = cur.fetchone()
+    conn.close()
+    c = dict(c) if c else {'inn': inn, 'name': '', 'revenue': None, 'expenses': None, 'staff': None, 'tax_debt': 0}
+    egrul = dadata(inn)
+    if not c.get('name') and not egrul:
+        return None, ''
+    d = (egrul or {}).get('data') or {}
+    return acc.snapshot(c, egrul, risk_score(c, d)), (c.get('name') or (egrul or {}).get('value') or inn)
+
+
+def unlock_title(kind, key):
+    conn = db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if kind == 'company':
+        cur.execute(f'SELECT name FROM {S}.biz_companies WHERE inn=%s', (key,))
+        r = cur.fetchone()
+        conn.close()
+        return (r or {}).get('name') or f'ИНН {key}'
+    okved, region = (key.split(':') + ['RU'])[:2]
+    names = okved_names(cur, [okved]) if okved != 'ALL' else {}
+    conn.close()
+    return f"{(names.get(okved) or {}).get('name', 'Все отрасли')} — {'Россия' if region == 'RU' else REGIONS.get(region, region)}"
+
+
+_CTX = {}
+
+
+def context_left():
+    c = _CTX.get('c')
+    if c is not None and hasattr(c, 'get_remaining_time_in_millis'):
+        return c.get_remaining_time_in_millis() / 1000
+    return 5.0
+
+
+def account_action(action, event, body, p, admin):
+    import time as _t
+    if action == 'watch_run':
+        h = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
+        if not os.environ.get('CRON_SECRET') or not hmac.compare_digest(h.get('x-cron-secret', ''), os.environ['CRON_SECRET']):
+            return err('Unauthorized', 401)
+        conn = db()
+        try:
+            left = context_left()
+            return resp(acc.watch_run(conn, watch_build, fmt_money, _t.time() + max(1.0, left - 3.5)))
+        finally:
+            conn.close()
+    if action in ('admin_accounts', 'admin_set_plan'):
+        if not admin:
+            return err('Не авторизован', 401)
+        conn = db()
+        try:
+            out, st = acc.admin_accounts(conn) if action == 'admin_accounts' else acc.admin_set_plan(conn, body)
+            return resp(out, st)
+        finally:
+            conn.close()
+    uid = acc.user_id(event)
+    if not uid:
+        return err('Войдите в аккаунт', 401)
+    conn = db()
+    try:
+        if action == 'me':
+            out, st = acc.me(conn, uid)
+        elif action == 'unlock':
+            kind = body.get('kind')
+            if kind == 'company':
+                key = re.sub(r'\D', '', body.get('key') or '')[:12]
+                if len(key) not in (10, 12):
+                    return err('Неверный ИНН')
+            elif kind == 'market':
+                o, _, r = (body.get('key') or '').partition(':')
+                o = re.sub(r'[^\d.]', '', o)[:8] or ('ALL' if o == 'ALL' else '')
+                r = re.sub(r'[^\dRU]', '', r)[:2] or 'RU'
+                if not o:
+                    return err('Неверный рынок')
+                key = f'{o}:{r}'
+            else:
+                return err('Неизвестный тип отчёта')
+            out, st = acc.unlock(conn, uid, kind, key, unlock_title(kind, key))
+        elif action == 'watch_add':
+            inn = re.sub(r'\D', '', body.get('inn') or '')[:12]
+            if len(inn) not in (10, 12):
+                return err('Неверный ИНН')
+            out, st = acc.watch_add(conn, uid, inn, watch_build)
+        elif action == 'watch_remove':
+            out, st = acc.watch_remove(conn, uid, re.sub(r'\D', '', body.get('inn') or '')[:12])
+        else:
+            return err('Неизвестное действие')
+        return resp(out, st)
+    finally:
+        conn.close()
+
+
+ACCOUNT_ACTIONS = {'me', 'unlock', 'watch_add', 'watch_remove', 'watch_run', 'admin_accounts', 'admin_set_plan'}
+
+
 def handler(event: dict, context) -> dict:
-    """Бизнес-аналитика: обзор, рынки, рейтинги, отчёт о компании, проверка контрагента, заказы отчётов."""
+    """Бизнес-аналитика: обзор, рынки, рейтинги, отчёт о компании, проверка контрагента, заказы отчётов, аккаунты и слежение."""
+    _CTX['c'] = context
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS, 'body': ''}
@@ -709,14 +826,16 @@ def handler(event: dict, context) -> dict:
         return action_overview()
     if action == 'okved':
         return action_okved(p)
+    if action in ACCOUNT_ACTIONS:
+        return account_action(action, event, body, p, admin)
     if action == 'market':
-        return action_market(p, admin)
+        return action_market(p, admin, event)
     if action == 'company':
-        return action_company(p, admin)
+        return action_company(p, admin, event)
     if action == 'search':
         return action_search(p)
     if action == 'rating':
-        return action_rating(p, admin)
+        return action_rating(p, admin, event)
     if action == 'databases':
         return action_databases()
     if action == 'benchmark':

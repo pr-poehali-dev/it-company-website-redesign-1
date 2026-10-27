@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import OrderCard from "./OrderCard";
 import BiSharesPanel from "./BiSharesPanel";
+import BizAccountsPanel from "./BizAccountsPanel";
 import SeoPingPanel from "./SeoPingPanel";
 import { OrderStatus, OrdersResponse, ReportOrder, STATUS_META, STATUS_ORDER, ordersGet, ordersPost } from "./ordersApi";
 
@@ -97,6 +98,7 @@ export default function ReportOrdersModule() {
       </div>
       {info && <div className="text-sm text-emerald-300">{info}</div>}
 
+      <BizAccountsPanel />
       <BiSharesPanel />
       <SeoPingPanel />
 

@@ -105,7 +105,7 @@ def send_mail(to, subject, html):
                               headers={'X-API-KEY': key}, timeout=6, json={'message': {
                                   'recipients': [{'email': to}], 'subject': subject, 'body': {'html': html},
                                   'from_email': os.environ.get('UNISENDER_SENDER_EMAIL', SENDER),
-                                  'from_name': 'МАТ-Лабс Данные', 'track_links': 0, 'track_read': 0}}).json()
+                                  'from_name': 'МАТ-Лабс', 'track_links': 0, 'track_read': 0}}).json()
             if r.get('status') != 'error':
                 return True
             print(f'[pipes] unisender: {r}')
@@ -116,7 +116,7 @@ def send_mail(to, subject, html):
         return False
     msg = MIMEText(html, 'html', 'utf-8')
     msg['Subject'] = subject
-    msg['From'] = formataddr(('МАТ-Лабс Данные', SENDER))
+    msg['From'] = formataddr(('МАТ-Лабс', SENDER))
     msg['To'] = to
     try:
         with smtplib.SMTP_SSL('smtp.yandex.ru', 465, timeout=6) as srv:
@@ -130,9 +130,9 @@ def send_mail(to, subject, html):
 
 def mail_html(title, body):
     return (f'<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#111">'
-            f'<div style="font-size:13px;color:#7c3aed;font-weight:bold;letter-spacing:1px">МАТ-ЛАБС · ДАННЫЕ</div>'
+            f'<div style="font-size:13px;color:#7c3aed;font-weight:bold;letter-spacing:1px">МАТ-ЛАБС</div>'
             f'<h2 style="margin:12px 0">{title}</h2>{body}'
-            f'<p style="color:#888;font-size:12px;margin-top:28px">mat-labs.ru/analytics/pipes</p></div>')
+            f'<p style="color:#888;font-size:12px;margin-top:28px">mat-labs.ru/analytics</p></div>')
 
 
 # ---------- вход по коду ----------
@@ -168,12 +168,14 @@ def action_verify(conn, b):
         conn.commit()
         return resp({'error': 'Неверный код'}, 400)
     cur.execute(f"UPDATE {S}.pipe_codes SET expires_at = NOW() WHERE id=%s", (row['id'],))
-    cur.execute(f"""INSERT INTO {S}.pipe_users (email, last_login_at) VALUES (%s, NOW())
-                    ON CONFLICT (email) DO UPDATE SET last_login_at = NOW() RETURNING id, (xmax = 0) AS created""", (email,))
+    src = re.sub(r'[^a-z_]', '', str(b.get('source') or 'pipes'))[:30]
+    cur.execute(f"""INSERT INTO {S}.pipe_users (email, last_login_at, source) VALUES (%s, NOW(), %s)
+                    ON CONFLICT (email) DO UPDATE SET last_login_at = NOW() RETURNING id, (xmax = 0) AS created""", (email, src))
     u = cur.fetchone()
     conn.commit()
     if u['created']:
-        send_mail(NOTIFY, f'Новый пользователь конвейера данных: {email}', mail_html('Новая регистрация', f'<p>{email}</p>'))
+        what = 'аналитики' if src == 'analytics' else 'конвейера данных'
+        send_mail(NOTIFY, f'Новый пользователь {what}: {email}', mail_html('Новая регистрация', f'<p>{email}</p><p>Откуда: {what}</p>'))
     return resp({'ok': True, 'token': make_token(u['id'])})
 
 

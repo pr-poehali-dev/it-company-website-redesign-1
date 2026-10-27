@@ -12,6 +12,7 @@ const ITEMS = [
   { to: "/analytics/services", label: "Под ключ", icon: "Handshake" },
   { to: "/radar", label: "Радар господдержки", icon: "Radar" },
   { to: "/analytics/prices", label: "Тарифы", icon: "Tag" },
+  { to: "/analytics/account", label: "Мой кабинет", icon: "UserRound" },
 ];
 
 export default function BizNav() {

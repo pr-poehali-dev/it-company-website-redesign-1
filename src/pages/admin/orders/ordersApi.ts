@@ -42,7 +42,7 @@ export const STATUS_META: Record<OrderStatus, { label: string; cls: string; icon
 export const STATUS_ORDER: OrderStatus[] = ["new", "invoiced", "paid", "sent"];
 
 export const TYPE_LABEL: Record<string, string> = {
-  market: "Рынок", company: "Компания", check: "Проверка", custom: "Исследование", database: "База", service: "Под ключ",
+  market: "Рынок", company: "Компания", check: "Проверка", custom: "Исследование", database: "База", service: "Под ключ", pro: "Подписка Про", corp: "Отдел продаж",
 };
 
 export const isTest = (o: ReportOrder) =>
