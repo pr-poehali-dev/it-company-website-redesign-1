@@ -1,2 +1,0 @@
-ALTER TABLE t_p88532089_it_company_website_r.radar_companies ADD COLUMN IF NOT EXISTS short_name TEXT NOT NULL DEFAULT '';
-CREATE INDEX IF NOT EXISTS idx_radar_egrul_queue ON t_p88532089_it_company_website_r.radar_companies (egrul_status, enrich_status);

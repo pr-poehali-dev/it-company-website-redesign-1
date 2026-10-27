@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Icon from "@/components/ui/icon";

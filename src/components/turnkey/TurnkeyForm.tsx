@@ -114,14 +114,18 @@ interface Props {
 }
 
 export default function TurnkeyForm({ preset }: Props) {
-  const [form, setForm] = useState<FormState>(() => {
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
-      return saved ? { ...emptyForm, ...JSON.parse(saved), website: "" } : emptyForm;
+      if (saved) setForm((f) => ({ ...f, ...JSON.parse(saved), website: "" }));
     } catch {
-      return emptyForm;
+      /* storage недоступен */
     }
-  });
+    setLoaded(true);
+  }, []);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [serverError, setServerError] = useState("");
@@ -136,14 +140,14 @@ export default function TurnkeyForm({ preset }: Props) {
   }, [preset]);
 
   useEffect(() => {
-    if (status === "success") return;
+    if (!loaded || status === "success") return;
     try {
       const { website: _w, ...draft } = form;
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     } catch {
       /* storage недоступен */
     }
-  }, [form, status]);
+  }, [form, status, loaded]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     if (!started.current) {

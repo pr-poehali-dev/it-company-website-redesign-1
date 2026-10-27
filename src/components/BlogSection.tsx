@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { AnimatedSection } from "@/components/shared";
 import BlogCard from "@/components/BlogCard";
 import { useBlogPosts } from "@/lib/blog";

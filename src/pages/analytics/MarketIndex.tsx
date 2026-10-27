@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import MarketPicker from "@/components/biz/MarketPicker";

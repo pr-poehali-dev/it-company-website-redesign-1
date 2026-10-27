@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { ResponsiveContainer, Treemap, Tooltip } from "recharts";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";

@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { ymGoal } from "@/lib/ym";

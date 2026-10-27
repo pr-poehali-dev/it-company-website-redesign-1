@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { ymGoal, ymLead } from "@/lib/ym";
@@ -29,7 +29,10 @@ export default function Consultant() {
   const [stage, setStage] = useState<Stage>("chat");
   const [readyToSend, setReadyToSend] = useState(false);
   const [brief, setBrief] = useState("");
-  const [sessionId] = useState(() => getSessionId());
+  const [sessionId, setSessionId] = useState("");
+  useEffect(() => {
+    setSessionId(getSessionId());
+  }, []);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -260,7 +263,7 @@ export default function Consultant() {
             </div>
           )}
 
-          {readyToSend && stage === "chat" && (
+          {readyToSend && (stage === "chat" || stage === "sending") && (
             <div className="flex justify-center py-2">
               <div className="bg-[#161b22] border border-cyan-500/30 rounded-2xl p-4 max-w-sm w-full text-center">
                 <Icon name="FileText" size={28} className="text-cyan-400 mx-auto mb-2" />

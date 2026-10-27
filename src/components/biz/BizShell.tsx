@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import PageBreadcrumbs, { Crumb } from "@/components/PageBreadcrumbs";
 import BizNav from "./BizNav";
 
@@ -21,7 +21,6 @@ export default function BizShell({ title, description, path, crumbs, children, n
   return (
     <>
       <Helmet>
-        <html lang="ru" />
         <title>{title}</title>
         <meta name="description" content={desc} />
         <meta name="robots" content={noindex ? "noindex, follow" : "index, follow, max-image-preview:large"} />

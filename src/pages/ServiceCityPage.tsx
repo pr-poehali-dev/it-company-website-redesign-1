@@ -1,5 +1,5 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { useParams, useNavigate, Link } from "@/lib/router-compat";
+import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { findCity, cities } from "@/lib/cities";

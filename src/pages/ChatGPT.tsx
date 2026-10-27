@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import { ChatGPTPlaygroundPage } from "@/components/extensions/chatgpt-polza/ChatGPTPlaygroundPage";
 
 const API_URL = "https://functions.poehali.dev/a7020aa9-1dee-44e5-adb5-83e5cebf9635";

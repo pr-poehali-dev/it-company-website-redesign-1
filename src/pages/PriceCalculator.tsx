@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import CalculatorForm from "@/components/price-calculator/CalculatorForm";
 import CalculatorResult from "@/components/price-calculator/CalculatorResult";

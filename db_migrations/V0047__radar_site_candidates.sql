@@ -1,2 +1,0 @@
-ALTER TABLE t_p88532089_it_company_website_r.radar_companies ADD COLUMN IF NOT EXISTS site_candidates TEXT NOT NULL DEFAULT '';
-UPDATE t_p88532089_it_company_website_r.radar_companies SET enrich_status = 'new' WHERE enrich_status IN ('processing', 'partial') AND website = '';

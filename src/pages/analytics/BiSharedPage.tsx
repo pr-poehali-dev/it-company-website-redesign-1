@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { Card } from "@/components/biz/BizUi";
@@ -18,7 +18,11 @@ export default function BiSharedPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const rows = useRows(dash);
-  const own = ownedShares().find(s => s.id === id);
+  const [own, setOwn] = useState<ReturnType<typeof ownedShares>[number] | undefined>(undefined);
+
+  useEffect(() => {
+    setOwn(ownedShares().find(s => s.id === id));
+  }, [id]);
 
   useEffect(() => {
     setLoading(true);

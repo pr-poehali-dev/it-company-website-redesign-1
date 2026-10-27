@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import MarketPicker from "@/components/biz/MarketPicker";

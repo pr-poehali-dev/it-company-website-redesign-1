@@ -68,7 +68,7 @@ export default function DbFilterPanel({ value, onApply, lockedKeys = [] }: Props
 
   const set = <K extends keyof DbFilters>(k: K, v: DbFilters[K]) => setF(p => {
     const n = { ...p, [k]: v };
-    if (v === undefined || v === "" || v === false || (Array.isArray(v) && !v.length)) delete n[k];
+    if (v === undefined || v === false || (Array.isArray(v) && !v.length)) delete n[k];
     return n;
   });
   const isLocked = (k: keyof DbFilters) => lockedKeys.includes(k);

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { Card } from "@/components/biz/BizUi";
@@ -29,35 +29,38 @@ function load(): Dashboard | null {
 }
 
 export default function BiPage() {
-  const [dash, setDash] = useState<Dashboard | null>(() => (new URLSearchParams(window.location.search).get("demo") === "1" ? null : load()));
+  const [dash, setDash] = useState<Dashboard | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
   const [edit, setEdit] = useState<Widget | null | "new">(null);
   const [tab, setTab] = useState<"dash" | "data">("dash");
   const [saved, setSaved] = useState<"ok" | "big" | "">("");
-  const [share, setShare] = useState<OwnedShare | null>(() => {
-    const id = localStorage.getItem(STORE_SHARE);
-    return (id && ownedShares().find(s => s.id === id)) || null;
-  });
+  const [share, setShare] = useState<OwnedShare | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const changeShare = (s: OwnedShare | null) => { setShare(s); if (s) localStorage.setItem(STORE_SHARE, s.id); else localStorage.removeItem(STORE_SHARE); };
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("demo") === "1" && !dash) {
+    const shareId = localStorage.getItem(STORE_SHARE);
+    setShare((shareId && ownedShares().find(s => s.id === shareId)) || null);
+    if (new URLSearchParams(window.location.search).get("demo") === "1") {
       const ds = demoDataset();
       setDash({ dataset: ds, widgets: autoWidgets(ds), filters: [] });
+    } else {
+      setDash(load());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
+    if (!loaded) return;
     if (!dash) { localStorage.removeItem(STORE); return; }
     const s = JSON.stringify(dash);
     if (s.length > MAX_SAVE) { setSaved("big"); return; }
     try { localStorage.setItem(STORE, s); setSaved("ok"); } catch { setSaved("big"); }
-  }, [dash]);
+  }, [dash, loaded]);
 
   const start = (ds: Dataset) => { setDash({ dataset: ds, widgets: autoWidgets(ds), filters: [] }); setTab("dash"); setError(""); changeShare(null); };
 

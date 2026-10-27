@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { useNavigate } from "@/lib/router-compat";
+import { Helmet } from "@/lib/helmet";
 import NavBar from "@/components/NavBar";
 import TopSections from "@/components/TopSections";
 import BottomSections from "@/components/BottomSections";

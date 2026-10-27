@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 
 const ORG = { "@type": "Organization", name: "МАТ-Лабс", url: "https://mat-labs.ru" };
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import TurnkeyForm, { type Plan } from "@/components/turnkey/TurnkeyForm";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { Card, Kpi, SourceNote } from "@/components/biz/BizUi";

@@ -46,8 +46,8 @@ const STATUS_COLOR: Record<string, string> = {
   postponed: "bg-white/10 text-white/40",
 };
 
-function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-white/5 ${className ?? ""}`} />;
+function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return <div className={`animate-pulse rounded-xl bg-white/5 ${className ?? ""}`} style={style} />;
 }
 
 function ScoreBar({ score }: { score: number }) {

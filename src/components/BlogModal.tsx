@@ -10,6 +10,7 @@ export interface BlogPost {
   content?: string;
   cover_url?: string | null;
   source_url?: string | null;
+  created_at?: string;
 }
 
 interface BlogModalProps {

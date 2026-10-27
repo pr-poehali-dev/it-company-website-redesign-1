@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { ymGoal } from "@/lib/ym";
 import { fmt, type CalcResult } from "./priceData";
 

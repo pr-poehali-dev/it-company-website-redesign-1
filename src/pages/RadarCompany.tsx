@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { Link, useParams } from "@/lib/router-compat";
+import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { OG_IMAGE } from "@/components/biz/BizShell";

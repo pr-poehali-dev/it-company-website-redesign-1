@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { RadarItem, fmtMoney, fmtDate, prettyName, SOURCE_LABEL } from "./radarApi";
 

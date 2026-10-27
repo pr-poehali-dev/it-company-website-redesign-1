@@ -1,6 +1,6 @@
 import React from 'react';
+import * as LucideIcons from 'lucide-react';
 import { LucideProps } from 'lucide-react';
-import { iconRegistry } from './icon-registry';
 
 interface IconProps extends LucideProps {
   name: string;
@@ -8,10 +8,18 @@ interface IconProps extends LucideProps {
 }
 
 const Icon: React.FC<IconProps> = ({ name, fallback = 'CircleAlert', ...props }) => {
-  const IconComponent = iconRegistry[name] || iconRegistry[fallback];
+  const IconComponent = (LucideIcons as unknown as Record<string, React.FC<LucideProps>>)[name];
 
   if (!IconComponent) {
-    return <span className="text-xs text-gray-400">[icon]</span>;
+    // Если иконка не найдена, используем fallback иконку
+    const FallbackIcon = (LucideIcons as unknown as Record<string, React.FC<LucideProps>>)[fallback];
+
+    // Если даже fallback не найден, возвращаем пустой span
+    if (!FallbackIcon) {
+      return <span className="text-xs text-gray-400">[icon]</span>;
+    }
+
+    return <FallbackIcon {...props} />;
   }
 
   return <IconComponent {...props} />;

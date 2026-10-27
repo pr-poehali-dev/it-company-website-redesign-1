@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, TEAM_IMAGE, PORTFOLIO_IMAGE, services, portfolio, AnimatedSection } from "@/components/shared";
 import { ymGoal } from "@/lib/ym";
@@ -7,7 +7,7 @@ import AutomateSection from "@/components/AutomateSection";
 
 interface TopSectionsProps {
   scrollTo: (href: string) => void;
-  statsRef: React.RefObject<HTMLDivElement>;
+  statsRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function TopSections({ scrollTo, statsRef }: TopSectionsProps) {
