@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLoaderData } from "@tanstack/react-router";
 import { Link, useNavigate } from "@/lib/router-compat";
 import { ResponsiveContainer, Treemap, Tooltip } from "recharts";
 import Icon from "@/components/ui/icon";
@@ -33,9 +34,10 @@ function TreeCell(props: { x: number; y: number; width: number; height: number; 
 }
 
 export default function AnalyticsHome() {
-  const [d, setD] = useState<Overview | null>(null);
+  const loaded = (useLoaderData({ strict: false }) as { overview?: Overview | null } | undefined)?.overview ?? null;
+  const [d, setD] = useState<Overview | null>(loaded);
   const navigate = useNavigate();
-  useEffect(() => { bizGet<Overview>({ action: "overview" }).then(setD); }, []);
+  useEffect(() => { if (!loaded) bizGet<Overview>({ action: "overview" }).then(setD); }, [loaded]);
 
   const sections = useMemo(() => {
     if (!d) return [];

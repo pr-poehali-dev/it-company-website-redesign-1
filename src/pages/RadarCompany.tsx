@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "@/lib/router-compat";
+import { useLoaderData } from "@tanstack/react-router";
 import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
@@ -24,21 +25,22 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default function RadarCompany() {
   const { inn = "" } = useParams();
-  const [data, setData] = useState<{ company: Company; similar: Similar[] } | null>(null);
+  const loaded = (useLoaderData({ strict: false }) as { data?: { company: Company; similar: Similar[] } | null } | undefined)?.data ?? null;
+  const [data, setData] = useState<{ company: Company; similar: Similar[] } | null>(loaded);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    setData(null);
     setError("");
     setShowForm(false);
     const token = localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
+    if (loaded && loaded.company?.inn === inn && !token) { setData(loaded); return; }
+    if (!loaded || loaded.company?.inn !== inn) setData(null);
     fetch(`${RADAR_URL}/?action=company&inn=${encodeURIComponent(inn)}`, { headers: token ? { "X-Session-Token": token } : {} })
       .then(r => r.json())
       .then(d => (d.error ? setError(d.error) : setData(d)))
       .catch(() => setError("Не удалось загрузить данные"));
-    window.scrollTo(0, 0);
-  }, [inn]);
+  }, [inn, loaded]);
 
   const c = data?.company;
   const name = c ? prettyName(c.name) : "";

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "@/lib/router-compat";
+import { useLoaderData } from "@tanstack/react-router";
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
@@ -46,20 +47,23 @@ export default function DatabaseView() {
   const extra = useMemo(() => decodeFilters(sp.get("f")), [sp]);
   const sort = sp.get("sort") || "revenue";
   const page = Number(sp.get("page")) || 1;
-  const [d, setD] = useState<DbResponse | null>(null);
+  const loaded = (useLoaderData({ strict: false }) as { db?: DbResponse | null } | undefined)?.db ?? null;
+  const isDefault = !Object.keys(extra).length && sort === "revenue" && page === 1;
+  const [d, setD] = useState<DbResponse | null>(isDefault ? loaded : null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!(isDefault && loaded) && !isConstructor);
   const [order, setOrder] = useState(false);
 
   useEffect(() => {
     if (isConstructor && !Object.keys(extra).length) { setD(null); setLoading(false); setError(""); return; }
+    if (isDefault && loaded && loaded.meta?.slug === slug && !localStorage.getItem("admin_token")) { setD(loaded); setLoading(false); setError(""); return; }
     setLoading(true);
     setError("");
     const params: Record<string, string> = { action: "db", sort, page: String(page) };
     if (!isConstructor) params.slug = slug;
     if (Object.keys(extra).length) params.filters = JSON.stringify(extra);
     bizGet<DbResponse>(params).then(r => (r.error ? setError(r.error) : setD(r))).catch(() => setError("Не удалось загрузить")).finally(() => setLoading(false));
-  }, [slug, isConstructor, extra, sort, page]);
+  }, [slug, isConstructor, extra, sort, page, isDefault, loaded]);
 
   const update = (patch: Record<string, string | null>) => {
     const n = new URLSearchParams(sp);

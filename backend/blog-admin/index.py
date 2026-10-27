@@ -69,8 +69,11 @@ def handler(event: dict, context) -> dict:
         return cur2.fetchone() is not None
 
     try:
+        post_id = path.rstrip('/').split('/')[-1] if path else ''
+        is_list = method == 'GET' and (not post_id.isdigit())
+
         # GET /  — список опубликованных (публично) или всех (admin)
-        if method == 'GET' and (path.endswith('/') or path.endswith('/blog-admin')):
+        if is_list:
             if is_admin():
                 cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url, source_url FROM blog_posts ORDER BY created_at DESC")
             else:
@@ -81,7 +84,6 @@ def handler(event: dict, context) -> dict:
 
         # GET /{id}
         if method == 'GET':
-            post_id = path.rstrip('/').split('/')[-1]
             cur.execute("SELECT id, title, tag, read_time, color, content, published, created_at, updated_at, cover_url, source_url FROM blog_posts WHERE id = %s", (post_id,))
             row = cur.fetchone()
             if not row:

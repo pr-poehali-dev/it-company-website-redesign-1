@@ -165,6 +165,21 @@ def action_get(p):
                  'expires_at': row['expires_at'], 'views': row['views'] + 1, 'author': row['owner_company'] or row['owner_name']})
 
 
+def action_exists(p):
+    """Проверка существования ссылки без учёта просмотра (для серверной отрисовки)."""
+    share_id = p.get('id') or ''
+    if not ID_RX.match(share_id):
+        return err('Неверная ссылка', 404)
+    conn = db()
+    cur = conn.cursor()
+    cur.execute(f"SELECT status = 'active' AND expires_at > NOW() FROM {S}.bi_shares WHERE id = %s", (share_id,))
+    r = cur.fetchone()
+    conn.close()
+    if not r or not r[0]:
+        return err('Дашборд удалён или ссылка неверна', 404)
+    return resp({'ok': True})
+
+
 def action_update(body):
     share_id = body.get('id') or ''
     if not ID_RX.match(share_id):
@@ -223,6 +238,8 @@ def handler(event: dict, context) -> dict:
     action = body.get('action') or p.get('action') or 'get'
     if action == 'get':
         return action_get(p)
+    if action == 'exists':
+        return action_exists(p)
     if action == 'publish' and method == 'POST':
         return action_publish(body)
     if action == 'update' and method == 'POST':

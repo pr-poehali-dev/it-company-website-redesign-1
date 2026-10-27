@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "@/lib/router-compat";
+import { useLoaderData } from "@tanstack/react-router";
 import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
@@ -59,11 +60,18 @@ function SkeletonCard() {
 export default function BlogPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState(true);
+  const loaded = (useLoaderData({ strict: false }) as { post?: BlogPost | null } | undefined)?.post ?? null;
+  const [post, setPost] = useState<BlogPost | null>(loaded);
+  const [loading, setLoading] = useState(!loaded);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (loaded && generateSlug(loaded.title) === slug) {
+      setPost(loaded);
+      setLoading(false);
+      setNotFound(false);
+      return;
+    }
     const bundled = BUNDLED_POSTS.find((p) => generateSlug(p.title) === slug) || null;
     setPost(bundled);
     setLoading(!bundled);
@@ -80,7 +88,7 @@ export default function BlogPage() {
     return () => {
       alive = false;
     };
-  }, [slug]);
+  }, [slug, loaded]);
 
   useEffect(() => {
     if (notFound) {
@@ -119,7 +127,7 @@ export default function BlogPage() {
     <div className="min-h-screen bg-[#080812] text-white">
       {post && (
         <Helmet>
-          <title>{post.title} | Блог МАТ-Лабс</title>
+          <title>{`${post.title} | Блог МАТ-Лабс`}</title>
           <meta name="description" content={description} />
           <link rel="canonical" href={canonicalUrl} />
           <meta property="og:title" content={`${post.title} | Блог МАТ-Лабс`} />

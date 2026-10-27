@@ -29,6 +29,21 @@ function mergePosts(live: BlogPost[]): BlogPost[] {
 
 let postsPromise: Promise<BlogPost[]> | null = null;
 
+/** Для серверной отрисовки: свежий запрос без общего кэша. reachable=false — источник не ответил. */
+export async function findPostBySlug(slug: string): Promise<{ post: BlogPost | null; reachable: boolean }> {
+  const bundled = BUNDLED_POSTS.find((p) => generateSlug(p.title) === slug) || null;
+  try {
+    const r = await fetch(`${BLOG_URL}/`, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return { post: bundled, reachable: false };
+    const data = await r.json();
+    const live: BlogPost[] = data.posts || [];
+    const found = live.find((p) => generateSlug(p.title) === slug) || bundled;
+    return { post: found, reachable: true };
+  } catch {
+    return { post: bundled, reachable: false };
+  }
+}
+
 export function loadBlogPosts(): Promise<BlogPost[]> {
   if (!postsPromise) {
     postsPromise = fetch(`${BLOG_URL}/`, { signal: AbortSignal.timeout(8000) })

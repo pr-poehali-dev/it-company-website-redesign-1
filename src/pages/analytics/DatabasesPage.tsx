@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLoaderData } from "@tanstack/react-router";
 import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
@@ -16,14 +17,16 @@ const TABS = [
 const CAT_LABEL: Record<string, string> = { industry: "Отрасль", region: "Регион", segment: "Сегмент" };
 
 export default function DatabasesPage() {
-  const [items, setItems] = useState<BizDatabase[]>([]);
+  const loaded = (useLoaderData({ strict: false }) as { items?: BizDatabase[] | null } | undefined)?.items ?? null;
+  const [items, setItems] = useState<BizDatabase[]>(loaded || []);
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("all");
   const [q, setQ] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!loaded);
 
   useEffect(() => {
+    if (loaded) return;
     bizGet<{ items: BizDatabase[] }>({ action: "databases" }).then(r => setItems(r.items || [])).finally(() => setLoading(false));
-  }, []);
+  }, [loaded]);
 
   const list = useMemo(() => items.filter(i =>
     (tab === "all" || i.category === tab) &&

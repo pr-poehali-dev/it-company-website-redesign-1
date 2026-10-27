@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "@/lib/router-compat";
+import { useLoaderData } from "@tanstack/react-router";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
 import { Card, Kpi, SourceNote } from "@/components/biz/BizUi";
@@ -51,17 +52,24 @@ function Gauge({ score, level }: { score: number; level: string }) {
 export default function CompanyReport() {
   const { inn = "" } = useParams();
   const navigate = useNavigate();
-  const [d, setD] = useState<Report | null>(null);
+  const loaded = (useLoaderData({ strict: false }) as { report?: Report | null } | undefined)?.report ?? null;
+  const [d, setD] = useState<Report | null>(loaded && loaded.inn === inn ? loaded : null);
   const [error, setError] = useState("");
   const [order, setOrder] = useState<null | "company" | "check">(null);
 
   useEffect(() => {
     if (!inn) return;
-    setD(null);
     setError("");
+    if (loaded && loaded.inn === inn) {
+      setD(loaded);
+      if (!loaded.full_access && localStorage.getItem("admin_token")) {
+        bizGet<Report>({ action: "company", inn }).then(r => { if (!r.error) setD(r); }).catch(() => {});
+      }
+      return;
+    }
+    setD(null);
     bizGet<Report>({ action: "company", inn }).then(r => (r.error ? setError(r.error) : setD(r))).catch(() => setError("Не удалось загрузить"));
-    window.scrollTo(0, 0);
-  }, [inn]);
+  }, [inn, loaded]);
 
   const name = d ? prettyName(d.short_name || d.name) : "";
   const st = d ? STATUS[d.status] || ["Статус неизвестен", "text-white/60 bg-white/5 border-white/10"] : null;

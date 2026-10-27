@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "@/lib/router-compat";
+import { useLoaderData } from "@tanstack/react-router";
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
@@ -22,16 +23,23 @@ const INCLUDES = [
 export default function MarketReport() {
   const { okved = "ALL", region = "RU" } = useParams();
   const navigate = useNavigate();
-  const [d, setD] = useState<Report | null>(null);
+  const loaded = (useLoaderData({ strict: false }) as { report?: Report | null } | undefined)?.report ?? null;
+  const [d, setD] = useState<Report | null>(loaded);
   const [error, setError] = useState("");
   const [order, setOrder] = useState(false);
 
   useEffect(() => {
-    setD(null);
     setError("");
+    if (loaded && loaded.okved === okved && (loaded.region || "RU") === region) {
+      setD(loaded);
+      if (!loaded.full_access && localStorage.getItem("admin_token")) {
+        bizGet<Report>({ action: "market", okved, region }).then(r => { if (!r.error) setD(r); }).catch(() => {});
+      }
+      return;
+    }
+    setD(null);
     bizGet<Report>({ action: "market", okved, region }).then(r => (r.error ? setError(r.error) : setD(r))).catch(() => setError("Не удалось загрузить"));
-    window.scrollTo(0, 0);
-  }, [okved, region]);
+  }, [okved, region, loaded]);
 
   const m = d?.metrics;
   const nat = d?.national;

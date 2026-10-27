@@ -105,7 +105,20 @@ export interface CompanyReport {
 export interface SearchItem { inn: string; name: string; region: string; region_name: string; okved: string; revenue: number | null; address?: string }
 
 function token() {
+  if (typeof window === "undefined") return "";
   return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
+}
+
+/** Публичные данные для серверной отрисовки (без токена админа). data=null — ошибка сети или данных. */
+export async function bizPublic<T>(params: Record<string, string>): Promise<{ status: number; data: T | null }> {
+  const clean = Object.fromEntries(Object.entries(params).filter(([, v]) => v !== "" && v != null));
+  try {
+    const res = await fetch(`${BIZ_URL}/?${new URLSearchParams(clean).toString()}`);
+    const json = await res.json();
+    return { status: res.status, data: res.ok && !json?.error ? (json as T) : null };
+  } catch {
+    return { status: 0, data: null };
+  }
 }
 
 export async function bizGet<T>(params: Record<string, string>): Promise<T & { error?: string }> {

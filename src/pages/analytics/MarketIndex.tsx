@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLoaderData } from "@tanstack/react-router";
 import { Link, useNavigate } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BizShell from "@/components/biz/BizShell";
@@ -10,10 +11,11 @@ import { Overview, bizGet, money, num, pct } from "@/components/biz/bizApi";
 type Sort = "revenue" | "companies" | "median" | "profit" | "conc";
 
 export default function MarketIndex() {
-  const [d, setD] = useState<Overview | null>(null);
+  const loaded = (useLoaderData({ strict: false }) as { overview?: Overview | null } | undefined)?.overview ?? null;
+  const [d, setD] = useState<Overview | null>(loaded);
   const [sort, setSort] = useState<Sort>("revenue");
   const navigate = useNavigate();
-  useEffect(() => { bizGet<Overview>({ action: "overview" }).then(setD); }, []);
+  useEffect(() => { if (!loaded) bizGet<Overview>({ action: "overview" }).then(setD); }, [loaded]);
 
   const rows = useMemo(() => {
     const list = [...(d?.industries || [])];
