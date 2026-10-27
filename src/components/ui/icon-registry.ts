@@ -212,10 +212,18 @@ import {
   KeyRound,
   Maximize,
   Rows3,
+  Building,
+  Braces,
+  Plug,
+  Workflow,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export const iconRegistry: Record<string, LucideIcon> = {
+  Building,
+  Braces,
+  Plug,
+  Workflow,
   PhoneMissed,
   BellRing,
   KeyRound,

@@ -52,7 +52,7 @@ export async function loadShare(id: string): Promise<{ meta: ShareMeta; dash: Da
   return { meta, dash };
 }
 
-async function readMaybeGzip(buf: ArrayBuffer): Promise<string> {
+export async function readMaybeGzip(buf: ArrayBuffer): Promise<string> {
   const b = new Uint8Array(buf);
   if (b[0] === 0x1f && b[1] === 0x8b && typeof DecompressionStream !== "undefined") {
     const stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));

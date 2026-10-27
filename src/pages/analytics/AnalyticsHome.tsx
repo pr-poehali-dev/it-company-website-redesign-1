@@ -13,6 +13,7 @@ const PRODUCTS = [
   { icon: "PieChart", title: "Отчёт о рынке", price: "4 900 ₽", to: "/analytics/market", text: "Объём, лидеры и их доли, концентрация, сегменты, география, доля новых игроков, риски — для любой отрасли и региона" },
   { icon: "Building2", title: "Отчёт о компании", price: "1 490 ₽", to: "/analytics/company", text: "Выручка, прибыль, рентабельность, место среди конкурентов, господдержка, руководитель — по ИНН" },
   { icon: "ShieldCheck", title: "Проверка контрагента", price: "490 ₽", to: "/analytics/company", text: "Статус в ЕГРЮЛ, налоговые долги, убыточность, признаки транзитной компании — индекс риска 0–100" },
+  { icon: "Workflow", title: "Конвейер данных", price: "бесплатно / 4 900 ₽", to: "/analytics/pipes", text: "1С, amoCRM, Битрикс24, МойСклад, Метрика и таблицы загружаются сами по расписанию, очищаются от дублей и открываются в BI" },
   { icon: "Microscope", title: "Аналитика под ключ", price: "от 9 900 ₽", to: "/analytics/services", text: "Исследования рынка, опросы, тайный покупатель, парсинг, обогащение базы, дашборды — с калькулятором цены" },
 ];
 
@@ -61,6 +62,7 @@ export default function AnalyticsHome() {
         { name: "Отчёт о компании и проверка контрагента", url: "https://mat-labs.ru/analytics/company" },
         { name: "Рейтинги компаний", url: "https://mat-labs.ru/analytics/rating" },
         { name: "Облачный BI", url: "https://mat-labs.ru/analytics/bi" },
+        { name: "Конвейер данных", url: "https://mat-labs.ru/analytics/pipes" },
         { name: "Аналитика под ключ", url: "https://mat-labs.ru/analytics/services" },
         { name: "Тарифы", url: "https://mat-labs.ru/analytics/prices" },
       ]} />
@@ -83,7 +85,7 @@ export default function AnalyticsHome() {
         </div>
       </header>
 
-      <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <section className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
         {PRODUCTS.map(p => (
           <Link key={p.title} to={p.to} className="group bg-white/[0.03] border border-white/10 hover:border-violet-500/50 rounded-2xl p-5 flex flex-col transition-colors">
             <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center mb-3"><Icon name={p.icon} size={20} className="text-violet-300" /></div>

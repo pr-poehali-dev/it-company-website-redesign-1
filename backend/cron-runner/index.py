@@ -22,6 +22,7 @@ RADAR_URL    = 'https://functions.poehali.dev/2725883d-2720-4230-8bac-e2703f726a
 EMAILER_URL  = 'https://functions.poehali.dev/977f553d-a834-4fba-9f2f-349939384e9e'
 FOLLOWUP_URL = 'https://functions.poehali.dev/b11d9fef-38cd-4721-9bb3-4d7e7d97927f'
 ENRICH_URL   = 'https://functions.poehali.dev/20860635-2c65-4f0f-a935-45ea680e49aa'
+PIPES_URL    = 'https://functions.poehali.dev/87ee599c-86cb-47b5-a265-9cbe79083375'
 ENRICH_SECONDS = 150
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 INTERVAL_HOURS = 24
@@ -86,6 +87,13 @@ def is_due(last_run) -> bool:
     return datetime.now(timezone.utc) - last_run >= timedelta(hours=INTERVAL_HOURS)
 
 
+def body_pipes_only(event) -> bool:
+    try:
+        return json.loads(event.get('body') or '{}').get('task') == 'pipes'
+    except Exception:
+        return False
+
+
 def handler(event: dict, context) -> dict:
     """Оркестратор автоматизации. GET — статус, POST — запуск."""
     method = event.get('httpMethod', 'GET')
@@ -122,6 +130,11 @@ def handler(event: dict, context) -> dict:
 
     started_at = datetime.now(timezone.utc)
     log = []
+
+    if body_pipes_only(event):
+        r = call(PIPES_URL, {'action': 'run_due'}, timeout=30)
+        conn.close()
+        return json_resp({'ok': True, 'pipes': r})
 
     print(f"[cron-runner] started at {started_at.isoformat()}")
 
@@ -160,6 +173,9 @@ def handler(event: dict, context) -> dict:
         enr['site'] += r.get('site', 0)
         enr['email'] += r.get('email', 0)
     log.append({'step': 'radar_enrich', 'ok': True, **enr})
+
+    rp = call(PIPES_URL, {'action': 'run_due'}, timeout=30)
+    log.append({'step': 'pipes', 'ok': rp.get('ok', False), 'processed': len(rp.get('processed') or [])})
     print(f"[cron-runner] enrich: {enr}")
 
     finished_at = datetime.now(timezone.utc)

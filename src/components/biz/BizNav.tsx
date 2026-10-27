@@ -8,6 +8,7 @@ const ITEMS = [
   { to: "/analytics/company", label: "Компании и проверка", icon: "ShieldCheck" },
   { to: "/analytics/rating", label: "Рейтинги", icon: "Trophy" },
   { to: "/analytics/bi", label: "Облачный BI", icon: "LayoutDashboard" },
+  { to: "/analytics/pipes", label: "Конвейер данных", icon: "Workflow" },
   { to: "/analytics/services", label: "Под ключ", icon: "Handshake" },
   { to: "/radar", label: "Радар господдержки", icon: "Radar" },
   { to: "/analytics/prices", label: "Тарифы", icon: "Tag" },

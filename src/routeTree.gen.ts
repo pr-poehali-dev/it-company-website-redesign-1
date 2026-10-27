@@ -38,6 +38,8 @@ import { Route as AnalyticsCompanyInnRouteImport } from './routes/analytics.comp
 import { Route as AnalyticsDatabasesIndexRouteImport } from './routes/analytics.databases.index'
 import { Route as AnalyticsDatabasesSlugRouteImport } from './routes/analytics.databases.$slug'
 import { Route as AnalyticsMarketIndexRouteImport } from './routes/analytics.market.index'
+import { Route as AnalyticsPipesIndexRouteImport } from './routes/analytics.pipes.index'
+import { Route as AnalyticsPipesAppRouteImport } from './routes/analytics.pipes.app'
 import { Route as AnalyticsServicesIndexRouteImport } from './routes/analytics.services.index'
 import { Route as AnalyticsServicesSlugRouteImport } from './routes/analytics.services.$slug'
 import { Route as UslugiServiceSlugCitySlugRouteImport } from './routes/uslugi.$serviceSlug.$citySlug'
@@ -194,6 +196,16 @@ const AnalyticsMarketIndexRoute = AnalyticsMarketIndexRouteImport.update({
   path: '/analytics/market/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsPipesIndexRoute = AnalyticsPipesIndexRouteImport.update({
+  id: '/analytics/pipes/',
+  path: '/analytics/pipes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsPipesAppRoute = AnalyticsPipesAppRouteImport.update({
+  id: '/analytics/pipes/app',
+  path: '/analytics/pipes/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalyticsServicesIndexRoute = AnalyticsServicesIndexRouteImport.update({
   id: '/analytics/services/',
   path: '/analytics/services/',
@@ -254,12 +266,14 @@ export interface FileRoutesByFullPath {
   '/uslugi/': typeof UslugiIndexRoute
   '/analytics/company/$inn': typeof AnalyticsCompanyInnRoute
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
+  '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi/': typeof AnalyticsBiIndexRoute
   '/analytics/company/': typeof AnalyticsCompanyIndexRoute
   '/analytics/databases/': typeof AnalyticsDatabasesIndexRoute
   '/analytics/market/': typeof AnalyticsMarketIndexRoute
+  '/analytics/pipes/': typeof AnalyticsPipesIndexRoute
   '/analytics/services/': typeof AnalyticsServicesIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
@@ -291,12 +305,14 @@ export interface FileRoutesByTo {
   '/uslugi': typeof UslugiIndexRoute
   '/analytics/company/$inn': typeof AnalyticsCompanyInnRoute
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
+  '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi': typeof AnalyticsBiIndexRoute
   '/analytics/company': typeof AnalyticsCompanyIndexRoute
   '/analytics/databases': typeof AnalyticsDatabasesIndexRoute
   '/analytics/market': typeof AnalyticsMarketIndexRoute
+  '/analytics/pipes': typeof AnalyticsPipesIndexRoute
   '/analytics/services': typeof AnalyticsServicesIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
@@ -329,12 +345,14 @@ export interface FileRoutesById {
   '/uslugi/': typeof UslugiIndexRoute
   '/analytics/company/$inn': typeof AnalyticsCompanyInnRoute
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
+  '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi/': typeof AnalyticsBiIndexRoute
   '/analytics/company/': typeof AnalyticsCompanyIndexRoute
   '/analytics/databases/': typeof AnalyticsDatabasesIndexRoute
   '/analytics/market/': typeof AnalyticsMarketIndexRoute
+  '/analytics/pipes/': typeof AnalyticsPipesIndexRoute
   '/analytics/services/': typeof AnalyticsServicesIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
@@ -368,12 +386,14 @@ export interface FileRouteTypes {
     | '/uslugi/'
     | '/analytics/company/$inn'
     | '/analytics/databases/$slug'
+    | '/analytics/pipes/app'
     | '/analytics/services/$slug'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi/'
     | '/analytics/company/'
     | '/analytics/databases/'
     | '/analytics/market/'
+    | '/analytics/pipes/'
     | '/analytics/services/'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
@@ -405,12 +425,14 @@ export interface FileRouteTypes {
     | '/uslugi'
     | '/analytics/company/$inn'
     | '/analytics/databases/$slug'
+    | '/analytics/pipes/app'
     | '/analytics/services/$slug'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi'
     | '/analytics/company'
     | '/analytics/databases'
     | '/analytics/market'
+    | '/analytics/pipes'
     | '/analytics/services'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
@@ -442,12 +464,14 @@ export interface FileRouteTypes {
     | '/uslugi/'
     | '/analytics/company/$inn'
     | '/analytics/databases/$slug'
+    | '/analytics/pipes/app'
     | '/analytics/services/$slug'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi/'
     | '/analytics/company/'
     | '/analytics/databases/'
     | '/analytics/market/'
+    | '/analytics/pipes/'
     | '/analytics/services/'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
@@ -480,12 +504,14 @@ export interface RootRouteChildren {
   UslugiIndexRoute: typeof UslugiIndexRoute
   AnalyticsCompanyInnRoute: typeof AnalyticsCompanyInnRoute
   AnalyticsDatabasesSlugRoute: typeof AnalyticsDatabasesSlugRoute
+  AnalyticsPipesAppRoute: typeof AnalyticsPipesAppRoute
   AnalyticsServicesSlugRoute: typeof AnalyticsServicesSlugRoute
   UslugiServiceSlugCitySlugRoute: typeof UslugiServiceSlugCitySlugRoute
   AnalyticsBiIndexRoute: typeof AnalyticsBiIndexRoute
   AnalyticsCompanyIndexRoute: typeof AnalyticsCompanyIndexRoute
   AnalyticsDatabasesIndexRoute: typeof AnalyticsDatabasesIndexRoute
   AnalyticsMarketIndexRoute: typeof AnalyticsMarketIndexRoute
+  AnalyticsPipesIndexRoute: typeof AnalyticsPipesIndexRoute
   AnalyticsServicesIndexRoute: typeof AnalyticsServicesIndexRoute
   AnalyticsBiSIdRoute: typeof AnalyticsBiSIdRoute
   AnalyticsMarketOkvedRegionRoute: typeof AnalyticsMarketOkvedRegionRoute
@@ -697,6 +723,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsMarketIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics/pipes/': {
+      id: '/analytics/pipes/'
+      path: '/analytics/pipes'
+      fullPath: '/analytics/pipes/'
+      preLoaderRoute: typeof AnalyticsPipesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics/pipes/app': {
+      id: '/analytics/pipes/app'
+      path: '/analytics/pipes/app'
+      fullPath: '/analytics/pipes/app'
+      preLoaderRoute: typeof AnalyticsPipesAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analytics/services/': {
       id: '/analytics/services/'
       path: '/analytics/services'
@@ -769,12 +809,14 @@ const rootRouteChildren: RootRouteChildren = {
   UslugiIndexRoute: UslugiIndexRoute,
   AnalyticsCompanyInnRoute: AnalyticsCompanyInnRoute,
   AnalyticsDatabasesSlugRoute: AnalyticsDatabasesSlugRoute,
+  AnalyticsPipesAppRoute: AnalyticsPipesAppRoute,
   AnalyticsServicesSlugRoute: AnalyticsServicesSlugRoute,
   UslugiServiceSlugCitySlugRoute: UslugiServiceSlugCitySlugRoute,
   AnalyticsBiIndexRoute: AnalyticsBiIndexRoute,
   AnalyticsCompanyIndexRoute: AnalyticsCompanyIndexRoute,
   AnalyticsDatabasesIndexRoute: AnalyticsDatabasesIndexRoute,
   AnalyticsMarketIndexRoute: AnalyticsMarketIndexRoute,
+  AnalyticsPipesIndexRoute: AnalyticsPipesIndexRoute,
   AnalyticsServicesIndexRoute: AnalyticsServicesIndexRoute,
   AnalyticsBiSIdRoute: AnalyticsBiSIdRoute,
   AnalyticsMarketOkvedRegionRoute: AnalyticsMarketOkvedRegionRoute,

@@ -7,10 +7,10 @@ import { FaqSchema, ServiceSchema } from "@/components/biz/SeoSchema";
 import DashboardView from "@/components/bi/DashboardView";
 import { useRows } from "@/components/bi/useRows";
 import ShareDialog from "@/components/bi/ShareDialog";
-import { OwnedShare, ownedShares } from "@/components/bi/shareApi";
+import { OwnedShare, ownedShares, readMaybeGzip } from "@/components/bi/shareApi";
 import WidgetEditor from "@/components/bi/WidgetEditor";
 import MarketBenchmark from "@/components/bi/MarketBenchmark";
-import { Dashboard, Dataset, Widget, autoWidgets, demoDataset, exportCsv, readFile } from "@/components/bi/biEngine";
+import { Dashboard, Dataset, Widget, autoWidgets, buildDataset, demoDataset, exportCsv, readFile } from "@/components/bi/biEngine";
 
 const STORE = "matlabs_bi_v1";
 const STORE_SHARE = "matlabs_bi_current_share";
@@ -21,7 +21,7 @@ const FAQ: [string, string][] = [
   ["Как показать дашборд коллегам?", "Нажмите «Поделиться» — получите ссылку, которая открывается без регистрации и работает 90 дней. Графики и фильтры доступны, изменить дашборд может только автор. Обновить данные можно по той же ссылке."],
   ["Какие файлы подходят?", "Excel (.xlsx, .xls) и CSV до 200 000 строк. Первая строка — заголовки колонок. Даты, числа и категории распознаются автоматически."],
   ["Чем отличается от Yandex DataLens или PIX BI?", "Не нужно ничего устанавливать и подключать: загрузили таблицу — получили дашборд за секунды. И есть то, чего нет в коробочных BI, — сравнение ваших показателей с рынком по данным ФНС."],
-  ["Можно подключить 1С или CRM с автообновлением?", "Да, это услуга «Дашборды и BI под ключ»: подключим источники, настроим автообновление и доступы для команды."],
+  ["Можно подключить 1С или CRM с автообновлением?", "Да: подключите источник в «Конвейере данных» (1С, amoCRM, Битрикс24, МойСклад, Метрика, Google Таблицы, базы данных) и откройте его в BI одной кнопкой. Сложные случаи настроим под ключ."],
 ];
 
 function load(): Dashboard | null {
@@ -45,7 +45,24 @@ export default function BiPage() {
   useEffect(() => {
     const shareId = localStorage.getItem(STORE_SHARE);
     setShare((shareId && ownedShares().find(s => s.id === shareId)) || null);
-    if (new URLSearchParams(window.location.search).get("demo") === "1") {
+    const q = new URLSearchParams(window.location.search);
+    const pipe = q.get("pipe");
+    if (pipe && /^https:\/\/cdn\.poehali\.dev\/[\w/.-]+\.json\.gz$/.test(pipe)) {
+      setBusy(true);
+      setDash(load());
+      fetch(`${pipe}?v=${Date.now()}`)
+        .then(r => { if (!r.ok) throw new Error("Данные ещё не загружены — запустите обновление в Конвейере"); return r.arrayBuffer(); })
+        .then(readMaybeGzip)
+        .then(t => {
+          const p = JSON.parse(t) as { name: string; rows: Record<string, unknown>[]; updated_at: string };
+          const nd = buildDataset(`${p.name} · ${new Date(p.updated_at).toLocaleDateString("ru-RU")}`, p.rows);
+          setDash({ dataset: nd, widgets: autoWidgets(nd), filters: [] });
+          changeShare(null);
+          window.history.replaceState(null, "", "/analytics/bi");
+        })
+        .catch(e => setError((e as Error).message || "Не удалось загрузить данные из Конвейера"))
+        .finally(() => setBusy(false));
+    } else if (q.get("demo") === "1") {
       const ds = demoDataset();
       setDash({ dataset: ds, widgets: autoWidgets(ds), filters: [] });
     } else {
@@ -187,10 +204,10 @@ export default function BiPage() {
 
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <div className="font-semibold text-white">Нужно автообновление из 1С, CRM и рекламы?</div>
-              <p className="text-sm text-white/55">Подключим источники, настроим доступы для команды и рассылку отчётов — от 60 000 ₽ за 10 дней.</p>
+              <div className="font-semibold text-white">Нужно автообновление из 1С, CRM и Метрики?</div>
+              <p className="text-sm text-white/55">Подключите источник в Конвейере данных — он будет загружаться сам, без ручных выгрузок. Бесплатно для 2 источников.</p>
             </div>
-            <Link to="/analytics/services/dashboards" className="shrink-0 px-5 py-2.5 rounded-xl bg-white text-[#10101c] font-semibold text-sm">BI под ключ</Link>
+            <Link to="/analytics/pipes" className="shrink-0 px-5 py-2.5 rounded-xl bg-white text-[#10101c] font-semibold text-sm">Конвейер данных</Link>
           </div>
         </div>
       )}
