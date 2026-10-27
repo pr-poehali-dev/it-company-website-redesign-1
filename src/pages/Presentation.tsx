@@ -65,7 +65,7 @@ export default function Presentation() {
     const root = exportRef.current;
     if (!root || pdf !== "") return;
     setPdf(0);
-    const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+    const [{ toJpeg }, { default: jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
     await document.fonts?.ready;
     await Promise.all(Array.from(root.querySelectorAll("img")).map(img => (img.complete ? null : new Promise(r => { img.onload = img.onerror = r; }))));
     try {
@@ -73,9 +73,11 @@ export default function Presentation() {
       const slides = Array.from(root.querySelectorAll<HTMLElement>(".deck-slide"));
       for (let i = 0; i < slides.length; i++) {
         setPdf(i + 1);
-        const canvas = await html2canvas(slides[i], { scale: 1.6, useCORS: true, backgroundColor: "#07070f", width: W, height: H, windowWidth: W, windowHeight: H, logging: false });
+        const opts = { width: W, height: H, pixelRatio: 2, quality: 0.92, backgroundColor: "#07070f", cacheBust: false };
+        await toJpeg(slides[i], opts);
+        const data = await toJpeg(slides[i], opts);
         if (i > 0) doc.addPage([W, H], "l");
-        doc.addImage(canvas.toDataURL("image/jpeg", 0.9), "JPEG", 0, 0, W, H);
+        doc.addImage(data, "JPEG", 0, 0, W, H);
       }
       doc.save("МАТ-Лабс — презентация.pdf");
     } catch {
