@@ -20,6 +20,25 @@ export default function Markdown({ text }: { text: string }) {
   return (
     <div className="space-y-5">
       {blocks.map((b, i) => {
+        const img = b.match(/^!\[([^\]]*)\]\((\S+?)\)$/);
+        if (img) return (
+          <figure key={i} className="my-8 font-['Golos_Text',sans-serif]">
+            <img src={img[2]} alt={img[1]} loading="lazy" className="w-full rounded border border-[#e2d9cb]" />
+            {img[1] && <figcaption className="text-xs text-[#8a8278] mt-2">{img[1]}</figcaption>}
+          </figure>
+        );
+        if (b.startsWith("|")) {
+          const rows = b.split("\n").filter((l) => !/^\|[\s:|-]+\|$/.test(l)).map((l) => l.replace(/^\||\|$/g, "").split("|").map((c) => c.trim()));
+          const [head, ...body] = rows;
+          return (
+            <div key={i} className="my-6 overflow-x-auto font-['Golos_Text',sans-serif]">
+              <table className="w-full text-sm border-collapse">
+                <thead><tr className="border-b-2 border-[#14110f]">{head.map((h, j) => <th key={j} className={`py-2 pr-4 text-left font-bold text-[#14110f] ${j ? "text-right" : ""}`}>{inline(h)}</th>)}</tr></thead>
+                <tbody>{body.map((r, k) => <tr key={k} className="border-b border-[#e2d9cb]">{r.map((c, j) => <td key={j} className={`py-2 pr-4 ${j ? "text-right whitespace-nowrap" : ""}`}>{inline(c)}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          );
+        }
         if (b.startsWith("## ")) return <h2 key={i} className="font-['Playfair_Display',serif] font-bold text-2xl md:text-3xl pt-4">{inline(b.slice(3))}</h2>;
         if (b.startsWith("> ")) return (
           <blockquote key={i} className="border-l-4 border-[#d6402b] pl-5 my-8 font-['Playfair_Display',serif] italic text-2xl md:text-3xl leading-snug text-[#14110f]">

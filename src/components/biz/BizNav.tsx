@@ -7,6 +7,7 @@ const ITEMS = [
   { to: "/analytics/databases", label: "Базы компаний", icon: "Database" },
   { to: "/analytics/company", label: "Компании и проверка", icon: "ShieldCheck" },
   { to: "/analytics/rating", label: "Рейтинги", icon: "Trophy" },
+  { to: "/masshtab", label: "Журнал «Масштаб»", icon: "Newspaper" },
   { to: "/analytics/bi", label: "Облачный BI", icon: "LayoutDashboard" },
   { to: "/analytics/pipes", label: "Конвейер данных", icon: "Workflow" },
   { to: "/analytics/services", label: "Под ключ", icon: "Handshake" },

@@ -15,7 +15,8 @@ export default function PostPage() {
   const years = c ? ([["2022", c.rev2022], ["2023", c.rev2023], ["2024", c.rev2024], ["2025", c.rev2025]] as const).filter(([, v]) => v) : [];
   const max = Math.max(...years.map(([, v]) => Number(v)), 1);
   const paras = post.content.split(/\n{2,}/);
-  const half = Math.ceil(paras.length / 2);
+  const h2 = paras.map((p, i) => (p.startsWith("## ") ? i : -1)).filter((i) => i > 0);
+  const half = h2.length ? h2[Math.floor(h2.length / 2)] : Math.ceil(paras.length / 2);
   const takeaways = (post.takeaways || "").split("\n").map((x) => x.replace(/^[-—•\d.)\s]+/, "").trim()).filter(Boolean);
   const sources = (post.sources || "").split("\n").map((x) => x.trim()).filter(Boolean);
 
@@ -31,7 +32,7 @@ export default function PostPage() {
             <div className="inline-block mt-4 text-xs font-semibold bg-[#efe7da] rounded px-3 py-1.5">Данные актуальны на {new Date(post.data_date).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</div>
           )}
         </div>
-        {post.cover_url && (
+        {post.cover_url && !post.content.includes(post.cover_url) && (
           <figure className="mt-8">
             <img src={post.cover_url} alt={post.hero_name || post.title} className="w-full max-h-[560px] object-cover rounded" />
             {post.hero_name && <figcaption className="text-sm text-[#8a8278] mt-2"><b className="text-[#14110f]">{post.hero_name}</b>{post.hero_role ? `, ${post.hero_role}` : ""}</figcaption>}

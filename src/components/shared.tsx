@@ -10,6 +10,7 @@ export const navLinks = [
   { label: "Наши сервисы", href: "#portfolio" },
   { label: "Расчёт", href: "#loss" },
   { label: "Аналитика", href: "/analytics" },
+  { label: "Журнал «Масштаб»", href: "/masshtab" },
   { label: "Радар заказчиков", href: "/radar" },
   { label: "Инвесторам", href: "/investors" },
   { label: "О компании", href: "#about" },
