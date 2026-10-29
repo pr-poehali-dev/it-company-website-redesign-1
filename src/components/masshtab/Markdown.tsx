@@ -39,6 +39,10 @@ export default function Markdown({ text }: { text: string }) {
             </div>
           );
         }
+        if (b.startsWith("### ")) return <h3 key={i} className="font-['Playfair_Display',serif] font-bold text-xl md:text-2xl pt-2">{inline(b.slice(4))}</h3>;
+        if (b.split("\n").every((l) => /^\d+[.)]\s/.test(l))) return (
+          <ol key={i} className="list-decimal pl-6 space-y-1.5">{b.split("\n").map((l, j) => <li key={j}>{inline(l.replace(/^\d+[.)]\s/, ""))}</li>)}</ol>
+        );
         if (b.startsWith("## ")) return <h2 key={i} className="font-['Playfair_Display',serif] font-bold text-2xl md:text-3xl pt-4">{inline(b.slice(3))}</h2>;
         if (b.startsWith("> ")) return (
           <blockquote key={i} className="border-l-4 border-[#d6402b] pl-5 my-8 font-['Playfair_Display',serif] italic text-2xl md:text-3xl leading-snug text-[#14110f]">

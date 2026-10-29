@@ -32,6 +32,8 @@ export function toDzenHtml(md: string) {
     const img = b.match(/^!\[([^\]]*)\]\((\S+?)\)$/);
     if (img) return `<figure><img src="${esc(abs(img[2]))}"><figcaption>${esc(img[1])}</figcaption></figure>`;
     if (b.startsWith("|")) return table(b);
+    if (b.startsWith("### ")) return `<h3>${esc(plain(b.slice(4)))}</h3>`;
+    if (b.split("\n").every((l) => /^\d+[.)]\s/.test(l))) return `<ol>${b.split("\n").map((l) => `<li>${esc(plain(l.replace(/^\d+[.)]\s/, "")))}</li>`).join("")}</ol>`;
     if (b.startsWith("## ")) return `<h2>${esc(plain(b.slice(3)))}</h2>`;
     if (b.startsWith("> ")) return `<blockquote>${inline(b.replace(/^>\s?/gm, ""))}</blockquote>`;
     if (b.split("\n").every((l) => /^- /.test(l))) return `<ul>${b.split("\n").map((l) => `<li>${esc(plain(l.slice(2)))}</li>`).join("")}</ul>`;
