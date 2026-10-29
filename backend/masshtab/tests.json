@@ -74,6 +74,12 @@
    "method": "GET",
    "path": "/?action=market",
    "expectedStatus": 200
+  },
+  {
+   "name": "Лента для Дзена",
+   "method": "GET",
+   "path": "/?action=feed&limit=2",
+   "expectedStatus": 200
   }
  ]
 }

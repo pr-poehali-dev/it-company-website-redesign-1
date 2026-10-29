@@ -34,6 +34,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as MasshtabIndexRouteImport } from './routes/masshtab.index'
 import { Route as MasshtabSlugRouteImport } from './routes/masshtab.$slug'
 import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
+import { Route as MasshtabDzenDotxmlRouteImport } from './routes/masshtab.dzen[.]xml'
 import { Route as MasshtabOZhurnaleRouteImport } from './routes/masshtab.o-zhurnale'
 import { Route as MasshtabReklamaRouteImport } from './routes/masshtab.reklama'
 import { Route as MasshtabRssDotxmlRouteImport } from './routes/masshtab.rss[.]xml'
@@ -186,6 +187,11 @@ const Masshtab500Route = Masshtab500RouteImport.update({
   path: '/500',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabDzenDotxmlRoute = MasshtabDzenDotxmlRouteImport.update({
+  id: '/dzen.xml',
+  path: '/dzen.xml',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const MasshtabOZhurnaleRoute = MasshtabOZhurnaleRouteImport.update({
   id: '/o-zhurnale',
   path: '/o-zhurnale',
@@ -322,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
@@ -816,6 +828,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Masshtab500RouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/dzen.xml': {
+      id: '/masshtab/dzen.xml'
+      path: '/dzen.xml'
+      fullPath: '/masshtab/dzen.xml'
+      preLoaderRoute: typeof MasshtabDzenDotxmlRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/o-zhurnale': {
       id: '/masshtab/o-zhurnale'
       path: '/o-zhurnale'
@@ -976,6 +995,7 @@ declare module '@tanstack/react-router' {
 interface MasshtabRouteChildren {
   MasshtabSlugRoute: typeof MasshtabSlugRoute
   Masshtab500Route: typeof Masshtab500Route
+  MasshtabDzenDotxmlRoute: typeof MasshtabDzenDotxmlRoute
   MasshtabOZhurnaleRoute: typeof MasshtabOZhurnaleRoute
   MasshtabReklamaRoute: typeof MasshtabReklamaRoute
   MasshtabRssDotxmlRoute: typeof MasshtabRssDotxmlRoute
@@ -986,6 +1006,7 @@ interface MasshtabRouteChildren {
 const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabSlugRoute: MasshtabSlugRoute,
   Masshtab500Route: Masshtab500Route,
+  MasshtabDzenDotxmlRoute: MasshtabDzenDotxmlRoute,
   MasshtabOZhurnaleRoute: MasshtabOZhurnaleRoute,
   MasshtabReklamaRoute: MasshtabReklamaRoute,
   MasshtabRssDotxmlRoute: MasshtabRssDotxmlRoute,

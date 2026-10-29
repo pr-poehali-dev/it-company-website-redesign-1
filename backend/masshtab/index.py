@@ -328,6 +328,12 @@ def handler(event: dict, context) -> dict:
             tass, t1 = market.get(conn, S, 'tass')
             cbr, t2 = market.get(conn, S, 'cbr')
             return resp({'news': (tass or {}).get('items', []), 'news_at': t1, 'cbr': cbr or {}, 'cbr_at': t2}, cache=300)
+        if action == 'feed':
+            cur = conn.cursor()
+            cur.execute(f"""SELECT {POST_COLS}, content, takeaways, sources, question, updated_at FROM {S}.mag_posts
+                            WHERE published AND kind <> 'partner' ORDER BY published_at DESC LIMIT %s""",
+                        (max(1, min(50, int(p.get('limit') or 30))),))
+            return resp({'posts': [dict(r) for r in cur.fetchall()]}, cache=600)
         if action == 'filters':
             return action_filters(conn)
         if action == 'rating':
