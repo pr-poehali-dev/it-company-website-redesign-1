@@ -3,7 +3,7 @@ import func2url from "../../../backend/func2url.json";
 export const PIPES_URL = (func2url as Record<string, string>)["pipes"];
 const TOKEN = "matlabs_pipes_token";
 
-export type Kind = "google_sheets" | "file_url" | "postgres" | "mysql" | "amocrm" | "bitrix24" | "onec" | "metrika" | "moysklad" | "json_api";
+export type Kind = "google_sheets" | "file_url" | "postgres" | "mysql" | "amocrm" | "bitrix24" | "onec" | "metrika" | "moysklad" | "json_api" | "zakupki";
 export type Schedule = "manual" | "hourly" | "every6h" | "daily" | "weekly";
 export type ColType = "number" | "date" | "text";
 

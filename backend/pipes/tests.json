@@ -1,8 +1,69 @@
-{"tests": [
- {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
- {"name": "Ping", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"ok": true}, "bodyMatcher": "partial"},
- {"name": "Список без входа", "method": "GET", "path": "/?action=list", "expectedStatus": 401},
- {"name": "Плохой email", "method": "POST", "path": "/", "body": {"action": "send_code", "email": "bad"}, "expectedStatus": 400},
- {"name": "Неверный код", "method": "POST", "path": "/", "body": {"action": "verify", "email": "nobody-test@example.com", "code": "000000"}, "expectedStatus": 400},
- {"name": "Расписание без секрета", "method": "POST", "path": "/", "body": {"action": "run_due"}, "expectedStatus": 401}
-]}
+{
+ "tests": [
+  {
+   "name": "OPTIONS",
+   "method": "OPTIONS",
+   "path": "/",
+   "expectedStatus": 200
+  },
+  {
+   "name": "Ping",
+   "method": "GET",
+   "path": "/",
+   "expectedStatus": 200,
+   "expectedBody": {
+    "ok": true
+   },
+   "bodyMatcher": "partial"
+  },
+  {
+   "name": "Список без входа",
+   "method": "GET",
+   "path": "/?action=list",
+   "expectedStatus": 401
+  },
+  {
+   "name": "Плохой email",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "send_code",
+    "email": "bad"
+   },
+   "expectedStatus": 400
+  },
+  {
+   "name": "Неверный код",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "verify",
+    "email": "nobody-test@example.com",
+    "code": "000000"
+   },
+   "expectedStatus": 400
+  },
+  {
+   "name": "Расписание без секрета",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "run_due"
+   },
+   "expectedStatus": 401
+  },
+  {
+   "name": "Ключевые слова госзакупок без входа",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "test",
+    "kind": "zakupki",
+    "config": {
+     "keywords": "сайта"
+    }
+   },
+   "expectedStatus": 401
+  }
+ ]
+}

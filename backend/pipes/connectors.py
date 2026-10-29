@@ -7,6 +7,9 @@ import time
 from urllib.parse import urlparse, parse_qs, quote
 
 import requests
+import urllib3
+
+urllib3.disable_warnings()
 
 UA = {'User-Agent': 'MatLabs-DataPipes/1.0'}
 
@@ -26,6 +29,7 @@ SECRET_FIELDS = {
     'json_api': ['header_value'],
     'google_sheets': [],
     'file_url': [],
+    'zakupki': [],
 }
 
 KINDS = set(SECRET_FIELDS)
@@ -379,9 +383,106 @@ def c_json_api(cfg, budget, limit):
     return [flatten(x) if isinstance(x, dict) else {'value': x} for x in js[:limit]], 'Ответ API прочитан'
 
 
+EIS = 'https://zakupki.gov.ru/epz/order/extendedsearch/results.html'
+EIS_KEYS = {'Объект закупки': 'Объект закупки', 'Заказчик': 'Заказчик', 'Организация, осуществляющая размещение': 'Заказчик',
+            'Начальная цена': 'НМЦ, ₽', 'Размещено': 'Размещено', 'Окончание подачи заявок': 'Окончание подачи заявок'}
+
+
+def _eis_words(v):
+    return [w.strip() for w in re.split(r'[\n,;]+', v or '') if w.strip()][:15]
+
+
+def _eis_parse(page):
+    import html as h
+    out = []
+    for blk in page.split('search-registry-entry-block')[1:]:
+        blk = re.sub(r'</?(span|b|em|mark)\b[^>]*>', '', re.sub(r'<script[\s\S]*?</script>', '', blk))
+        t = h.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '|', blk)))
+        parts = [re.sub(r'\s+', ' ', p).strip() for p in t.split('|') if p.strip() and not p.strip().startswith('<') and p.strip() != "'>"]
+        e = {}
+        for i, p in enumerate(parts):
+            if p.startswith('№ ') and 'Номер' not in e:
+                e['Номер'] = p[2:].strip()
+                e['Статус'] = parts[i + 1] if i + 1 < len(parts) else ''
+            elif p in EIS_KEYS and i + 1 < len(parts) and EIS_KEYS[p] not in e:
+                e[EIS_KEYS[p]] = parts[i + 1]
+            elif re.match(r'^(44|223)-ФЗ', p) and 'Способ' not in e:
+                e['Способ'] = p.split(' ', 1)[1] if ' ' in p else ''
+        if e.get('Номер'):
+            e['Закон'] = '44-ФЗ' if e['Номер'].startswith('0') else '223-ФЗ'
+            out.append(e)
+    return out
+
+
+def c_zakupki(cfg, budget, limit):
+    from datetime import datetime, timedelta, timezone
+    words = _eis_words(cfg.get('keywords'))
+    if not words:
+        raise SourceError('Укажите хотя бы одно ключевое слово или фразу')
+    minus = [w.lower() for w in _eis_words(cfg.get('exclude'))]
+    days = max(1, min(14, int(cfg.get('days') or 2)))
+    law = cfg.get('law') or 'both'
+    active = (cfg.get('only_active') or 'yes') == 'yes'
+    msk = datetime.now(timezone(timedelta(hours=3)))
+    base = {'morphology': 'on', 'recordsPerPage': '_100', 'sortBy': 'PUBLISH_DATE', 'sortDirection': 'false',
+            'publishDateFrom': (msk - timedelta(days=days - 1)).strftime('%d.%m.%Y'), 'publishDateTo': msk.strftime('%d.%m.%Y')}
+    if law in ('both', '44'):
+        base['fz44'] = 'on'
+    if law in ('both', '223'):
+        base['fz223'] = 'on'
+    if cfg.get('price_from') or cfg.get('price_to'):
+        base['currencyIdGeneral'] = '-1'
+        if cfg.get('price_from'):
+            base['priceFromGeneral'] = re.sub(r'\D', '', cfg['price_from'])
+        if cfg.get('price_to'):
+            base['priceToGeneral'] = re.sub(r'\D', '', cfg['price_to'])
+    if active:
+        base['af'] = 'on'
+    rows, seen, done = [], {}, 0
+    for w in words:
+        if budget - time.time() < 3:
+            break
+        left = budget - time.time()
+        try:
+            r = requests.get(EIS, params={**base, 'searchString': w}, timeout=min(20, max(2, left - 1)), verify=False,
+                             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36',
+                                      'Accept-Language': 'ru-RU,ru;q=0.9'})
+        except requests.exceptions.RequestException:
+            continue
+        if r.status_code == 429:
+            time.sleep(2)
+            continue
+        if r.status_code >= 400:
+            continue
+        done += 1
+        for e in _eis_parse(r.text):
+            if e['Номер'] in seen:
+                kw = seen[e['Номер']]
+                if w not in kw['Ключевые слова']:
+                    kw['Ключевые слова'] += ', ' + w
+                continue
+            text = (e.get('Объект закупки') or '').lower()
+            if any(m in text for m in minus):
+                continue
+            if active and 'подача заявок' not in (e.get('Статус') or '').lower():
+                continue
+            e['Ключевые слова'] = w
+            e['Ссылка'] = f"{EIS}?searchString={e['Номер']}"
+            seen[e['Номер']] = e
+            rows.append(e)
+        time.sleep(0.4)
+    if not done:
+        raise SourceError('Сайт госзакупок не ответил — повторим попытку автоматически')
+    order = ['Номер', 'Закон', 'Способ', 'Статус', 'Объект закупки', 'Заказчик', 'НМЦ, ₽', 'Размещено', 'Окончание подачи заявок', 'Ключевые слова', 'Ссылка']
+    rows = [{k: r.get(k) for k in order} for r in rows]
+    skipped = len(words) - done
+    return rows[:limit], f'Закупок по {done} из {len(words)} запросов: {len(rows)}' + (f' (не ответили: {skipped})' if skipped else '')
+
+
 CONNECTORS = {
     'google_sheets': c_google_sheets, 'file_url': c_file_url, 'postgres': c_postgres, 'mysql': c_mysql,
     'amocrm': c_amocrm, 'bitrix24': c_bitrix24, 'onec': c_onec, 'metrika': c_metrika, 'moysklad': c_moysklad, 'json_api': c_json_api,
+    'zakupki': c_zakupki,
 }
 
 

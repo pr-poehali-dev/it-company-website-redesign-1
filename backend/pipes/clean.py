@@ -77,7 +77,7 @@ def detect(rows, col):
     dates = sum(1 for v in vals if not isinstance(v, (int, float)) and to_date(v, 3) is not None)
     if dates / len(vals) > 0.8:
         return 'date'
-    if nums / len(vals) > 0.9 and not re.search(r'(инн|огрн|телефон|phone|кпп|бик|счёт|счет|индекс|^id$)', col, re.I):
+    if nums / len(vals) > 0.9 and not re.search(r'(инн|огрн|телефон|phone|кпп|бик|счёт|счет|индекс|номер|^id$)', col, re.I):
         return 'number'
     return 'text'
 

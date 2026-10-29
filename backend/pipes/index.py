@@ -111,21 +111,22 @@ def send_mail(to, subject, html):
             print(f'[pipes] unisender: {r}')
         except Exception as e:
             print(f'[pipes] unisender failed: {e}')
-    pw = os.environ.get('SMTP_PASSWORD')
-    if not pw:
-        return False
-    msg = MIMEText(html, 'html', 'utf-8')
-    msg['Subject'] = subject
-    msg['From'] = formataddr(('МАТ-Лабс', SENDER))
-    msg['To'] = to
-    try:
-        with smtplib.SMTP_SSL('smtp.yandex.ru', 465, timeout=6) as srv:
-            srv.login(SENDER, pw)
-            srv.sendmail(SENDER, [to], msg.as_bytes())
-        return True
-    except Exception as e:
-        print(f'[pipes] smtp failed: {e}')
-        return False
+    for frm, env in ((SENDER, 'SMTP_PASSWORD'), (NOTIFY, 'SMTP_PASSWORD_MAKST')):
+        pw = os.environ.get(env)
+        if not pw:
+            continue
+        msg = MIMEText(html, 'html', 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = formataddr(('МАТ-Лабс', frm))
+        msg['To'] = to
+        try:
+            with smtplib.SMTP_SSL('smtp.yandex.ru', 465, timeout=6) as srv:
+                srv.login(frm, pw)
+                srv.sendmail(frm, [to], msg.as_bytes())
+            return True
+        except Exception as e:
+            print(f'[pipes] smtp {frm} failed: {e}')
+    return False
 
 
 def mail_html(title, body):
@@ -351,6 +352,9 @@ def run_source(conn, src, trigger, budget):
         if not out:
             raise SourceError('Источник вернул 0 строк — проверьте фильтр, запрос или доступ')
         write_outputs(src, out, columns)
+        if src['kind'] == 'zakupki':
+            fresh = notify_new_lots(conn, src, out, u, trigger)
+            note += f'. Новых лотов: {fresh}'
         msg = note + (f'. Обрезано до {limit:,} строк по тарифу'.replace(',', ' ') if len(rows) >= limit else '')
         cur.execute(f"""UPDATE {S}.pipe_runs SET status='ok', rows_in=%s, rows_out=%s, dupes=%s, empty_rows=%s, fixed_values=%s,
                         ms=%s, message=%s, finished_at=NOW() WHERE id=%s""",
@@ -377,6 +381,52 @@ def run_source(conn, src, trigger, budget):
                 f'<p>Мы повторим попытку автоматически. Данные в отчётах остаются от последней успешной загрузки.</p>'
                 f'<p><a href="https://mat-labs.ru/analytics/pipes/app">Открыть кабинет</a></p>'))
         return {'ok': False, 'error': msg}
+
+
+def esc(v):
+    return str(v if v is not None else '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+
+def fmt_rub(v):
+    try:
+        return f'{float(v):,.0f}'.replace(',', ' ') + ' ₽'
+    except (TypeError, ValueError):
+        return esc(v) or '—'
+
+
+def notify_new_lots(conn, src, rows, u, trigger):
+    cur = conn.cursor()
+    keys = [str(r.get('Номер')) for r in rows if r.get('Номер')]
+    if not keys:
+        return 0
+    cur.execute(f"SELECT COUNT(*) n FROM {S}.pipe_seen WHERE source_id=%s", (src['id'],))
+    first = cur.fetchone()['n'] == 0
+    cur.execute(f"SELECT item_key FROM {S}.pipe_seen WHERE source_id=%s AND item_key = ANY(%s)", (src['id'], keys))
+    known = {r['item_key'] for r in cur.fetchall()}
+    new = [r for r in rows if r.get('Номер') and str(r['Номер']) not in known]
+    if new:
+        psycopg2.extras.execute_values(cur, f"INSERT INTO {S}.pipe_seen (source_id, item_key) VALUES %s ON CONFLICT DO NOTHING",
+                                       [(src['id'], str(r['Номер'])) for r in new])
+    conn.commit()
+    if not new or not src['notify_email']:
+        return len(new)
+    new.sort(key=lambda r: -(r.get('НМЦ, ₽') if isinstance(r.get('НМЦ, ₽'), (int, float)) else 0))
+    items = ''.join(
+        f'<div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin:10px 0">'
+        f'<a href="{esc(r.get("Ссылка"))}" style="color:#5b21b6;font-weight:bold;text-decoration:none">{esc((r.get("Объект закупки") or "")[:220])}</a>'
+        f'<div style="font-size:13px;color:#555;margin-top:6px">{esc((r.get("Заказчик") or "")[:150])}</div>'
+        f'<div style="font-size:13px;margin-top:6px"><b>{fmt_rub(r.get("НМЦ, ₽"))}</b> · {esc(r.get("Закон"))} {esc(r.get("Способ"))}'
+        f' · заявки до <b>{esc(r.get("Окончание подачи заявок"))}</b></div>'
+        f'<div style="font-size:12px;color:#888;margin-top:4px">Ключевые слова: {esc(r.get("Ключевые слова"))} · № {esc(r.get("Номер"))}</div></div>'
+        for r in new[:30])
+    more = f'<p>И ещё {len(new) - 30} — полный список в CSV по ссылке ниже.</p>' if len(new) > 30 else ''
+    intro = ('Это первая выгрузка — в списке все подходящие закупки, которые сейчас принимают заявки. Дальше будут приходить только новые.'
+             if first else 'Новые закупки по вашим ключевым словам с прошлой проверки.')
+    send_mail(u['email'], f'Госзакупки: {len(new)} новых лотов — {src["name"]}', mail_html(
+        f'{len(new)} новых закупок', f'<p style="color:#555">{intro}</p>{items}{more}'
+        f'<p><a href="{cdn("pipes/" + src["data_key"] + ".csv")}">Скачать все закупки (CSV для Excel)</a> · '
+        f'<a href="https://mat-labs.ru/analytics/pipes/app">Настроить ключевые слова</a></p>'))
+    return len(new)
 
 
 def action_run(conn, uid, b, budget):
