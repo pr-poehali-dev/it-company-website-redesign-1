@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import HomePage from "@/components/masshtab/HomePage";
 import { mGet, type Market, type Post, type RatingResp } from "@/components/masshtab/api";
+import { PUBLISHER, SITE, abs, breadcrumbLd, ld, pageMeta } from "@/components/masshtab/seo";
 
-const DESC = "«Масштаб» — деловой листок для предпринимателей и руководителей: индикаторы рынка, разборы компаний по данным ФНС, регуляторный дайджест, рейтинг «Масштаб-500», лента ТАСС.";
+const DESC = "Деловой листок «Масштаб» для предпринимателей и руководителей: индикаторы рынка, регуляторный дайджест, разборы компаний по данным ФНС, рейтинг «Масштаб-500».";
 
 export const Route = createFileRoute("/masshtab/")({
   loader: async () => {
@@ -11,13 +12,20 @@ export const Route = createFileRoute("/masshtab/")({
     ]);
     return { posts: p.data?.posts ?? [], rating: r.data, market: m.data };
   },
-  head: () => ({
-    meta: [
-      { title: "«Масштаб» — бизнес, деньги и люди | деловой листок" }, { name: "description", content: DESC },
-      { property: "og:title", content: "«Масштаб» — бизнес, деньги и люди" }, { property: "og:description", content: DESC },
-      { property: "og:image", content: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/1292b992-95e1-4928-b8a9-a0860381b3ea.jpg" },
-    ],
-    links: [{ rel: "canonical", href: "https://mat-labs.ru/masshtab" }],
-  }),
+  head: ({ loaderData }) => {
+    const posts = loaderData?.posts ?? [];
+    return {
+      ...pageMeta({ title: "«Масштаб» — бизнес, деньги и люди | деловой журнал", description: DESC, path: "/masshtab" }),
+      scripts: [
+        ld({ "@context": "https://schema.org", ...PUBLISHER, "@type": "NewsMediaOrganization", description: DESC, publishingPrinciples: `${SITE}/masshtab/o-zhurnale` }),
+        ld({ "@context": "https://schema.org", "@type": "WebSite", name: "Журнал «Масштаб»", url: `${SITE}/masshtab`, inLanguage: "ru-RU", publisher: PUBLISHER }),
+        ...(posts.length ? [ld({
+          "@context": "https://schema.org", "@type": "ItemList", name: "Свежие материалы «Масштаба»",
+          itemListElement: posts.slice(0, 10).map((p, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/masshtab/${p.slug}`, name: p.title, image: abs(p.cover_url) })),
+        })] : []),
+        breadcrumbLd([]),
+      ],
+    };
+  },
   component: HomePage,
 });

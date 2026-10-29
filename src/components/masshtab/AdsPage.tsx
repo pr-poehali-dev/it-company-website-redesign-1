@@ -1,6 +1,7 @@
 import { getRouteApi } from "@tanstack/react-router";
 import MShell, { Kicker, serif } from "./MShell";
 import LeadForm from "./LeadForm";
+import Crumbs from "./Crumbs";
 import { growthLabel, mln } from "./api";
 
 const route = getRouteApi("/masshtab/reklama");
@@ -21,8 +22,9 @@ export default function AdsPage() {
   return (
     <MShell active="/masshtab/reklama">
       <section className="bg-[#14110f] text-white">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-16">
-          <Kicker className="text-[#ff7a66]">Реклама и сотрудничество</Kicker>
+        <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6 pb-12 md:pb-16">
+          <Crumbs dark items={[{ label: "Реклама и сотрудничество" }]} />
+          <Kicker className="text-[#ff7a66] mt-8">Реклама и сотрудничество</Kicker>
           <h1 className={`${serif} font-bold text-4xl md:text-6xl mt-3 leading-[1.05] max-w-3xl`}>Ваш бренд рядом с историями быстрорастущих компаний</h1>
           <p className="text-lg text-white/75 mt-4 max-w-2xl">«Масштаб» читают собственники, руководители и финансовые директора. Аудитория, которая принимает решения о закупках, кредитах и партнёрствах.</p>
           {st && (

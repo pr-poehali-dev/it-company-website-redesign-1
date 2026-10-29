@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 
 const URL = "https://functions.poehali.dev/3a15fa3e-e303-48e0-8256-ab37073fa940";
-const SECTIONS: [string, string][] = [["pages", "Основные страницы"], ["blog", "Блог"], ["radar", "Радар (18 тыс. компаний)"]];
+const SECTIONS: [string, string][] = [["pages", "Основные страницы"], ["blog", "Блог"], ["masshtab", "Журнал «Масштаб»"], ["radar", "Радар (18 тыс. компаний)"]];
 
 interface Info { key_ok?: boolean; total?: number; maps?: Record<string, number | string>; error?: string }
 interface Result { ok?: boolean; sent?: number; results?: Record<string, number[]>; error?: string }
@@ -14,7 +14,7 @@ function token() {
 export default function SeoPingPanel() {
   const [open, setOpen] = useState(false);
   const [info, setInfo] = useState<Info | null>(null);
-  const [sel, setSel] = useState<string[]>(["pages", "blog", "radar"]);
+  const [sel, setSel] = useState<string[]>(["pages", "blog", "masshtab", "radar"]);
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState<Result | null>(null);
 

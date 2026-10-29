@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import MShell, { Kicker, serif } from "./MShell";
 import AdSlot, { pickAd } from "./AdSlot";
 import LeadForm from "./LeadForm";
+import Crumbs from "./Crumbs";
 import { companyName, growthLabel, mGet, mln, type Ad, type Filters, type RatingItem, type RatingResp } from "./api";
 
 const route = getRouteApi("/masshtab/500");
@@ -67,8 +68,9 @@ export default function RatingPage() {
       <section className="relative bg-[#14110f] text-white overflow-hidden">
         <img src="https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/1292b992-95e1-4928-b8a9-a0860381b3ea.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#14110f] via-[#14110f]/85 to-transparent" />
-        <div className="relative max-w-6xl mx-auto px-4 md:px-6 py-12 md:py-16">
-          <Kicker className="text-[#ff7a66]">Рейтинг · выпуск 2026</Kicker>
+        <div className="relative max-w-6xl mx-auto px-4 md:px-6 pt-6 pb-12 md:pb-16">
+          <Crumbs dark items={[{ label: "Рейтинг «Масштаб-500»" }]} />
+          <Kicker className="text-[#ff7a66] mt-8">Рейтинг · выпуск 2026</Kicker>
           <h1 className={`${serif} font-bold text-5xl md:text-7xl mt-3 tracking-tight`}>Масштаб-500</h1>
           <p className="text-lg md:text-xl text-white/80 mt-3 max-w-2xl">Самые быстрорастущие компании России по выручке за 2022–2025 годы. Считаем сами по открытой отчётности ФНС — без анкет и платы за участие.</p>
           <div className="flex flex-wrap gap-8 md:gap-12 mt-8">

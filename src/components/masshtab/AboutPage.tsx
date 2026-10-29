@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import MShell, { Kicker, serif } from "./MShell";
+import Crumbs from "./Crumbs";
 import { DATA_SOURCES, PRINCIPLES, RUBRICS } from "./rubrics";
 
 export default function AboutPage() {
   return (
     <MShell active="/masshtab/o-zhurnale">
-      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-10">
-        <Kicker>О журнале</Kicker>
+      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-6">
+        <Crumbs items={[{ label: "О журнале" }]} />
+        <Kicker className="mt-6">О журнале</Kicker>
         <h1 className={`${serif} font-bold text-4xl md:text-6xl mt-2 leading-[1.05]`}>Деловой листок без пафоса и по делу</h1>
         <p className="text-xl text-[#5b5550] mt-4 leading-relaxed">
           «Масштаб» пишет для предпринимателей и руководителей, которым нужно быстро понять, что происходит на рынке и что из этого следует для их бизнеса.

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           parts = 2;
         }
         const today = new Date().toISOString().slice(0, 10);
-        const maps = ["/sitemap-pages.xml", "/sitemap-blog.xml", ...Array.from({ length: parts }, (_, i) => `/sitemap-radar-${i + 1}.xml`)];
+        const maps = ["/sitemap-pages.xml", "/sitemap-blog.xml", "/sitemap-masshtab.xml", ...Array.from({ length: parts }, (_, i) => `/sitemap-radar-${i + 1}.xml`)];
         const body = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${maps
           .map(m => `  <sitemap>\n    <loc>${SITE}${m}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`)
           .join("\n")}\n</sitemapindex>\n`;

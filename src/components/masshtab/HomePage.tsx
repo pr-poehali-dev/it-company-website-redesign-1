@@ -6,6 +6,7 @@ import LeadForm from "./LeadForm";
 import MarketBar from "./MarketBar";
 import NewsFeed from "./NewsFeed";
 import PostCard from "./PostCard";
+import Crumbs from "./Crumbs";
 import { RUBRICS } from "./rubrics";
 import { companyName, growthLabel, mGet, mln, type Ad, type Market } from "./api";
 
@@ -27,7 +28,9 @@ export default function HomePage() {
   return (
     <MShell active="/masshtab" top={<MarketBar cbr={market?.cbr ?? null} />}>
       <div className="max-w-6xl mx-auto px-4 md:px-6">
-        <div className="mt-6"><AdSlot ad={pickAd(ads, "top")} variant="wide" /></div>
+        <div className="pt-4"><Crumbs items={[]} /></div>
+        <h1 className="sr-only">«Масштаб» — деловой журнал для предпринимателей и руководителей</h1>
+        <div className="mt-4"><AdSlot ad={pickAd(ads, "top")} variant="wide" /></div>
 
         <div className="grid lg:grid-cols-[260px_1fr_300px] gap-8 mt-8">
           <aside className="order-2 lg:order-1"><NewsFeed items={news} limit={14} title="Лента · экономика" /></aside>
@@ -36,7 +39,7 @@ export default function HomePage() {
             {main ? <PostCard p={main} big /> : lead ? (
               <a href={lead.link} target="_blank" rel="noopener" className="group block bg-white border border-[#e2d9cb] rounded-lg p-6 md:p-8">
                 <Kicker>Главное за день · по данным ТАСС</Kicker>
-                <h1 className={`${serif} font-bold text-3xl md:text-4xl leading-[1.1] mt-3 group-hover:text-[#d6402b]`}>{lead.title}</h1>
+                <h2 className={`${serif} font-bold text-3xl md:text-4xl leading-[1.1] mt-3 group-hover:text-[#d6402b]`}>{lead.title}</h2>
                 <p className="text-[#5b5550] mt-3 text-lg">{lead.desc}</p>
                 <span className="inline-block mt-4 text-sm font-bold text-[#d6402b]">Читать на tass.ru →</span>
               </a>

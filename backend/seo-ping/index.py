@@ -51,7 +51,7 @@ def collect(sections):
     out, stats = [], {}
     for m in maps:
         name = m.rsplit('/', 1)[-1]
-        sec = 'radar' if 'radar' in name else 'blog' if 'blog' in name else 'pages'
+        sec = 'radar' if 'radar' in name else 'blog' if 'blog' in name else 'masshtab' if 'masshtab' in name else 'pages'
         if sections and sec not in sections:
             continue
         try:

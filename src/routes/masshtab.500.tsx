@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import RatingPage from "@/components/masshtab/RatingPage";
 import { mGet, type Filters, type RatingResp } from "@/components/masshtab/api";
+import { PUBLISHER, SITE, breadcrumbLd, ld, pageMeta } from "@/components/masshtab/seo";
 
 type Search = { region?: number; section?: string; q?: string };
 
@@ -23,13 +24,31 @@ export const Route = createFileRoute("/masshtab/500")({
     ]);
     return { rating: r.data, filters: f.data };
   },
-  head: () => ({
-    meta: [
-      { title: TITLE }, { name: "description", content: DESC },
-      { property: "og:title", content: "Масштаб-500 — самые быстрорастущие компании России" }, { property: "og:description", content: DESC },
-      { property: "og:image", content: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/files/1292b992-95e1-4928-b8a9-a0860381b3ea.jpg" },
-    ],
-    links: [{ rel: "canonical", href: "https://mat-labs.ru/masshtab/500" }],
-  }),
+  head: ({ loaderData, match }) => {
+    const sp = match.search as Search;
+    const regionName = loaderData?.filters?.regions.find((r) => r.code === regionCode(sp.region))?.name;
+    const scope = [regionName, sp.section].filter(Boolean).join(", ");
+    const filtered = Boolean(sp.region || sp.section || sp.q);
+    const title = scope ? `Масштаб-500: быстрорастущие компании — ${scope}` : TITLE;
+    const desc = scope ? `Самые быстрорастущие компании (${scope}) по выручке за 2022–2025 годы по данным ФНС. Рейтинг журнала «Масштаб».` : DESC;
+    const base = pageMeta({ title, description: desc, path: "/masshtab/500" });
+    const items = loaderData?.rating?.items ?? [];
+    return {
+      meta: filtered ? [...base.meta, { name: "robots", content: "noindex, follow" }] : base.meta,
+      links: base.links,
+      scripts: [
+        ld({
+          "@context": "https://schema.org", "@type": "Dataset", name: "Масштаб-500 — самые быстрорастущие компании России", description: DESC,
+          url: `${SITE}/masshtab/500`, creator: PUBLISHER, isBasedOn: "https://bo.nalog.gov.ru/", temporalCoverage: "2022/2025",
+          spatialCoverage: { "@type": "Place", name: "Россия" }, license: "https://www.nalog.gov.ru/opendata/", inLanguage: "ru-RU",
+        }),
+        ...(!filtered && items.length ? [ld({
+          "@context": "https://schema.org", "@type": "ItemList", name: "Масштаб-500: топ-50",
+          itemListElement: items.slice(0, 50).map((it) => ({ "@type": "ListItem", position: it.rank, item: { "@type": "Organization", name: it.name, taxID: it.inn } })),
+        })] : []),
+        breadcrumbLd([{ label: "Рейтинг «Масштаб-500»" }]),
+      ],
+    };
+  },
   component: RatingPage,
 });

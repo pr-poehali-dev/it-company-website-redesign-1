@@ -3,6 +3,8 @@ import { Link, getRouteApi } from "@tanstack/react-router";
 import MShell, { Kicker, serif } from "./MShell";
 import AdSlot, { pickAd } from "./AdSlot";
 import Markdown from "./Markdown";
+import Crumbs from "./Crumbs";
+import { rubricByName } from "./rubrics";
 import { companyName, fmtDate, growthLabel, mGet, mln, type Ad } from "./api";
 
 const route = getRouteApi("/masshtab/$slug");
@@ -23,7 +25,8 @@ export default function PostPage() {
   return (
     <MShell>
       <article className="max-w-6xl mx-auto px-4 md:px-6 pt-8">
-        <div className="max-w-3xl">
+        <Crumbs items={[...(rubricByName(post.rubric) ? [{ label: post.rubric, to: `/masshtab/rubrika/${rubricByName(post.rubric)!.slug}` }] : []), { label: post.title }]} />
+        <div className="max-w-3xl mt-5">
           <Kicker>{post.rubric}{post.kind === "partner" ? " · партнёрский материал" : ""}</Kicker>
           <h1 className={`${serif} font-bold text-4xl md:text-6xl leading-[1.05] mt-3`}>{post.title}</h1>
           {post.lead && <p className={`${serif} text-xl md:text-2xl text-[#5b5550] mt-4 leading-snug`}>{post.lead}</p>}
