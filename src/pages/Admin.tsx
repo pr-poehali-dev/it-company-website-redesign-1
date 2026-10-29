@@ -15,9 +15,10 @@ import FunnelDashboard from "./admin/FunnelDashboard";
 import SalesPlan from "./admin/SalesPlan";
 import RadarEnrichModule from "./admin/radar/RadarEnrichModule";
 import ReportOrdersModule from "./admin/orders/ReportOrdersModule";
+import MasshtabModule from "./admin/masshtab/MasshtabModule";
 import { AUTH_URL, BLOG_URL, GENERATE_PDF_URL, Post, PostForm, emptyPost } from "./admin/types";
 
-type Section = "plan" | "blog" | "tenders" | "grants" | "prospects" | "radar" | "orders" | "requests" | "chats" | "agent" | "legal" | "automation" | "funnel";
+type Section = "plan" | "masshtab" | "blog" | "tenders" | "grants" | "prospects" | "radar" | "orders" | "requests" | "chats" | "agent" | "legal" | "automation" | "funnel";
 
 function getStoredToken(): string {
   return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || "";
@@ -211,6 +212,7 @@ export default function Admin() {
 
   const NAV: { id: Section; label: string; icon: string; badge?: number }[] = [
     { id: "plan", label: "План продаж", icon: "Rocket" },
+    { id: "masshtab", label: "Журнал «Масштаб»", icon: "Newspaper" },
     { id: "blog", label: "Статьи блога", icon: "FileText", badge: posts.length || undefined },
     { id: "tenders", label: "Тендеры", icon: "Search" },
     { id: "grants", label: "Гранты", icon: "Award" },
@@ -335,6 +337,10 @@ export default function Admin() {
         {/* REQUESTS SECTION */}
         {section === "radar" && (
           <RadarEnrichModule />
+        )}
+
+        {section === "masshtab" && (
+          <MasshtabModule token={token} />
         )}
 
         {section === "orders" && (

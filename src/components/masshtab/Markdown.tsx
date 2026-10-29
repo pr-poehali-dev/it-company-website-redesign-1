@@ -1,0 +1,40 @@
+import { Fragment, type ReactNode } from "react";
+
+function inline(s: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  const re = /(\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\))/g;
+  let last = 0, m: RegExpExecArray | null, k = 0;
+  while ((m = re.exec(s))) {
+    if (m.index > last) out.push(s.slice(last, m.index));
+    if (m[2]) out.push(<b key={k++}>{m[2]}</b>);
+    else if (m[3]) out.push(<i key={k++}>{m[3]}</i>);
+    else out.push(<a key={k++} href={m[5]} target="_blank" rel="noopener" className="text-[#d6402b] underline">{m[4]}</a>);
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) out.push(s.slice(last));
+  return out;
+}
+
+export default function Markdown({ text }: { text: string }) {
+  const blocks = (text || "").replace(/\r/g, "").split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  return (
+    <div className="space-y-5">
+      {blocks.map((b, i) => {
+        if (b.startsWith("## ")) return <h2 key={i} className="font-['Playfair_Display',serif] font-bold text-2xl md:text-3xl pt-4">{inline(b.slice(3))}</h2>;
+        if (b.startsWith("> ")) return (
+          <blockquote key={i} className="border-l-4 border-[#d6402b] pl-5 my-8 font-['Playfair_Display',serif] italic text-2xl md:text-3xl leading-snug text-[#14110f]">
+            {inline(b.replace(/^>\s?/gm, ""))}
+          </blockquote>
+        );
+        if (/^—\s|^- /.test(b) && b.split("\n").every((l) => /^- /.test(l))) return (
+          <ul key={i} className="list-disc pl-6 space-y-1.5">{b.split("\n").map((l, j) => <li key={j}>{inline(l.slice(2))}</li>)}</ul>
+        );
+        const q = b.match(/^\*\*(—?[^*]+?)\*\*\s*([\s\S]*)$/);
+        if (q && q[1].length < 200 && b.startsWith("**")) return (
+          <p key={i}><b className="text-[#14110f]">{inline(q[1])}</b>{q[2] ? <Fragment> {inline(q[2])}</Fragment> : null}</p>
+        );
+        return <p key={i}>{b.split("\n").map((l, j) => <Fragment key={j}>{j ? <br /> : null}{inline(l)}</Fragment>)}</p>;
+      })}
+    </div>
+  );
+}

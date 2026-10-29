@@ -15,6 +15,7 @@ import { Route as ChatgptRouteImport } from './routes/chatgpt'
 import { Route as ConsultantRouteImport } from './routes/consultant'
 import { Route as GotovyyBiznesRouteImport } from './routes/gotovyy-biznes'
 import { Route as InvestorsRouteImport } from './routes/investors'
+import { Route as MasshtabRouteImport } from './routes/masshtab'
 import { Route as PresentationRouteImport } from './routes/presentation'
 import { Route as SitemapBlogDotxmlRouteImport } from './routes/sitemap-blog[.]xml'
 import { Route as SitemapRadarChar123partChar125DotxmlRouteImport } from './routes/sitemap-radar-{$part}[.]xml'
@@ -29,6 +30,10 @@ import { Route as AvtomatizaciyaBiznesaIndexRouteImport } from './routes/avtomat
 import { Route as AvtomatizaciyaBiznesaCitySlugRouteImport } from './routes/avtomatizaciya-biznesa.$citySlug'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as MasshtabIndexRouteImport } from './routes/masshtab.index'
+import { Route as MasshtabSlugRouteImport } from './routes/masshtab.$slug'
+import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
+import { Route as MasshtabReklamaRouteImport } from './routes/masshtab.reklama'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
 import { Route as RadarInnRouteImport } from './routes/radar.$inn'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
@@ -76,6 +81,11 @@ const GotovyyBiznesRoute = GotovyyBiznesRouteImport.update({
 const InvestorsRoute = InvestorsRouteImport.update({
   id: '/investors',
   path: '/investors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasshtabRoute = MasshtabRouteImport.update({
+  id: '/masshtab',
+  path: '/masshtab',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PresentationRoute = PresentationRouteImport.update({
@@ -151,6 +161,26 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const MasshtabIndexRoute = MasshtabIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MasshtabRoute,
+} as any)
+const MasshtabSlugRoute = MasshtabSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => MasshtabRoute,
+} as any)
+const Masshtab500Route = Masshtab500RouteImport.update({
+  id: '/500',
+  path: '/500',
+  getParentRoute: () => MasshtabRoute,
+} as any)
+const MasshtabReklamaRoute = MasshtabReklamaRouteImport.update({
+  id: '/reklama',
+  path: '/reklama',
+  getParentRoute: () => MasshtabRoute,
 } as any)
 const RadarIndexRoute = RadarIndexRouteImport.update({
   id: '/radar/',
@@ -253,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/consultant': typeof ConsultantRoute
   '/gotovyy-biznes': typeof GotovyyBiznesRoute
   '/investors': typeof InvestorsRoute
+  '/masshtab': typeof MasshtabRouteWithChildren
   '/presentation': typeof PresentationRoute
   '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
   '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
@@ -264,11 +295,15 @@ export interface FileRoutesByFullPath {
   '/analytics/vs-sber': typeof AnalyticsVsSberRoute
   '/avtomatizaciya-biznesa/$citySlug': typeof AvtomatizaciyaBiznesaCitySlugRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/masshtab/$slug': typeof MasshtabSlugRoute
+  '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/analytics/': typeof AnalyticsIndexRoute
   '/avtomatizaciya-biznesa/': typeof AvtomatizaciyaBiznesaIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/masshtab/': typeof MasshtabIndexRoute
   '/radar/': typeof RadarIndexRoute
   '/uslugi/': typeof UslugiIndexRoute
   '/analytics/company/$inn': typeof AnalyticsCompanyInnRoute
@@ -304,11 +339,15 @@ export interface FileRoutesByTo {
   '/analytics/vs-sber': typeof AnalyticsVsSberRoute
   '/avtomatizaciya-biznesa/$citySlug': typeof AvtomatizaciyaBiznesaCitySlugRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/masshtab/$slug': typeof MasshtabSlugRoute
+  '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/analytics': typeof AnalyticsIndexRoute
   '/avtomatizaciya-biznesa': typeof AvtomatizaciyaBiznesaIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/masshtab': typeof MasshtabIndexRoute
   '/radar': typeof RadarIndexRoute
   '/uslugi': typeof UslugiIndexRoute
   '/analytics/company/$inn': typeof AnalyticsCompanyInnRoute
@@ -334,6 +373,7 @@ export interface FileRoutesById {
   '/consultant': typeof ConsultantRoute
   '/gotovyy-biznes': typeof GotovyyBiznesRoute
   '/investors': typeof InvestorsRoute
+  '/masshtab': typeof MasshtabRouteWithChildren
   '/presentation': typeof PresentationRoute
   '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
   '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
@@ -345,11 +385,15 @@ export interface FileRoutesById {
   '/analytics/vs-sber': typeof AnalyticsVsSberRoute
   '/avtomatizaciya-biznesa/$citySlug': typeof AvtomatizaciyaBiznesaCitySlugRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/masshtab/$slug': typeof MasshtabSlugRoute
+  '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/analytics/': typeof AnalyticsIndexRoute
   '/avtomatizaciya-biznesa/': typeof AvtomatizaciyaBiznesaIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/masshtab/': typeof MasshtabIndexRoute
   '/radar/': typeof RadarIndexRoute
   '/uslugi/': typeof UslugiIndexRoute
   '/analytics/company/$inn': typeof AnalyticsCompanyInnRoute
@@ -376,6 +420,7 @@ export interface FileRouteTypes {
     | '/consultant'
     | '/gotovyy-biznes'
     | '/investors'
+    | '/masshtab'
     | '/presentation'
     | '/sitemap-blog.xml'
     | '/sitemap-radar-{$part}.xml'
@@ -387,11 +432,15 @@ export interface FileRouteTypes {
     | '/analytics/vs-sber'
     | '/avtomatizaciya-biznesa/$citySlug'
     | '/blog/$slug'
+    | '/masshtab/$slug'
+    | '/masshtab/500'
+    | '/masshtab/reklama'
     | '/radar/$inn'
     | '/services/$slug'
     | '/analytics/'
     | '/avtomatizaciya-biznesa/'
     | '/blog/'
+    | '/masshtab/'
     | '/radar/'
     | '/uslugi/'
     | '/analytics/company/$inn'
@@ -427,11 +476,15 @@ export interface FileRouteTypes {
     | '/analytics/vs-sber'
     | '/avtomatizaciya-biznesa/$citySlug'
     | '/blog/$slug'
+    | '/masshtab/$slug'
+    | '/masshtab/500'
+    | '/masshtab/reklama'
     | '/radar/$inn'
     | '/services/$slug'
     | '/analytics'
     | '/avtomatizaciya-biznesa'
     | '/blog'
+    | '/masshtab'
     | '/radar'
     | '/uslugi'
     | '/analytics/company/$inn'
@@ -456,6 +509,7 @@ export interface FileRouteTypes {
     | '/consultant'
     | '/gotovyy-biznes'
     | '/investors'
+    | '/masshtab'
     | '/presentation'
     | '/sitemap-blog.xml'
     | '/sitemap-radar-{$part}.xml'
@@ -467,11 +521,15 @@ export interface FileRouteTypes {
     | '/analytics/vs-sber'
     | '/avtomatizaciya-biznesa/$citySlug'
     | '/blog/$slug'
+    | '/masshtab/$slug'
+    | '/masshtab/500'
+    | '/masshtab/reklama'
     | '/radar/$inn'
     | '/services/$slug'
     | '/analytics/'
     | '/avtomatizaciya-biznesa/'
     | '/blog/'
+    | '/masshtab/'
     | '/radar/'
     | '/uslugi/'
     | '/analytics/company/$inn'
@@ -497,6 +555,7 @@ export interface RootRouteChildren {
   ConsultantRoute: typeof ConsultantRoute
   GotovyyBiznesRoute: typeof GotovyyBiznesRoute
   InvestorsRoute: typeof InvestorsRoute
+  MasshtabRoute: typeof MasshtabRouteWithChildren
   PresentationRoute: typeof PresentationRoute
   SitemapBlogDotxmlRoute: typeof SitemapBlogDotxmlRoute
   SitemapRadarChar123partChar125DotxmlRoute: typeof SitemapRadarChar123partChar125DotxmlRoute
@@ -573,6 +632,13 @@ declare module '@tanstack/react-router' {
       path: '/investors'
       fullPath: '/investors'
       preLoaderRoute: typeof InvestorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/masshtab': {
+      id: '/masshtab'
+      path: '/masshtab'
+      fullPath: '/masshtab'
+      preLoaderRoute: typeof MasshtabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/presentation': {
@@ -672,6 +738,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/masshtab/': {
+      id: '/masshtab/'
+      path: '/'
+      fullPath: '/masshtab/'
+      preLoaderRoute: typeof MasshtabIndexRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
+    '/masshtab/$slug': {
+      id: '/masshtab/$slug'
+      path: '/$slug'
+      fullPath: '/masshtab/$slug'
+      preLoaderRoute: typeof MasshtabSlugRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
+    '/masshtab/500': {
+      id: '/masshtab/500'
+      path: '/500'
+      fullPath: '/masshtab/500'
+      preLoaderRoute: typeof Masshtab500RouteImport
+      parentRoute: typeof MasshtabRoute
+    }
+    '/masshtab/reklama': {
+      id: '/masshtab/reklama'
+      path: '/reklama'
+      fullPath: '/masshtab/reklama'
+      preLoaderRoute: typeof MasshtabReklamaRouteImport
+      parentRoute: typeof MasshtabRoute
     }
     '/radar/': {
       id: '/radar/'
@@ -802,6 +896,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MasshtabRouteChildren {
+  MasshtabSlugRoute: typeof MasshtabSlugRoute
+  Masshtab500Route: typeof Masshtab500Route
+  MasshtabReklamaRoute: typeof MasshtabReklamaRoute
+  MasshtabIndexRoute: typeof MasshtabIndexRoute
+}
+
+const MasshtabRouteChildren: MasshtabRouteChildren = {
+  MasshtabSlugRoute: MasshtabSlugRoute,
+  Masshtab500Route: Masshtab500Route,
+  MasshtabReklamaRoute: MasshtabReklamaRoute,
+  MasshtabIndexRoute: MasshtabIndexRoute,
+}
+
+const MasshtabRouteWithChildren = MasshtabRoute._addFileChildren(
+  MasshtabRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
@@ -809,6 +921,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConsultantRoute: ConsultantRoute,
   GotovyyBiznesRoute: GotovyyBiznesRoute,
   InvestorsRoute: InvestorsRoute,
+  MasshtabRoute: MasshtabRouteWithChildren,
   PresentationRoute: PresentationRoute,
   SitemapBlogDotxmlRoute: SitemapBlogDotxmlRoute,
   SitemapRadarChar123partChar125DotxmlRoute:

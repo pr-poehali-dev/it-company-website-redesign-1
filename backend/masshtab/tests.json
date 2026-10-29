@@ -1,0 +1,11 @@
+{"tests": [
+ {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+ {"name": "Ping", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"ok": true}, "bodyMatcher": "partial"},
+ {"name": "Фильтры", "method": "GET", "path": "/?action=filters", "expectedStatus": 200},
+ {"name": "Рейтинг", "method": "GET", "path": "/?action=rating", "expectedStatus": 200},
+ {"name": "Интервью", "method": "GET", "path": "/?action=posts", "expectedStatus": 200},
+ {"name": "Реклама", "method": "GET", "path": "/?action=ads", "expectedStatus": 200},
+ {"name": "Загрузка без ключа", "method": "POST", "path": "/", "body": {"action": "ingest"}, "expectedStatus": 401},
+ {"name": "Редакция без входа", "method": "POST", "path": "/", "body": {"action": "save_post", "title": "x"}, "expectedStatus": 401},
+ {"name": "Заявка без контакта", "method": "POST", "path": "/", "body": {"action": "lead", "kind": "ad"}, "expectedStatus": 400}
+]}
