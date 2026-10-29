@@ -23,7 +23,7 @@ CORS = {
     'Access-Control-Allow-Headers': 'Content-Type, X-Session-Token, X-Cron-Secret, X-Ingest-Key',
     'Access-Control-Max-Age': '86400',
 }
-INGEST_HASH = '2b9003b93166ae15c57a91de5a14f2ff04d2e08b5769a736d0f82ca2877ba51f'
+INGEST_HASH = 'e20c1f21efe92e56eb7b3ca93caa72c688c6648dd408af5cbc38a36c73c63277'
 MIN_REV = 100_000_000
 MIN_BASE = 10_000_000
 EXCLUDE = ('64', '65', '66', '84', '99')
