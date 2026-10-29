@@ -16,15 +16,20 @@ export default function PostPage() {
   const max = Math.max(...years.map(([, v]) => Number(v)), 1);
   const paras = post.content.split(/\n{2,}/);
   const half = Math.ceil(paras.length / 2);
+  const takeaways = (post.takeaways || "").split("\n").map((x) => x.replace(/^[-—•\d.)\s]+/, "").trim()).filter(Boolean);
+  const sources = (post.sources || "").split("\n").map((x) => x.trim()).filter(Boolean);
 
   return (
     <MShell>
       <article className="max-w-6xl mx-auto px-4 md:px-6 pt-8">
         <div className="max-w-3xl">
-          <Kicker>{post.kind === "interview" ? "Интервью" : post.rubric}{post.kind === "partner" ? " · партнёрский материал" : ""}</Kicker>
+          <Kicker>{post.rubric}{post.kind === "partner" ? " · партнёрский материал" : ""}</Kicker>
           <h1 className={`${serif} font-bold text-4xl md:text-6xl leading-[1.05] mt-3`}>{post.title}</h1>
           {post.lead && <p className={`${serif} text-xl md:text-2xl text-[#5b5550] mt-4 leading-snug`}>{post.lead}</p>}
           <div className="text-sm text-[#8a8278] mt-4">{post.author} · {fmtDate(post.published_at)} · {post.read_min} мин чтения</div>
+          {post.data_date && (
+            <div className="inline-block mt-4 text-xs font-semibold bg-[#efe7da] rounded px-3 py-1.5">Данные актуальны на {new Date(post.data_date).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</div>
+          )}
         </div>
         {post.cover_url && (
           <figure className="mt-8">
@@ -34,9 +39,34 @@ export default function PostPage() {
         )}
         <div className="grid lg:grid-cols-[1fr_300px] gap-12 mt-10">
           <div className="text-[17px] md:text-lg leading-[1.75] text-[#2b2724] font-['Georgia',serif] max-w-[680px]">
+            {takeaways.length > 0 && (
+              <div className="mb-10 border-y-2 border-[#14110f] py-5 font-['Golos_Text',sans-serif]">
+                <Kicker>Главное</Kicker>
+                <ol className="mt-3 space-y-2 text-base">
+                  {takeaways.map((t, i) => <li key={i} className="flex gap-3"><b className={`${serif} text-[#d6402b] text-lg leading-6`}>{i + 1}</b><span>{t}</span></li>)}
+                </ol>
+              </div>
+            )}
             <Markdown text={paras.slice(0, half).join("\n\n")} />
             <div className="my-10 font-['Golos_Text',sans-serif]"><AdSlot ad={pickAd(ads, "inline")} variant="wide" /></div>
             <Markdown text={paras.slice(half).join("\n\n")} />
+            {post.question && (
+              <div className="mt-10 bg-[#efe7da] rounded-lg p-6 font-['Golos_Text',sans-serif]">
+                <Kicker>Посчитайте для себя</Kicker>
+                <div className="mt-2 text-base leading-relaxed whitespace-pre-line">{post.question}</div>
+              </div>
+            )}
+            {sources.length > 0 && (
+              <div className="mt-8 pt-4 border-t border-[#e2d9cb] font-['Golos_Text',sans-serif] text-sm text-[#5b5550]">
+                <div className="font-bold text-[#14110f] mb-1">Источники</div>
+                <ul className="space-y-1">
+                  {sources.map((s, i) => {
+                    const m = s.match(/^(.*?)\s*(https?:\/\/\S+)$/);
+                    return <li key={i}>{m ? <a href={m[2]} target="_blank" rel="noopener" className="underline hover:text-[#d6402b]">{m[1] || m[2]}</a> : s}</li>;
+                  })}
+                </ul>
+              </div>
+            )}
           </div>
           <aside className="space-y-6 lg:sticky lg:top-24 self-start">
             {c && (
@@ -74,7 +104,7 @@ export default function PostPage() {
               {post.more.map((p) => (
                 <Link key={p.id} to="/masshtab/$slug" params={{ slug: p.slug }} className="group">
                   {p.cover_url && <img src={p.cover_url} alt={p.title} className="w-full aspect-[3/2] object-cover rounded mb-3" />}
-                  <Kicker>{p.kind === "interview" ? "Интервью" : p.rubric}</Kicker>
+                  <Kicker>{p.rubric}</Kicker>
                   <h3 className={`${serif} font-bold text-lg leading-snug mt-1 group-hover:text-[#d6402b]`}>{p.title}</h3>
                 </Link>
               ))}

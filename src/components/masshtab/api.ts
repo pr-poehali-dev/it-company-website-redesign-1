@@ -12,12 +12,16 @@ export interface Filters { regions: { code: string; name: string }[]; sections: 
 export interface Post {
   id: number; slug: string; kind: "interview" | "article" | "partner"; rubric: string; title: string; lead: string; hero_name: string; hero_role: string;
   company_inn: string | null; cover_url: string | null; author: string; read_min: number; published: boolean; published_at: string | null; created_at: string; content?: string;
+  data_date?: string | null;
 }
 export interface CompanyCard {
   inn: string; name: string; region_name: string; staff: number | null; revenue: number | null; expenses: number | null;
   rev2021: number | null; rev2022: number | null; rev2023: number | null; rev2024: number | null; rev2025: number | null; growth: number | null;
 }
-export interface FullPost extends Post { content: string; company: CompanyCard | null; more: Post[] }
+export interface FullPost extends Post { content: string; company: CompanyCard | null; more: Post[]; sources: string; takeaways: string; question: string }
+export interface NewsItem { title: string; link: string; date: string | null; desc: string; tag: string; image: string | null }
+export interface Cbr { USD?: number; EUR?: number; CNY?: number; prev?: Record<string, number>; key_rate?: number; key_rate_date?: string; rates_date?: string }
+export interface Market { news: NewsItem[]; news_at: string | null; cbr: Cbr; cbr_at: string | null }
 export interface Ad { id: number; slot: "top" | "side" | "inline"; advertiser: string; title: string; text: string; image_url: string | null; link: string; cta: string; active?: boolean; clicks?: number }
 
 export async function mGet<T>(params: Record<string, string | number | undefined>, token?: string): Promise<{ status: number; data: T | null }> {
@@ -71,3 +75,6 @@ export function companyName(raw: string) {
 }
 
 export const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }) : "");
+
+export const timeAgo = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Moscow" }) : "");
+export const dayLabel = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone: "Europe/Moscow" }) : "");

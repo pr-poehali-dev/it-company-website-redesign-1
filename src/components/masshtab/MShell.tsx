@@ -1,7 +1,8 @@
 import { type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { RUBRICS } from "./rubrics";
 
-const NAV: [string, string][] = [["/masshtab", "Главное"], ["/masshtab/500", "Масштаб-500"], ["/masshtab/reklama", "Реклама"]];
+const NAV: [string, string][] = [["/masshtab", "Главное"], ["/masshtab/500", "Масштаб-500"], ["/masshtab/o-zhurnale", "О журнале"], ["/masshtab/reklama", "Реклама"]];
 
 export function Logo({ className = "", light = false }: { className?: string; light?: boolean }) {
   return (
@@ -11,7 +12,7 @@ export function Logo({ className = "", light = false }: { className?: string; li
   );
 }
 
-export default function MShell({ children, active }: { children: ReactNode; active?: string }) {
+export default function MShell({ children, active, top }: { children: ReactNode; active?: string; top?: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#f6f2ea] text-[#14110f] font-['Golos_Text',sans-serif]">
       <header className="bg-[#f6f2ea]/95 backdrop-blur border-b-2 border-[#14110f] sticky top-0 z-30">
@@ -28,10 +29,19 @@ export default function MShell({ children, active }: { children: ReactNode; acti
         </div>
         <nav className="md:hidden flex gap-5 px-4 pb-2 text-sm font-semibold overflow-x-auto">
           {NAV.map(([to, label]) => (
-            <Link key={to} to={to} className={active === to ? "text-[#d6402b]" : ""}>{label}</Link>
+            <Link key={to} to={to} className={`whitespace-nowrap ${active === to ? "text-[#d6402b]" : ""}`}>{label}</Link>
           ))}
         </nav>
+        <nav className="border-t border-[#e2d9cb]">
+          <div className="max-w-6xl mx-auto px-4 md:px-6 flex gap-5 py-2 text-[13px] overflow-x-auto">
+            {RUBRICS.map((r) => (
+              <Link key={r.slug} to="/masshtab/rubrika/$rubric" params={{ rubric: r.slug }}
+                className={`whitespace-nowrap ${active === r.slug ? "text-[#d6402b] font-semibold" : "text-[#5b5550] hover:text-[#14110f]"}`}>{r.name}</Link>
+            ))}
+          </div>
+        </nav>
       </header>
+      {top}
       <main>{children}</main>
       <footer className="bg-[#14110f] text-white/70 mt-16">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-10 grid md:grid-cols-3 gap-8 text-sm">
@@ -43,9 +53,10 @@ export default function MShell({ children, active }: { children: ReactNode; acti
             <Link to="/masshtab/500" className="block hover:text-white">Рейтинг «Масштаб-500»</Link>
             <Link to="/masshtab/reklama" className="block hover:text-white">Реклама и спецпроекты</Link>
             <Link to="/masshtab/reklama" hash="hero" className="block hover:text-white">Предложить героя интервью</Link>
+            <Link to="/masshtab/o-zhurnale" className="block hover:text-white">Редакционные принципы и источники</Link>
           </div>
           <div className="text-xs leading-relaxed text-white/50">
-            Деловой информационный листок. Данные о компаниях — открытая бухгалтерская отчётность ФНС (ГИР БО).
+            Деловой информационный листок. Новости — ТАСС, показатели — Банк России, данные о компаниях — бухгалтерская отчётность ФНС (ГИР БО).
             Издатель — ООО «МАТ-Лабс» · mat-labs.ru
           </div>
         </div>

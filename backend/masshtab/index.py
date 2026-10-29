@@ -13,6 +13,7 @@ import psycopg2.extras
 
 from data import REGIONS, SECTIONS
 import ingest
+import market
 import notify
 
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
@@ -112,7 +113,7 @@ def action_filters(conn):
 
 # ---------- публикации ----------
 
-POST_COLS = 'id, slug, kind, rubric, title, lead, hero_name, hero_role, company_inn, cover_url, author, read_min, published, published_at, created_at'
+POST_COLS = 'id, slug, kind, rubric, title, lead, hero_name, hero_role, company_inn, cover_url, author, read_min, published, published_at, created_at, data_date'
 
 
 def action_posts(conn, p, admin):
@@ -121,7 +122,11 @@ def action_posts(conn, p, admin):
     if admin and p.get('all'):
         cur.execute(f"SELECT {POST_COLS} FROM {S}.mag_posts ORDER BY created_at DESC LIMIT 200")
     else:
-        cur.execute(f"SELECT {POST_COLS} FROM {S}.mag_posts WHERE published ORDER BY published_at DESC LIMIT %s", (lim,))
+        rubric = (p.get('rubric') or '').strip()[:60]
+        if rubric:
+            cur.execute(f"SELECT {POST_COLS} FROM {S}.mag_posts WHERE published AND rubric=%s ORDER BY published_at DESC LIMIT %s", (rubric, lim))
+        else:
+            cur.execute(f"SELECT {POST_COLS} FROM {S}.mag_posts WHERE published ORDER BY published_at DESC LIMIT %s", (lim,))
     return resp({'posts': [dict(r) for r in cur.fetchall()]}, cache=0 if admin else 120)
 
 
@@ -162,35 +167,42 @@ def slugify(s):
 
 
 def action_save_post(conn, b):
-    f = {k: b.get(k) for k in ('kind', 'rubric', 'title', 'lead', 'hero_name', 'hero_role', 'company_inn', 'cover_url', 'content', 'author', 'read_min', 'published')}
+    f = {k: b.get(k) for k in ('kind', 'rubric', 'title', 'lead', 'hero_name', 'hero_role', 'company_inn', 'cover_url', 'content', 'author', 'read_min', 'published',
+                               'data_date', 'sources', 'takeaways', 'question')}
+    f['data_date'] = f['data_date'] if re.match(r'^\d{4}-\d{2}-\d{2}$', str(f['data_date'] or '')) else None
+    for k in ('sources', 'takeaways', 'question'):
+        f[k] = (f[k] or '').strip()[:4000]
     if not (f['title'] or '').strip():
         return resp({'error': 'Укажите заголовок'}, 400)
-    f['kind'] = f['kind'] if f['kind'] in ('interview', 'article', 'partner') else 'interview'
+    f['kind'] = f['kind'] if f['kind'] in ('interview', 'article', 'partner') else 'article'
     f['company_inn'] = re.sub(r'\D', '', f['company_inn'] or '')[:12] or None
     f['read_min'] = max(1, min(90, int(f['read_min'] or max(2, len(f['content'] or '') // 1500))))
     f['published'] = bool(f['published'])
     for k in ('rubric', 'title', 'lead', 'hero_name', 'hero_role', 'content', 'author'):
         f[k] = (f[k] or '').strip()
-    f['rubric'] = f['rubric'][:60] or 'Люди'
+    f['rubric'] = f['rubric'][:60] or 'Люди и роли'
     f['author'] = f['author'][:200] or 'Редакция «Масштаба»'
     cur = conn.cursor()
     pid = b.get('id')
     if pid:
         cur.execute(f"""UPDATE {S}.mag_posts SET kind=%s, rubric=%s, title=%s, lead=%s, hero_name=%s, hero_role=%s, company_inn=%s,
-                        cover_url=%s, content=%s, author=%s, read_min=%s, published=%s,
+                        cover_url=%s, content=%s, author=%s, read_min=%s, published=%s, data_date=%s, sources=%s, takeaways=%s, question=%s,
                         published_at = CASE WHEN %s AND published_at IS NULL THEN NOW() ELSE published_at END, updated_at=NOW()
                         WHERE id=%s RETURNING id, slug""",
                     (f['kind'], f['rubric'], f['title'][:300], f['lead'], f['hero_name'][:200], f['hero_role'][:300], f['company_inn'],
-                     f['cover_url'], f['content'], f['author'], f['read_min'], f['published'], f['published'], int(pid)))
+                     f['cover_url'], f['content'], f['author'], f['read_min'], f['published'], f['data_date'], f['sources'], f['takeaways'],
+                     f['question'], f['published'], int(pid)))
     else:
         slug = slugify(f['title'])
         cur.execute(f"SELECT 1 FROM {S}.mag_posts WHERE slug=%s", (slug,))
         if cur.fetchone():
             slug = f'{slug[:70]}-{int(time.time()) % 100000}'
         cur.execute(f"""INSERT INTO {S}.mag_posts (slug, kind, rubric, title, lead, hero_name, hero_role, company_inn, cover_url, content, author,
-                        read_min, published, published_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, CASE WHEN %s THEN NOW() END) RETURNING id, slug""",
+                        read_min, published, data_date, sources, takeaways, question, published_at)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, CASE WHEN %s THEN NOW() END) RETURNING id, slug""",
                     (slug, f['kind'], f['rubric'], f['title'][:300], f['lead'], f['hero_name'][:200], f['hero_role'][:300], f['company_inn'],
-                     f['cover_url'], f['content'], f['author'], f['read_min'], f['published'], f['published']))
+                     f['cover_url'], f['content'], f['author'], f['read_min'], f['published'], f['data_date'], f['sources'], f['takeaways'],
+                     f['question'], f['published']))
     r = cur.fetchone()
     conn.commit()
     if not r:
@@ -312,6 +324,10 @@ def handler(event: dict, context) -> dict:
                 return resp(ingest.save(conn, S, b))
             left = context.get_remaining_time_in_millis() / 1000 if hasattr(context, 'get_remaining_time_in_millis') else 25
             return resp(ingest.run(conn, S, b, time.time() + max(3, left - 3)))
+        if action == 'market':
+            tass, t1 = market.get(conn, S, 'tass')
+            cbr, t2 = market.get(conn, S, 'cbr')
+            return resp({'news': (tass or {}).get('items', []), 'news_at': t1, 'cbr': cbr or {}, 'cbr_at': t2}, cache=300)
         if action == 'filters':
             return action_filters(conn)
         if action == 'rating':

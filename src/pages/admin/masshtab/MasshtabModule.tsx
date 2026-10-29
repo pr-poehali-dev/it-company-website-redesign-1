@@ -8,7 +8,7 @@ type Tab = "posts" | "ads" | "leads";
 
 export default function MasshtabModule({ token }: { token: string }) {
   const [tab, setTab] = useState<Tab>("posts");
-  const tabs: [Tab, string, string][] = [["posts", "Интервью и статьи", "Newspaper"], ["ads", "Реклама", "BadgeRussianRuble"], ["leads", "Заявки", "Inbox"]];
+  const tabs: [Tab, string, string][] = [["posts", "Материалы", "Newspaper"], ["ads", "Реклама", "BadgeRussianRuble"], ["leads", "Заявки", "Inbox"]];
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">

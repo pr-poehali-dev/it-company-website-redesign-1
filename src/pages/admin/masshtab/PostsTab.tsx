@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { fmtDate, mGet, mPost, type Post } from "@/components/masshtab/api";
+import { RUBRICS, rubricByName } from "@/components/masshtab/rubrics";
 import { inp, lbl, uploadImage } from "./upload";
 
 type Form = {
   id?: number; kind: Post["kind"]; rubric: string; title: string; lead: string; hero_name: string; hero_role: string;
   company_inn: string; cover_url: string; content: string; author: string; published: boolean; slug?: string;
+  data_date: string; takeaways: string; sources: string; question: string;
 };
-const empty = (): Form => ({ kind: "interview", rubric: "Люди", title: "", lead: "", hero_name: "", hero_role: "", company_inn: "", cover_url: "", content: "", author: "Редакция «Масштаба»", published: false });
-const RUBRICS = ["Люди", "Компании", "Рынки", "Деньги", "Управление", "Технологии", "Своё дело"];
+const today = () => new Date().toISOString().slice(0, 10);
+const empty = (): Form => ({ kind: "article", rubric: "Разбор", title: "", lead: "", hero_name: "", hero_role: "", company_inn: "", cover_url: "", content: "",
+  author: "Редакция «Масштаба»", published: false, data_date: today(), takeaways: "", sources: "", question: "" });
 const HINT = `**— Вопрос журналиста?**
 
 Ответ героя обычным абзацем.
@@ -26,11 +29,12 @@ export default function PostsTab({ token }: { token: string }) {
   useEffect(() => { load(); }, []);
 
   const edit = async (p: Post) => {
-    const r = await mGet<{ post: Post & { content: string } }>({ action: "post", slug: p.slug }, token);
+    const r = await mGet<{ post: Post & { content: string; takeaways: string; sources: string; question: string } }>({ action: "post", slug: p.slug }, token);
     const x = r.data?.post;
     if (!x) return;
     setForm({ id: x.id, slug: x.slug, kind: x.kind, rubric: x.rubric, title: x.title, lead: x.lead, hero_name: x.hero_name, hero_role: x.hero_role,
-      company_inn: x.company_inn || "", cover_url: x.cover_url || "", content: x.content, author: x.author, published: x.published });
+      company_inn: x.company_inn || "", cover_url: x.cover_url || "", content: x.content, author: x.author, published: x.published,
+      data_date: x.data_date || "", takeaways: x.takeaways || "", sources: x.sources || "", question: x.question || "" });
     setMsg("");
   };
 
@@ -60,10 +64,14 @@ export default function PostsTab({ token }: { token: string }) {
         <div className="grid sm:grid-cols-3 gap-4">
           <div><label className={lbl}>Формат</label>
             <select className={inp} value={form.kind} onChange={(e) => set("kind", e.target.value)}>
-              <option value="interview">Интервью</option><option value="article">Статья</option><option value="partner">Партнёрский материал</option>
+              <option value="article">Статья / аналитика</option><option value="interview">Интервью</option><option value="partner">Партнёрский материал</option>
             </select></div>
           <div><label className={lbl}>Рубрика</label>
-            <select className={inp} value={form.rubric} onChange={(e) => set("rubric", e.target.value)}>{RUBRICS.map((r) => <option key={r}>{r}</option>)}</select></div>
+            <select className={inp} value={form.rubric} onChange={(e) => set("rubric", e.target.value)}>
+              {!rubricByName(form.rubric) && <option>{form.rubric}</option>}
+              {RUBRICS.map((r) => <option key={r.slug}>{r.name}</option>)}
+            </select>
+            {rubricByName(form.rubric) && <p className="text-[11px] text-white/40 mt-1">Формат: {rubricByName(form.rubric)!.format}</p>}</div>
           <div><label className={lbl}>Автор</label><input className={inp} value={form.author} onChange={(e) => set("author", e.target.value)} /></div>
         </div>
         <div><label className={lbl}>Заголовок *</label><input className={`${inp} text-lg font-semibold`} value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="«Мы выросли в 10 раз, когда перестали бояться госзаказа»" /></div>
@@ -88,9 +96,17 @@ export default function PostsTab({ token }: { token: string }) {
             {form.cover_url && <button onClick={() => set("cover_url", "")} className="text-xs text-white/40 hover:text-red-300">Убрать</button>}
           </div>
         </div>
+        <div className="grid sm:grid-cols-[180px_1fr] gap-4">
+          <div><label className={lbl}>Данные актуальны на</label><input type="date" className={inp} value={form.data_date} onChange={(e) => set("data_date", e.target.value)} /></div>
+          <div><label className={lbl}>Главное — 3–5 выводов, каждый с новой строки</label><textarea className={inp} rows={4} value={form.takeaways} onChange={(e) => set("takeaways", e.target.value)} placeholder={"Ставка остаётся 14% — кредиты для МСП не подешевеют до весны\nРубль укрепился к доллару на 0,2%"} /></div>
+        </div>
         <div>
           <label className={lbl}>Текст. Вопрос — жирным через **…**, цитата — строка с «&gt; », подзаголовок — «## ». Абзацы разделяйте пустой строкой.</label>
           <textarea className={`${inp} font-mono leading-relaxed`} rows={22} value={form.content} onChange={(e) => set("content", e.target.value)} placeholder={HINT} />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div><label className={lbl}>Источники — каждый с новой строки, можно со ссылкой в конце</label><textarea className={inp} rows={4} value={form.sources} onChange={(e) => set("sources", e.target.value)} placeholder={"ТАСС https://tass.ru/ekonomika/...\nБанк России, ключевая ставка https://www.cbr.ru/hd_base/KeyRate/\nФНС, ГИР БО"} /></div>
+          <div><label className={lbl}>Вопрос или мини-задание читателю</label><textarea className={inp} rows={4} value={form.question} onChange={(e) => set("question", e.target.value)} placeholder="Посчитайте точку безубыточности: постоянные расходы / (цена − переменные расходы на единицу)" /></div>
         </div>
         {msg && <div className={`text-sm ${msg.includes("Не") || msg.includes("Укаж") ? "text-red-300" : "text-emerald-300"}`}>{msg}</div>}
         <div className="flex flex-wrap gap-3">
@@ -106,8 +122,8 @@ export default function PostsTab({ token }: { token: string }) {
 
   return (
     <div>
-      <button onClick={() => { setForm(empty()); setMsg(""); }} className="mb-5 bg-white text-black font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2"><Icon name="Plus" size={15} /> Новое интервью</button>
-      {!list.length && <div className="text-white/40 text-sm">Материалов пока нет. Создайте первое интервью — оно появится на главной листка.</div>}
+      <button onClick={() => { setForm(empty()); setMsg(""); }} className="mb-5 bg-white text-black font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2"><Icon name="Plus" size={15} /> Новый материал</button>
+      {!list.length && <div className="text-white/40 text-sm">Материалов пока нет. Создайте первый — он появится на главной листка и в своей рубрике.</div>}
       <div className="space-y-2">
         {list.map((p) => (
           <button key={p.id} onClick={() => edit(p)} className="w-full text-left bg-white/[0.03] border border-white/10 rounded-xl p-4 hover:border-white/20 flex items-center gap-4">

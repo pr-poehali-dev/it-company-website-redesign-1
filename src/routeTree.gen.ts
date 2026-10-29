@@ -33,6 +33,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as MasshtabIndexRouteImport } from './routes/masshtab.index'
 import { Route as MasshtabSlugRouteImport } from './routes/masshtab.$slug'
 import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
+import { Route as MasshtabOZhurnaleRouteImport } from './routes/masshtab.o-zhurnale'
 import { Route as MasshtabReklamaRouteImport } from './routes/masshtab.reklama'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
 import { Route as RadarInnRouteImport } from './routes/radar.$inn'
@@ -48,6 +49,7 @@ import { Route as AnalyticsPipesIndexRouteImport } from './routes/analytics.pipe
 import { Route as AnalyticsPipesAppRouteImport } from './routes/analytics.pipes.app'
 import { Route as AnalyticsServicesIndexRouteImport } from './routes/analytics.services.index'
 import { Route as AnalyticsServicesSlugRouteImport } from './routes/analytics.services.$slug'
+import { Route as MasshtabRubrikaRubricRouteImport } from './routes/masshtab.rubrika.$rubric'
 import { Route as UslugiServiceSlugCitySlugRouteImport } from './routes/uslugi.$serviceSlug.$citySlug'
 import { Route as AnalyticsBiSIdRouteImport } from './routes/analytics.bi.s.$id'
 import { Route as AnalyticsMarketOkvedIndexRouteImport } from './routes/analytics.market.$okved.index'
@@ -177,6 +179,11 @@ const Masshtab500Route = Masshtab500RouteImport.update({
   path: '/500',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabOZhurnaleRoute = MasshtabOZhurnaleRouteImport.update({
+  id: '/o-zhurnale',
+  path: '/o-zhurnale',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const MasshtabReklamaRoute = MasshtabReklamaRouteImport.update({
   id: '/reklama',
   path: '/reklama',
@@ -252,6 +259,11 @@ const AnalyticsServicesSlugRoute = AnalyticsServicesSlugRouteImport.update({
   path: '/analytics/services/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MasshtabRubrikaRubricRoute = MasshtabRubrikaRubricRouteImport.update({
+  id: '/rubrika/$rubric',
+  path: '/rubrika/$rubric',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const UslugiServiceSlugCitySlugRoute =
   UslugiServiceSlugCitySlugRouteImport.update({
     id: '/uslugi/$serviceSlug/$citySlug',
@@ -297,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -310,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
   '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
+  '/masshtab/rubrika/$rubric': typeof MasshtabRubrikaRubricRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi/': typeof AnalyticsBiIndexRoute
   '/analytics/company/': typeof AnalyticsCompanyIndexRoute
@@ -341,6 +355,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -354,6 +369,7 @@ export interface FileRoutesByTo {
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
   '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
+  '/masshtab/rubrika/$rubric': typeof MasshtabRubrikaRubricRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi': typeof AnalyticsBiIndexRoute
   '/analytics/company': typeof AnalyticsCompanyIndexRoute
@@ -387,6 +403,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -400,6 +417,7 @@ export interface FileRoutesById {
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
   '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
+  '/masshtab/rubrika/$rubric': typeof MasshtabRubrikaRubricRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi/': typeof AnalyticsBiIndexRoute
   '/analytics/company/': typeof AnalyticsCompanyIndexRoute
@@ -434,6 +452,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/o-zhurnale'
     | '/masshtab/reklama'
     | '/radar/$inn'
     | '/services/$slug'
@@ -447,6 +466,7 @@ export interface FileRouteTypes {
     | '/analytics/databases/$slug'
     | '/analytics/pipes/app'
     | '/analytics/services/$slug'
+    | '/masshtab/rubrika/$rubric'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi/'
     | '/analytics/company/'
@@ -478,6 +498,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/o-zhurnale'
     | '/masshtab/reklama'
     | '/radar/$inn'
     | '/services/$slug'
@@ -491,6 +512,7 @@ export interface FileRouteTypes {
     | '/analytics/databases/$slug'
     | '/analytics/pipes/app'
     | '/analytics/services/$slug'
+    | '/masshtab/rubrika/$rubric'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi'
     | '/analytics/company'
@@ -523,6 +545,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/o-zhurnale'
     | '/masshtab/reklama'
     | '/radar/$inn'
     | '/services/$slug'
@@ -536,6 +559,7 @@ export interface FileRouteTypes {
     | '/analytics/databases/$slug'
     | '/analytics/pipes/app'
     | '/analytics/services/$slug'
+    | '/masshtab/rubrika/$rubric'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi/'
     | '/analytics/company/'
@@ -760,6 +784,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Masshtab500RouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/o-zhurnale': {
+      id: '/masshtab/o-zhurnale'
+      path: '/o-zhurnale'
+      fullPath: '/masshtab/o-zhurnale'
+      preLoaderRoute: typeof MasshtabOZhurnaleRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/reklama': {
       id: '/masshtab/reklama'
       path: '/reklama'
@@ -865,6 +896,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsServicesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/masshtab/rubrika/$rubric': {
+      id: '/masshtab/rubrika/$rubric'
+      path: '/rubrika/$rubric'
+      fullPath: '/masshtab/rubrika/$rubric'
+      preLoaderRoute: typeof MasshtabRubrikaRubricRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/uslugi/$serviceSlug/$citySlug': {
       id: '/uslugi/$serviceSlug/$citySlug'
       path: '/uslugi/$serviceSlug/$citySlug'
@@ -899,15 +937,19 @@ declare module '@tanstack/react-router' {
 interface MasshtabRouteChildren {
   MasshtabSlugRoute: typeof MasshtabSlugRoute
   Masshtab500Route: typeof Masshtab500Route
+  MasshtabOZhurnaleRoute: typeof MasshtabOZhurnaleRoute
   MasshtabReklamaRoute: typeof MasshtabReklamaRoute
   MasshtabIndexRoute: typeof MasshtabIndexRoute
+  MasshtabRubrikaRubricRoute: typeof MasshtabRubrikaRubricRoute
 }
 
 const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabSlugRoute: MasshtabSlugRoute,
   Masshtab500Route: Masshtab500Route,
+  MasshtabOZhurnaleRoute: MasshtabOZhurnaleRoute,
   MasshtabReklamaRoute: MasshtabReklamaRoute,
   MasshtabIndexRoute: MasshtabIndexRoute,
+  MasshtabRubrikaRubricRoute: MasshtabRubrikaRubricRoute,
 }
 
 const MasshtabRouteWithChildren = MasshtabRoute._addFileChildren(
