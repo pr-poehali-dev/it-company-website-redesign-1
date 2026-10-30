@@ -4,6 +4,7 @@ import MShell, { Kicker, serif } from "./MShell";
 import AdSlot, { pickAd } from "./AdSlot";
 import Markdown from "./Markdown";
 import Crumbs from "./Crumbs";
+import DownloadArticle from "./DownloadArticle";
 import { rubricByName } from "./rubrics";
 import { companyName, fmtDate, growthLabel, mGet, mln, type Ad } from "./api";
 
@@ -31,9 +32,12 @@ export default function PostPage() {
           <h1 className={`${serif} font-bold text-4xl md:text-6xl leading-[1.05] mt-3`}>{post.title}</h1>
           {post.lead && <p className={`${serif} text-xl md:text-2xl text-[#5b5550] mt-4 leading-snug`}>{post.lead}</p>}
           <div className="text-sm text-[#8a8278] mt-4">{post.author} · {fmtDate(post.published_at)} · {post.read_min} мин чтения</div>
-          {post.data_date && (
-            <div className="inline-block mt-4 text-xs font-semibold bg-[#efe7da] rounded px-3 py-1.5">Данные актуальны на {new Date(post.data_date).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</div>
-          )}
+          <div className="flex flex-wrap items-center gap-3 mt-4">
+            {post.data_date && (
+              <div className="inline-block text-xs font-semibold bg-[#efe7da] rounded px-3 py-1.5">Данные актуальны на {new Date(post.data_date).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</div>
+            )}
+            <DownloadArticle post={post} />
+          </div>
         </div>
         {post.cover_url && !post.content.includes(post.cover_url) && (
           <figure className="mt-8">
@@ -60,6 +64,10 @@ export default function PostPage() {
                 <div className="mt-2 text-base leading-relaxed whitespace-pre-line">{post.question}</div>
               </div>
             )}
+            <div className="mt-8 flex flex-wrap items-center gap-3 font-['Golos_Text',sans-serif] text-sm text-[#5b5550]">
+              <DownloadArticle post={post} />
+              <span>Word, HTML, Markdown или текст — для публикации на других площадках</span>
+            </div>
             {sources.length > 0 && (
               <div className="mt-8 pt-4 border-t border-[#e2d9cb] font-['Golos_Text',sans-serif] text-sm text-[#5b5550]">
                 <div className="font-bold text-[#14110f] mb-1">Источники</div>
