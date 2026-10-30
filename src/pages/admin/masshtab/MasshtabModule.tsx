@@ -4,12 +4,13 @@ import PostsTab from "./PostsTab";
 import AdsTab from "./AdsTab";
 import LeadsTab from "./LeadsTab";
 import QuotesTab from "./QuotesTab";
+import AdvertisersTab from "./advertisers/AdvertisersTab";
 
-type Tab = "posts" | "quotes" | "ads" | "leads";
+type Tab = "posts" | "quotes" | "ads" | "advertisers" | "leads";
 
 export default function MasshtabModule({ token }: { token: string }) {
   const [tab, setTab] = useState<Tab>("posts");
-  const tabs: [Tab, string, string][] = [["posts", "Материалы", "Newspaper"], ["quotes", "Цитата дня", "Quote"], ["ads", "Реклама", "BadgeRussianRuble"], ["leads", "Заявки", "Inbox"]];
+  const tabs: [Tab, string, string][] = [["posts", "Материалы", "Newspaper"], ["quotes", "Цитата дня", "Quote"], ["ads", "Реклама", "BadgeRussianRuble"], ["advertisers", "Рекламодатели", "Target"], ["leads", "Заявки", "Inbox"]];
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -32,6 +33,7 @@ export default function MasshtabModule({ token }: { token: string }) {
       {tab === "posts" && <PostsTab token={token} />}
       {tab === "quotes" && <QuotesTab token={token} />}
       {tab === "ads" && <AdsTab token={token} />}
+      {tab === "advertisers" && <AdvertisersTab token={token} />}
       {tab === "leads" && <LeadsTab token={token} />}
     </div>
   );
