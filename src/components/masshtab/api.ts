@@ -78,3 +78,6 @@ export const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString
 
 export const timeAgo = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Moscow" }) : "");
 export const dayLabel = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone: "Europe/Moscow" }) : "");
+
+export interface Quote { id: number; text: string; author: string; author_role: string; source: string; comment: string; day?: string; show_date?: string | null; active?: boolean; shown?: number; last_shown?: string | null }
+export interface QuoteResp { quote: Quote | null; archive: Quote[]; today: string }

@@ -15,6 +15,7 @@ from data import REGIONS, SECTIONS
 import ingest
 import market
 import notify
+import quotes
 
 S = os.environ.get('MAIN_DB_SCHEMA', 'public')
 CORS = {
@@ -338,6 +339,8 @@ def handler(event: dict, context) -> dict:
             return action_filters(conn)
         if action == 'rating':
             return action_rating(conn, p)
+        if action == 'quote':
+            return resp(quotes.action_quote(conn, S, p), cache=300)
         if action == 'lead' and method == 'POST':
             return action_lead(conn, b)
         if action == 'click' and method == 'POST':
@@ -351,13 +354,20 @@ def handler(event: dict, context) -> dict:
             return action_ads(conn, p, admin)
         if not admin:
             return resp({'error': 'Войдите в админку'}, 401)
-        if method != 'POST' and action != 'leads':
+        if method != 'POST' and action not in ('leads', 'quotes'):
             return resp({'error': 'Нужен POST'}, 405)
         handlers = {'save_post': action_save_post, 'delete_post': action_delete_post, 'save_ad': action_save_ad, 'delete_ad': action_delete_ad}
         if action in handlers:
             return handlers[action](conn, b)
         if action == 'leads':
             return action_leads(conn)
+        if action == 'quotes':
+            return resp(quotes.action_quotes_admin(conn, S))
+        if action == 'save_quote':
+            data, code = quotes.action_save_quote(conn, S, b)
+            return resp(data, code)
+        if action == 'delete_quote':
+            return resp(quotes.action_delete_quote(conn, S, b))
         return resp({'error': 'Неизвестное действие'}, 400)
     finally:
         conn.close()

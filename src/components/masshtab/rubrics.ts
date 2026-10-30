@@ -1,4 +1,4 @@
-export interface Rubric { slug: string; name: string; tier: "core" | "wide"; desc: string; format: string; rhythm: string }
+export interface Rubric { slug: string; name: string; tier: "core" | "wide" | "life"; desc: string; format: string; rhythm: string }
 
 export const RUBRICS: Rubric[] = [
   { slug: "indikatory", name: "Индикаторы рынка", tier: "core", rhythm: "раз в месяц",
@@ -25,7 +25,27 @@ export const RUBRICS: Rubric[] = [
   { slug: "finansy", name: "Финансы для нефинансистов", tier: "wide", rhythm: "раз в две недели",
     desc: "EBITDA, NPV, ковенанты, амортизация — простым языком и на примерах малого и среднего бизнеса.",
     format: "понятие → формула → пример → где ошибаются" },
+  { slug: "nedvizhimost", name: "Недвижимость", tier: "life", rhythm: "раз в две недели",
+    desc: "Коммерческая и жилая недвижимость глазами собственника бизнеса: аренда или покупка, доходность, ипотека, налоги.",
+    format: "цены и ставки по регионам, расчёт окупаемости, риски" },
+  { slug: "avtomobili", name: "Автомобили", tier: "life", rhythm: "раз в две недели",
+    desc: "Машина для себя и для компании: лизинг, корпоративный автопарк, стоимость владения, рынок и цены.",
+    format: "сравнение моделей и схем владения в рублях за год" },
+  { slug: "investicii", name: "Инвестиции", tier: "life", rhythm: "каждую неделю",
+    desc: "Куда предпринимателю вложить свободные деньги: вклады, облигации, акции, доли в бизнесе — доходность против риска.",
+    format: "инструмент → доходность → риск → налоги; не является инвестиционной рекомендацией" },
+  { slug: "otdyh", name: "Отдых", tier: "life", rhythm: "раз в две недели",
+    desc: "Как владельцу бизнеса восстанавливаться без потери управляемости: отпуск, режим, спорт, выходные без ноутбука.",
+    format: "практика и опыт руководителей, чек-листы" },
+  { slug: "puteshestviya", name: "Путешествия", tier: "life", rhythm: "раз в две недели",
+    desc: "Деловые поездки и путешествия: направления, визы, расходы, бизнес-туры и выставки, совмещение работы и отдыха.",
+    format: "маршрут, бюджет, что учесть заранее" },
+  { slug: "hobbi", name: "Хобби", tier: "life", rhythm: "раз в месяц",
+    desc: "Увлечения предпринимателей — от яхтинга до коллекционирования — и хобби, которые выросли в бизнес.",
+    format: "история героя + цифры: сколько стоит и что даёт" },
 ];
+
+export const TIER_LABEL: Record<Rubric["tier"], string> = { core: "Аналитика", wide: "Практика", life: "Стиль жизни" };
 
 export const rubricBySlug = (s: string) => RUBRICS.find((r) => r.slug === s);
 export const rubricByName = (n: string) => RUBRICS.find((r) => r.name === n);

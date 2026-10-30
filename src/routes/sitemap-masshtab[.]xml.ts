@@ -22,6 +22,7 @@ export const Route = createFileRoute("/sitemap-masshtab.xml")({
           ["/masshtab", last, "daily", "0.9"],
           ["/masshtab/500", last, "monthly", "0.9"],
           ["/masshtab/pechatnyy-nomer", last, "monthly", "0.7"],
+          ["/masshtab/citata-dnya", new Date().toISOString().slice(0, 10), "daily", "0.5"],
           ["/masshtab/o-zhurnale", "", "monthly", "0.4"],
           ["/masshtab/reklama", "", "monthly", "0.4"],
           ...RUBRICS.filter((r) => used.has(r.name)).map((r): [string, string, string, string] => [

@@ -1,16 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import HomePage from "@/components/masshtab/HomePage";
-import { mGet, type Market, type Post, type RatingResp } from "@/components/masshtab/api";
+import { mGet, type Market, type Post, type QuoteResp, type RatingResp } from "@/components/masshtab/api";
 import { PUBLISHER, SITE, abs, breadcrumbLd, ld, pageMeta } from "@/components/masshtab/seo";
 
 const DESC = "Деловой листок «Масштаб» для предпринимателей и руководителей: индикаторы рынка, регуляторный дайджест, разборы компаний по данным ФНС, рейтинг «Масштаб-500».";
 
 export const Route = createFileRoute("/masshtab/")({
   loader: async () => {
-    const [p, r, m] = await Promise.all([
+    const [p, r, m, q] = await Promise.all([
       mGet<{ posts: Post[] }>({ action: "posts", limit: 13 }), mGet<RatingResp>({ action: "rating" }), mGet<Market>({ action: "market" }),
+      mGet<QuoteResp>({ action: "quote" }),
     ]);
-    return { posts: p.data?.posts ?? [], rating: r.data, market: m.data };
+    return { posts: p.data?.posts ?? [], rating: r.data, market: m.data, quote: q.data?.quote ?? null };
   },
   head: ({ loaderData }) => {
     const posts = loaderData?.posts ?? [];

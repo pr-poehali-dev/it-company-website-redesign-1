@@ -7,6 +7,7 @@ import MarketBar from "./MarketBar";
 import NewsFeed from "./NewsFeed";
 import PostCard from "./PostCard";
 import PrintIssuePromo from "./PrintIssuePromo";
+import QuoteCard from "./QuoteCard";
 import Crumbs from "./Crumbs";
 import { RUBRICS } from "./rubrics";
 import { companyName, growthLabel, mGet, mln, type Ad, type Market } from "./api";
@@ -14,7 +15,7 @@ import { companyName, growthLabel, mGet, mln, type Ad, type Market } from "./api
 const route = getRouteApi("/masshtab/");
 
 export default function HomePage() {
-  const { posts, rating, market: initMarket } = route.useLoaderData();
+  const { posts, rating, market: initMarket, quote } = route.useLoaderData();
   const [ads, setAds] = useState<Ad[]>([]);
   const [market, setMarket] = useState<Market | null>(initMarket);
   useEffect(() => {
@@ -91,6 +92,8 @@ export default function HomePage() {
             )}
           </aside>
         </div>
+
+        {quote && <div className="mt-16"><QuoteCard q={quote} /></div>}
 
         <PrintIssuePromo />
 

@@ -80,6 +80,18 @@
    "method": "GET",
    "path": "/?action=feed&limit=2",
    "expectedStatus": 200
+  },
+  {
+   "name": "Цитата дня",
+   "method": "GET",
+   "path": "/?action=quote",
+   "expectedStatus": 200
+  },
+  {
+   "name": "Цитаты без входа",
+   "method": "GET",
+   "path": "/?action=quotes",
+   "expectedStatus": 401
   }
  ]
 }
