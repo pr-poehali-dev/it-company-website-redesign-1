@@ -1,6 +1,7 @@
 import func2url from "../../../backend/func2url.json";
 
 export const M_URL = (func2url as Record<string, string>)["masshtab"];
+export const L_URL = (func2url as Record<string, string>)["masshtab-learn"];
 
 export interface RatingItem {
   rank: number; rank_ru: number | null; inn: string; name: string; region: string; region_name: string; okved2: string; section: string;
@@ -81,3 +82,17 @@ export const dayLabel = (iso: string | null) => (iso ? new Date(iso).toLocaleDat
 
 export interface Quote { id: number; text: string; author: string; author_role: string; source: string; comment: string; day?: string; show_date?: string | null; active?: boolean; shown?: number; last_shown?: string | null }
 export interface QuoteResp { quote: Quote | null; archive: Quote[]; today: string }
+
+export interface Track { slug: string; name: string; desc: string; cover: string; count: number }
+export interface LearnPost extends Post { track: string | null; origin: string }
+
+export async function lGet<T>(params: Record<string, string | number | undefined>): Promise<{ status: number; data: T | null }> {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== "") q.set(k, String(v)); });
+  try {
+    const r = await fetch(`${L_URL}/?${q}`, { signal: AbortSignal.timeout(9000) });
+    return { status: r.status, data: r.ok ? await r.json() : null };
+  } catch {
+    return { status: 0, data: null };
+  }
+}

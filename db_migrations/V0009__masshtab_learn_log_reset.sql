@@ -1,0 +1,1 @@
+UPDATE mag_learn_log SET ok = FALSE WHERE kind = 'tick' AND info = '{}'::jsonb;

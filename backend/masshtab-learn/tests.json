@@ -1,0 +1,9 @@
+{
+ "tests": [
+  {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+  {"name": "Ping", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"ok": true}, "bodyMatcher": "partial"},
+  {"name": "Направления", "method": "GET", "path": "/?action=tracks", "expectedStatus": 200},
+  {"name": "Материалы", "method": "GET", "path": "/?action=list", "expectedStatus": 200},
+  {"name": "Генерация без входа", "method": "POST", "path": "/", "body": {"action": "generate"}, "expectedStatus": 401}
+ ]
+}

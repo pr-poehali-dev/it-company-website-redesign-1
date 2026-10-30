@@ -39,7 +39,19 @@ PUBLISHER = 'ООО «МАТ-Лабс»'
 COPY = f'© {PUBLISHER}, {ISSUE["year"]}'
 SITE = 'mat-labs.ru'
 OUT = f'{ROOT}/public/masshtab-print/{ISSUE["dir"]}'
-ORDER = [2, 3, 14, 'M500', 13, 11, 9, 8, 12, 7, 5, 6, 4, 10]
+ORDER = [2, 3, 'AD:partner', 14, 'M500', 'AD:office', 13, 11, 9, 'AD:auto', 12, 7, 5, 6, 4, 10]
+MAX_PAGES = 52
+PROMO = f'{ROOT}/public/img/masshtab/promo'
+ADS = {
+    'partner': ('Деловые услуги', 'Партнёр, который отвечает за результат', 'Консалтинг, аудит и сопровождение сделок для компаний малого и среднего бизнеса.'),
+    'office': ('Коммерческая недвижимость', 'Офис для команды, которая растёт', 'Аренда и покупка офисов класса A и B: от 50 до 2000 м², готовые планировки, гибкие сроки.'),
+    'auto': ('Автомобили для бизнеса', 'Корпоративный автомобиль — в лизинг', 'Легковые и коммерческие автомобили с авансом от 10%. Решение за один день.'),
+    'finance': ('Финансы', 'Деньги на рост — без кассовых разрывов', 'Кредиты, факторинг и управление ликвидностью для компаний с выручкой от 100 млн ₽.'),
+    'travel': ('Деловые поездки', 'Командировки без лишних хлопот', 'Билеты, отели и отчётные документы для сотрудников — в одном окне.'),
+    'production': ('Производство', 'Оборудование, которое окупается', 'Поставка, пусконаладка и сервис станков для малого производства.'),
+}
+HALF_KEYS = ['finance', 'production', 'travel']
+HALF_ADS = {}
 COVER_STORY = 13
 
 TRIM_W, TRIM_H, BLEED = 210, 280, 3
@@ -192,6 +204,28 @@ def lines_of(s):
     return [x.strip() for x in (s or '').split('\n') if x.strip()]
 
 
+def ad_full(key):
+    k, h, d = ADS[key]
+    return f'''
+<section class="adfull">
+  <img src="file://{PROMO}/{key}.jpg">
+  <div class="adlabel">Реклама</div>
+  <div class="adbox">
+    <div class="adk">{html.escape(k)}</div>
+    <div class="adh">{txt(h, False)}</div>
+    <div class="adt">{txt(d, False)}</div>
+    <div class="adslot">Рекламное место: полоса 210×280 мм · {SITE}/masshtab/reklama</div>
+  </div>
+</section>'''
+
+
+def ad_half(key):
+    k, h, d = ADS[key]
+    return f'''<div class="adhalf"><img src="file://{PROMO}/{key}.jpg"><div class="adhb"><div class="adlabel s">Реклама</div>
+<div class="adk">{html.escape(k)}</div><div class="adh">{txt(h, False)}</div><div class="adt">{txt(d, False)}</div>
+<div class="adslot">Рекламный модуль ½ полосы · {SITE}/masshtab/reklama</div></div></div>'''
+
+
 def article(p, marker):
     url = f'https://{SITE}/masshtab/{p["slug"]}'
     tk = [re.sub(r'^[-—•\d.)\s]+', '', x) for x in lines_of(p.get('takeaways'))]
@@ -221,6 +255,7 @@ def article(p, marker):
   </div>
   {hero}
   {flow(blocks(p["content"]), key, f'<span class="end">■</span>{task}{srcs}<div class="cr">{COPY}. Перепечатка и воспроизведение — только с письменного согласия издателя.</div>')}
+  {ad_half(HALF_ADS[p['id']]) if p['id'] in HALF_ADS else ''}
 </section>'''
 
 
@@ -281,7 +316,7 @@ def cover(posts, pages):
     lines = [(14, '«Масштаб-500»', 'кто вырос в 15 раз за три года и почему темп падает'),
              (2, 'Индикаторы рынка', 'ставка 14% надолго, что это значит для кредитов'),
              (3, 'Налоги 2027–2029', 'что поменяется для малого и среднего бизнеса'),
-             (8, 'Гранты', 'поток денег технологическому бизнесу сжался втрое')]
+             (9, 'Агробизнес', '120 млрд ₽ субсидий и почему среднему фермеру достаётся меньше')]
     cl = ''.join(f'<div class="cl"><div class="clr">{html.escape(r)} <b>с.{NB}{pg(k)}</b></div><div class="clt">{txt(t, False)}</div></div>' for k, r, t in lines)
     return f'''
 <section class="cover">
@@ -306,6 +341,8 @@ def cover(posts, pages):
 def contents(posts, pages):
     items = []
     for k in ORDER:
+        if isinstance(k, str) and k.startswith('AD:'):
+            continue
         if k == 'M500':
             items.append(('Рейтинг', '«Масштаб-500»: первые 50 компаний', pages.get('M500', '00')))
         else:
@@ -553,6 +590,21 @@ figcaption {{ font-family: 'Golos Text', sans-serif; font-size: 6.6pt; color: #8
 .rt .n {{ font-weight: 800; color: #d6402b; width: 6mm; }}
 .rt .g {{ font-weight: 800; color: #16803c; }}
 .disc {{ font-family: 'Golos Text', sans-serif; font-size: 6.6pt; color: #8a8278; margin-top: 3mm; }}
+.adfull {{ page: full; width: 100vw; height: 100vh; overflow: hidden; position: relative; break-before: page; break-after: page; background: #14110f; }}
+.adfull img {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
+.adfull .adbox {{ position: absolute; left: {BLEED + 14}mm; right: {BLEED + 14}mm; bottom: {BLEED + 16}mm; background: rgba(246,242,234,.94); padding: 7mm 8mm; font-family: 'Golos Text', sans-serif; }}
+.adlabel {{ position: absolute; top: {BLEED + 8}mm; right: {BLEED + 10}mm; background: rgba(20,17,15,.75); color: #f6f2ea; font: 600 6.5pt 'Golos Text'; letter-spacing: .14em; text-transform: uppercase; padding: 1mm 2.2mm; }}
+.adlabel.s {{ position: static; display: inline-block; margin-bottom: 2mm; }}
+.adk {{ font-size: 7.5pt; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #d6402b; }}
+.adh {{ font-family: 'Playfair Display', serif; font-weight: 800; font-size: 26pt; line-height: 1.08; color: #14110f; margin-top: 2mm; }}
+.adt {{ font-size: 10pt; line-height: 1.4; color: #3b3631; margin-top: 2.5mm; }}
+.adslot {{ font-size: 6.5pt; color: #8a8278; margin-top: 4mm; padding-top: 2mm; border-top: .5pt solid #d4c8b6; }}
+.adhalf {{ break-inside: avoid; break-before: auto; margin-top: 6mm; display: grid; grid-template-columns: 1.25fr 1fr; height: 98mm; background: #f6f2ea; border: .6pt solid #d4c8b6; font-family: 'Golos Text', sans-serif; }}
+.adhalf img {{ width: 100%; height: 98mm; object-fit: cover; display: block; }}
+.adhb {{ padding: 6mm; display: flex; flex-direction: column; }}
+.adhb .adh {{ font-size: 17pt; }}
+.adhb .adt {{ font-size: 8.8pt; }}
+.adhb .adslot {{ margin-top: auto; }}
 .qr {{ color: #14110f; }}
 .qr path {{ fill: currentColor; }}
 '''
@@ -561,10 +613,13 @@ figcaption {{ font-family: 'Golos Text', sans-serif; font-size: 6.6pt; color: #8
 def build_html(posts, rating, pages, fill):
     parts = [cover(posts, pages), contents(posts, pages), editorial()]
     for k in ORDER:
-        parts.append(m500(rating, '§M500§') if k == 'M500' else article(posts[k], f'§A{k}§'))
-    if fill:
-        parts.append(house())
-        parts += [notes() for _ in range(fill - 1)]
+        if isinstance(k, str) and k.startswith('AD:'):
+            parts.append(ad_full(k[3:]))
+        else:
+            parts.append(m500(rating, '§M500§') if k == 'M500' else article(posts[k], f'§A{k}§'))
+    extra = ['production', 'finance', 'travel']
+    for i in range(fill):
+        parts.append(house() if i == 0 else ad_full(extra[(i - 1) % len(extra)]) if i <= len(extra) else notes())
     parts += [imprint(), back()]
     return f'<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Масштаб № {ISSUE["number"]}</title><style>{css()}</style></head><body>{"".join(parts)}</body></html>'
 
@@ -596,6 +651,31 @@ def find_pages(pdf):
             key = 'M500' if k == 'M500' else int(k[1:])
             found.setdefault(key, i + 1)
     return found, len(doc)
+
+
+def tail_space(pdf, pages):
+    doc = pdfium.PdfDocument(pdf)
+    starts = sorted(pages.items(), key=lambda x: x[1])
+    out = {}
+    for idx, (k, start) in enumerate(starts):
+        if not isinstance(k, int):
+            continue
+        end = (starts[idx + 1][1] if idx + 1 < len(starts) else len(doc)) - 1
+        for pg in range(end, start - 1, -1):
+            page = doc[pg - 1]
+            tp = page.get_textpage()
+            t = tp.get_text_range()
+            if 'РЕК ЛАМА' in t or 'Реклама' in t[:40]:
+                continue
+            H = page.get_height()
+            low = H
+            for j in range(tp.count_rects()):
+                l, b, r, top = tp.get_rect(j)
+                if b > 22 * 72 / 25.4:
+                    low = min(low, b)
+            out[k] = (low - 22 * 72 / 25.4) / (72 / 25.4)
+            break
+    return out
 
 
 def finalize(src, print_pdf, read_pdf):
@@ -643,14 +723,23 @@ def main():
     ensure_fonts()
     feed = get(f'{API}/?action=feed&limit=50')['posts']
     posts = {p['id']: p for p in feed}
-    missing = [k for k in ORDER if k != 'M500' and k not in posts]
+    missing = [k for k in ORDER if isinstance(k, int) and k not in posts]
     if missing:
         sys.exit(f'Нет статей: {missing}')
     rating = get(f'{API}/?action=rating')
     first = f'{WORK}/pass1.pdf'
     render(build_html(posts, rating, {}, 0), first)
     pages, n = find_pages(first)
-    fill = (-(n + 1)) % 4 + 1
+    space = tail_space(first, pages)
+    fits = sorted([k for k, v in space.items() if v >= 112], key=lambda k: -space[k])[:len(HALF_KEYS)]
+    HALF_ADS.update({k: HALF_KEYS[i] for i, k in enumerate(sorted(fits, key=lambda k: pages[k]))})
+    print('half ads:', HALF_ADS, {k: round(v) for k, v in space.items()})
+    render(build_html(posts, rating, {}, 0), first)
+    pages, n = find_pages(first)
+    fill = MAX_PAGES - n
+    if fill < 0:
+        sys.exit(f'Номер не помещается в {MAX_PAGES} полос: материалы занимают {n}. Уберите статью из ORDER.')
+    fill -= fill % 4 if (n + fill) % 4 else 0
     final = f'{WORK}/pass2.pdf'
     render(build_html(posts, rating, pages, fill), final)
     pages2, n2 = find_pages(final)
@@ -659,7 +748,7 @@ def main():
         pages2, n2 = find_pages(final)
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
-    os.makedirs(OUT)
+    os.makedirs(OUT, exist_ok=True)
     name = ISSUE['file']
     finalize(final, f'{OUT}/{name}-print.pdf', f'{OUT}/{name}.pdf')
     total = previews(f'{OUT}/{name}.pdf', OUT)

@@ -6,6 +6,7 @@ import Markdown from "./Markdown";
 import Crumbs from "./Crumbs";
 import DownloadArticle from "./DownloadArticle";
 import { rubricByName } from "./rubrics";
+import { LEARN_PATH, LEARN_RUBRIC } from "./learn";
 import { companyName, fmtDate, growthLabel, mGet, mln, type Ad } from "./api";
 
 const route = getRouteApi("/masshtab/$slug");
@@ -26,7 +27,7 @@ export default function PostPage() {
   return (
     <MShell>
       <article className="max-w-6xl mx-auto px-4 md:px-6 pt-8">
-        <Crumbs items={[...(rubricByName(post.rubric) ? [{ label: post.rubric, to: `/masshtab/rubrika/${rubricByName(post.rubric)!.slug}` }] : []), { label: post.title }]} />
+        <Crumbs items={[...(post.rubric === LEARN_RUBRIC ? [{ label: "Обучение", to: LEARN_PATH }] : rubricByName(post.rubric) ? [{ label: post.rubric, to: `/masshtab/rubrika/${rubricByName(post.rubric)!.slug}` }] : []), { label: post.title }]} />
         <div className="max-w-3xl mt-5">
           <Kicker>{post.rubric}{post.kind === "partner" ? " · партнёрский материал" : ""}</Kicker>
           <h1 className={`${serif} font-bold text-4xl md:text-6xl leading-[1.05] mt-3`}>{post.title}</h1>

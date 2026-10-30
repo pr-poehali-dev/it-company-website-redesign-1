@@ -1,0 +1,2 @@
+UPDATE mag_posts SET track = 'lichnaya-effektivnost' WHERE origin = 'uchispro' AND title LIKE 'Бизнес-школы:%';
+UPDATE mag_posts SET track = 'strategiya' WHERE origin = 'uchispro' AND title LIKE 'От идеи до презентации инвестору%';

@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { RUBRICS } from "./rubrics";
 
-const NAV: [string, string][] = [["/masshtab", "Главное"], ["/masshtab/500", "Масштаб-500"], ["/masshtab/pechatnyy-nomer", "Печатный номер"], ["/masshtab/citata-dnya", "Цитата дня"], ["/masshtab/o-zhurnale", "О журнале"], ["/masshtab/reklama", "Реклама"]];
+const NAV: [string, string][] = [["/masshtab", "Главное"], ["/masshtab/obuchenie", "Обучение"], ["/masshtab/500", "Масштаб-500"], ["/masshtab/pechatnyy-nomer", "Печатный номер"], ["/masshtab/citata-dnya", "Цитата дня"], ["/masshtab/o-zhurnale", "О журнале"], ["/masshtab/reklama", "Реклама"]];
 
 export function Logo({ className = "", light = false }: { className?: string; light?: boolean }) {
   return (
@@ -53,6 +53,7 @@ export default function MShell({ children, active, top }: { children: ReactNode;
             <Link to="/masshtab/500" className="block hover:text-white">Рейтинг «Масштаб-500»</Link>
             <Link to="/masshtab/pechatnyy-nomer" className="block hover:text-white">Печатный номер (PDF)</Link>
             <Link to="/masshtab/citata-dnya" className="block hover:text-white">Цитата дня</Link>
+            <Link to="/masshtab/obuchenie" className="block hover:text-white">Обучение для руководителей</Link>
             <Link to="/masshtab/reklama" className="block hover:text-white">Реклама и спецпроекты</Link>
             <Link to="/masshtab/reklama" hash="hero" className="block hover:text-white">Предложить героя интервью</Link>
             <Link to="/masshtab/o-zhurnale" className="block hover:text-white">Редакционные принципы и источники</Link>
