@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { mPost } from "./api";
 
-export default function LeadForm({ kind, cta, placeholder }: { kind: "ad" | "hero" | "rating" | "subscribe"; cta: string; placeholder: string }) {
-  const [f, setF] = useState({ name: "", company: "", contact: "", message: "" });
+export type LeadKind = "ad" | "hero" | "rating" | "subscribe" | "report" | "corporate" | "calc";
+
+export default function LeadForm({ kind, cta, placeholder, prefix = "", initialMessage = "" }: { kind: LeadKind; cta: string; placeholder: string; prefix?: string; initialMessage?: string }) {
+  const [f, setF] = useState({ name: "", company: "", contact: "", message: initialMessage });
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [err, setErr] = useState("");
   const submit = async (e: React.FormEvent) => {
@@ -10,7 +12,7 @@ export default function LeadForm({ kind, cta, placeholder }: { kind: "ad" | "her
     setErr("");
     if (f.contact.trim().length < 5) { setErr("Укажите телефон или email"); return; }
     setState("sending");
-    const r = await mPost<{ ok: boolean }>({ action: "lead", kind, ...f });
+    const r = await mPost<{ ok: boolean }>({ action: "lead", kind, ...f, message: prefix ? `${prefix}\n${f.message}`.trim() : f.message });
     if (r.error) { setErr(r.error); setState("idle"); return; }
     setState("done");
   };

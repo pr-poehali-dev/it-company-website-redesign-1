@@ -27,7 +27,7 @@ export default function AdsPage() {
           <Crumbs dark items={[{ label: "Реклама и сотрудничество" }]} />
           <Kicker className="text-[#ff7a66] mt-8">Реклама и сотрудничество</Kicker>
           <h1 className={`${serif} font-bold text-4xl md:text-6xl mt-3 leading-[1.05] max-w-3xl`}>Ваш бренд рядом с историями быстрорастущих компаний</h1>
-          <p className="text-lg text-white/75 mt-4 max-w-2xl">«Масштаб» читают собственники, руководители и финансовые директора. Аудитория, которая принимает решения о закупках, кредитах и партнёрствах.</p>
+          <p className="text-lg text-white/75 mt-4 max-w-2xl">«Масштаб» читают собственники, финансовые директора, стратеги и руководители цифровых направлений — люди, у которых в бюджете есть статьи на аналитику, ПО, консалтинг и финансирование.</p>
           {st && (
             <div className="flex flex-wrap gap-10 mt-8">
               <div><div className={`${serif} font-bold text-3xl`}>{st.companies}</div><div className="text-xs text-white/60">компаний в рейтинге</div></div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { MESSAGES, POSTS, TIPS } from "./texts";
+import { MESSAGES, POSTS, SEGMENT_POSTS, TIPS, type TcPost } from "./texts";
 
 function CopyBtn({ text }: { text: string }) {
   const [ok, setOk] = useState(false);
@@ -11,6 +11,43 @@ function CopyBtn({ text }: { text: string }) {
     <button onClick={copy} className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${ok ? "bg-emerald-500/20 text-emerald-300" : "bg-white text-black hover:bg-white/85"}`}>
       <Icon name={ok ? "Check" : "Copy"} size={13} />{ok ? "Скопировано" : "Копировать"}
     </button>
+  );
+}
+
+function PostList({ title, list, open, setOpen }: { title: string; list: TcPost[]; open: string; setOpen: (v: string) => void }) {
+  return (
+    <section>
+      <h3 className="text-white font-semibold mb-3">{title} · {list.length}</h3>
+      <div className="space-y-2">
+        {list.map((p, i) => {
+          const text = p.text.replace("{url}", p.url);
+          const isOpen = open === p.id;
+          return (
+            <div key={p.id} className="bg-white/[0.03] border border-white/10 rounded-xl">
+              <button onClick={() => setOpen(isOpen ? "" : p.id)} className="w-full flex items-center gap-3 p-4 text-left">
+                <span className="w-7 h-7 shrink-0 rounded-full bg-white/10 text-white text-sm font-bold flex items-center justify-center">{i + 1}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-white font-medium truncate">{p.title}</span>
+                  <span className="block text-xs text-white/40">{p.audience} · {text.length} знаков</span>
+                </span>
+                <Icon name={isOpen ? "ChevronUp" : "ChevronDown"} size={16} className="text-white/40" />
+              </button>
+              {isOpen && (
+                <div className="px-4 pb-4 space-y-3">
+                  <div className="whitespace-pre-line text-sm text-white/80 leading-relaxed bg-black/30 rounded-lg p-4 max-h-[420px] overflow-y-auto">{text}</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CopyBtn text={text} />
+                    <a href={p.url} target="_blank" rel="noopener" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-white/10 text-white/80 hover:bg-white/15">
+                      <Icon name="ExternalLink" size={13} />Статья
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -26,38 +63,8 @@ export default function TenchatTab() {
         </ul>
       </div>
 
-      <section>
-        <h3 className="text-white font-semibold mb-3">Посты · {POSTS.length}</h3>
-        <div className="space-y-2">
-          {POSTS.map((p, i) => {
-            const text = p.text.replace("{url}", p.url);
-            const isOpen = open === p.id;
-            return (
-              <div key={p.id} className="bg-white/[0.03] border border-white/10 rounded-xl">
-                <button onClick={() => setOpen(isOpen ? "" : p.id)} className="w-full flex items-center gap-3 p-4 text-left">
-                  <span className="w-7 h-7 shrink-0 rounded-full bg-white/10 text-white text-sm font-bold flex items-center justify-center">{i + 1}</span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-white font-medium truncate">{p.title}</span>
-                    <span className="block text-xs text-white/40">{p.audience} · {text.length} знаков</span>
-                  </span>
-                  <Icon name={isOpen ? "ChevronUp" : "ChevronDown"} size={16} className="text-white/40" />
-                </button>
-                {isOpen && (
-                  <div className="px-4 pb-4 space-y-3">
-                    <div className="whitespace-pre-line text-sm text-white/80 leading-relaxed bg-black/30 rounded-lg p-4 max-h-[420px] overflow-y-auto">{text}</div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <CopyBtn text={text} />
-                      <a href={p.url} target="_blank" rel="noopener" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-white/10 text-white/80 hover:bg-white/15">
-                        <Icon name="ExternalLink" size={13} />Статья и обложка
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
+      <PostList title="Посты по лучшим статьям" list={POSTS} open={open} setOpen={setOpen} />
+      <PostList title="Посты под платёжеспособные сегменты" list={SEGMENT_POSTS} open={open} setOpen={setOpen} />
 
       <section>
         <h3 className="text-white font-semibold mb-1">Личные сообщения руководителям</h3>

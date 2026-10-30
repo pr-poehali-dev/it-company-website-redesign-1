@@ -37,10 +37,13 @@ import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
 import { Route as MasshtabCitataDnyaRouteImport } from './routes/masshtab.citata-dnya'
 import { Route as MasshtabDzenRssRouteImport } from './routes/masshtab.dzen-rss'
 import { Route as MasshtabDzenDotxmlRouteImport } from './routes/masshtab.dzen[.]xml'
+import { Route as MasshtabKalkulyatorRouteImport } from './routes/masshtab.kalkulyator'
 import { Route as MasshtabMediakitRouteImport } from './routes/masshtab.mediakit'
 import { Route as MasshtabOZhurnaleRouteImport } from './routes/masshtab.o-zhurnale'
 import { Route as MasshtabObuchenieRouteImport } from './routes/masshtab.obuchenie'
+import { Route as MasshtabOtchetyRouteImport } from './routes/masshtab.otchety'
 import { Route as MasshtabPechatnyyNomerRouteImport } from './routes/masshtab.pechatnyy-nomer'
+import { Route as MasshtabPodpiskaRouteImport } from './routes/masshtab.podpiska'
 import { Route as MasshtabReklamaRouteImport } from './routes/masshtab.reklama'
 import { Route as MasshtabRssDotxmlRouteImport } from './routes/masshtab.rss[.]xml'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
@@ -208,6 +211,11 @@ const MasshtabDzenDotxmlRoute = MasshtabDzenDotxmlRouteImport.update({
   path: '/dzen.xml',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabKalkulyatorRoute = MasshtabKalkulyatorRouteImport.update({
+  id: '/kalkulyator',
+  path: '/kalkulyator',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const MasshtabMediakitRoute = MasshtabMediakitRouteImport.update({
   id: '/mediakit',
   path: '/mediakit',
@@ -223,9 +231,19 @@ const MasshtabObuchenieRoute = MasshtabObuchenieRouteImport.update({
   path: '/obuchenie',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabOtchetyRoute = MasshtabOtchetyRouteImport.update({
+  id: '/otchety',
+  path: '/otchety',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const MasshtabPechatnyyNomerRoute = MasshtabPechatnyyNomerRouteImport.update({
   id: '/pechatnyy-nomer',
   path: '/pechatnyy-nomer',
+  getParentRoute: () => MasshtabRoute,
+} as any)
+const MasshtabPodpiskaRoute = MasshtabPodpiskaRouteImport.update({
+  id: '/podpiska',
+  path: '/podpiska',
   getParentRoute: () => MasshtabRoute,
 } as any)
 const MasshtabReklamaRoute = MasshtabReklamaRouteImport.update({
@@ -367,10 +385,13 @@ export interface FileRoutesByFullPath {
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
+  '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
   '/masshtab/mediakit': typeof MasshtabMediakitRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
+  '/masshtab/otchety': typeof MasshtabOtchetyRoute
   '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
+  '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
   '/radar/$inn': typeof RadarInnRoute
@@ -422,10 +443,13 @@ export interface FileRoutesByTo {
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
+  '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
   '/masshtab/mediakit': typeof MasshtabMediakitRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
+  '/masshtab/otchety': typeof MasshtabOtchetyRoute
   '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
+  '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
   '/radar/$inn': typeof RadarInnRoute
@@ -479,10 +503,13 @@ export interface FileRoutesById {
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
+  '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
   '/masshtab/mediakit': typeof MasshtabMediakitRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
+  '/masshtab/otchety': typeof MasshtabOtchetyRoute
   '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
+  '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
   '/radar/$inn': typeof RadarInnRoute
@@ -537,10 +564,13 @@ export interface FileRouteTypes {
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
+    | '/masshtab/kalkulyator'
     | '/masshtab/mediakit'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
+    | '/masshtab/otchety'
     | '/masshtab/pechatnyy-nomer'
+    | '/masshtab/podpiska'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
     | '/radar/$inn'
@@ -592,10 +622,13 @@ export interface FileRouteTypes {
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
+    | '/masshtab/kalkulyator'
     | '/masshtab/mediakit'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
+    | '/masshtab/otchety'
     | '/masshtab/pechatnyy-nomer'
+    | '/masshtab/podpiska'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
     | '/radar/$inn'
@@ -648,10 +681,13 @@ export interface FileRouteTypes {
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
+    | '/masshtab/kalkulyator'
     | '/masshtab/mediakit'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
+    | '/masshtab/otchety'
     | '/masshtab/pechatnyy-nomer'
+    | '/masshtab/podpiska'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
     | '/radar/$inn'
@@ -921,6 +957,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabDzenDotxmlRouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/kalkulyator': {
+      id: '/masshtab/kalkulyator'
+      path: '/kalkulyator'
+      fullPath: '/masshtab/kalkulyator'
+      preLoaderRoute: typeof MasshtabKalkulyatorRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/mediakit': {
       id: '/masshtab/mediakit'
       path: '/mediakit'
@@ -942,11 +985,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabObuchenieRouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/otchety': {
+      id: '/masshtab/otchety'
+      path: '/otchety'
+      fullPath: '/masshtab/otchety'
+      preLoaderRoute: typeof MasshtabOtchetyRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/pechatnyy-nomer': {
       id: '/masshtab/pechatnyy-nomer'
       path: '/pechatnyy-nomer'
       fullPath: '/masshtab/pechatnyy-nomer'
       preLoaderRoute: typeof MasshtabPechatnyyNomerRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
+    '/masshtab/podpiska': {
+      id: '/masshtab/podpiska'
+      path: '/podpiska'
+      fullPath: '/masshtab/podpiska'
+      preLoaderRoute: typeof MasshtabPodpiskaRouteImport
       parentRoute: typeof MasshtabRoute
     }
     '/masshtab/reklama': {
@@ -1112,10 +1169,13 @@ interface MasshtabRouteChildren {
   MasshtabCitataDnyaRoute: typeof MasshtabCitataDnyaRoute
   MasshtabDzenRssRoute: typeof MasshtabDzenRssRoute
   MasshtabDzenDotxmlRoute: typeof MasshtabDzenDotxmlRoute
+  MasshtabKalkulyatorRoute: typeof MasshtabKalkulyatorRoute
   MasshtabMediakitRoute: typeof MasshtabMediakitRoute
   MasshtabOZhurnaleRoute: typeof MasshtabOZhurnaleRoute
   MasshtabObuchenieRoute: typeof MasshtabObuchenieRoute
+  MasshtabOtchetyRoute: typeof MasshtabOtchetyRoute
   MasshtabPechatnyyNomerRoute: typeof MasshtabPechatnyyNomerRoute
+  MasshtabPodpiskaRoute: typeof MasshtabPodpiskaRoute
   MasshtabReklamaRoute: typeof MasshtabReklamaRoute
   MasshtabRssDotxmlRoute: typeof MasshtabRssDotxmlRoute
   MasshtabIndexRoute: typeof MasshtabIndexRoute
@@ -1129,10 +1189,13 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabCitataDnyaRoute: MasshtabCitataDnyaRoute,
   MasshtabDzenRssRoute: MasshtabDzenRssRoute,
   MasshtabDzenDotxmlRoute: MasshtabDzenDotxmlRoute,
+  MasshtabKalkulyatorRoute: MasshtabKalkulyatorRoute,
   MasshtabMediakitRoute: MasshtabMediakitRoute,
   MasshtabOZhurnaleRoute: MasshtabOZhurnaleRoute,
   MasshtabObuchenieRoute: MasshtabObuchenieRoute,
+  MasshtabOtchetyRoute: MasshtabOtchetyRoute,
   MasshtabPechatnyyNomerRoute: MasshtabPechatnyyNomerRoute,
+  MasshtabPodpiskaRoute: MasshtabPodpiskaRoute,
   MasshtabReklamaRoute: MasshtabReklamaRoute,
   MasshtabRssDotxmlRoute: MasshtabRssDotxmlRoute,
   MasshtabIndexRoute: MasshtabIndexRoute,

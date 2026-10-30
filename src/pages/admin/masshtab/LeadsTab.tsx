@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { M_URL } from "@/components/masshtab/api";
 
 interface Lead { id: number; kind: string; name: string; company: string; contact: string; message: string; created_at: string }
-const KIND: Record<string, string> = { ad: "Реклама", hero: "Герой интервью", rating: "Рейтинг", subscribe: "Подписка" };
+const KIND: Record<string, string> = { ad: "Реклама", hero: "Герой интервью", rating: "Рейтинг", subscribe: "Подписка", report: "Отчёт", corporate: "Корп. подписка", calc: "Калькулятор" };
 
 export default function LeadsTab({ token }: { token: string }) {
   const [list, setList] = useState<Lead[] | null>(null);

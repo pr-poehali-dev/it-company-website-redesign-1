@@ -1,7 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { Kicker, Logo, serif } from "../MShell";
 import { growthLabel, mln, type RatingResp } from "../api";
-import { ABOUT, CONCERNS, READERS, SEGMENTS, SITE_LABEL, SOURCES, STATIC_STATS } from "./data";
+import { ABOUT, CONCERNS, READER_BUDGETS, READERS, SEGMENTS, SITE_LABEL, SOURCES, STATIC_STATS } from "./data";
 import { Frame, H, W } from "./Frame";
 
 export function SlideCover() {
@@ -81,24 +81,27 @@ export function SlideNumbers({ rating }: { rating: RatingResp | null }) {
 
 export function SlideReaders() {
   return (
-    <Frame n={4} kicker="Наши читатели" title="Для тех, кто принимает решения">
-      <div className="grid grid-cols-4 gap-5 mt-8">
+    <Frame n={4} kicker="Наши читатели" title="Для тех, кто принимает решения на цифрах">
+      <div className="grid grid-cols-4 gap-3 mt-5">
         {READERS.map((r) => (
-          <div key={r.t} className="bg-white border border-[#e2d9cb] rounded-lg p-6">
-            <Icon name={r.icon} size={32} className="text-[#d6402b]" />
-            <div className="font-bold text-[21px] mt-4 leading-tight">{r.t}</div>
-            <p className="text-[16px] text-[#5b5550] mt-2 leading-snug">{r.d}</p>
+          <div key={r.t} className="bg-white border border-[#e2d9cb] rounded-lg px-4 py-3">
+            <div className="flex items-center gap-2.5"><Icon name={r.icon} size={22} className="text-[#d6402b] shrink-0" /><div className="font-bold text-[17px] leading-tight">{r.t}</div></div>
+            <p className="text-[14px] text-[#5b5550] mt-1.5 leading-snug">{r.d}</p>
           </div>
         ))}
       </div>
-      <div className="mt-8">
-        <div className="text-[18px] font-bold">Что их волнует:</div>
-        <div className="flex flex-wrap gap-3 mt-3">
-          {CONCERNS.map((c) => <span key={c} className="bg-[#efe7da] text-[#14110f] rounded-full px-5 py-2 text-[18px] font-semibold">{c}</span>)}
-        </div>
+      <div className="mt-4 bg-[#14110f] text-white rounded-lg px-6 py-3 flex items-center gap-4">
+        <Icon name="Wallet" size={26} className="text-[#c9a24a] shrink-0" />
+        <div className="text-[18px] font-semibold">{READER_BUDGETS}</div>
       </div>
-      <div className="mt-auto flex items-center gap-3 text-[19px]">
-        <Icon name="MapPin" size={24} className="text-[#d6402b]" /><span><b>География:</b> вся Россия, акцент на регионы</span>
+      <div className="mt-4 flex items-end justify-between gap-6">
+        <div>
+          <div className="text-[16px] font-bold">Что их волнует:</div>
+          <div className="flex flex-wrap gap-2.5 mt-2">
+            {CONCERNS.map((c) => <span key={c} className="bg-[#efe7da] text-[#14110f] rounded-full px-4 py-1.5 text-[15px] font-semibold">{c}</span>)}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-[16px] shrink-0"><Icon name="MapPin" size={20} className="text-[#d6402b]" /><span><b>География:</b> вся Россия</span></div>
       </div>
     </Frame>
   );
