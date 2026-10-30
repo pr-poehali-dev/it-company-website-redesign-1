@@ -6,6 +6,7 @@ import LeadForm from "./LeadForm";
 import MarketBar from "./MarketBar";
 import NewsFeed from "./NewsFeed";
 import PostCard from "./PostCard";
+import PrintIssuePromo from "./PrintIssuePromo";
 import Crumbs from "./Crumbs";
 import { RUBRICS } from "./rubrics";
 import { companyName, growthLabel, mGet, mln, type Ad, type Market } from "./api";
@@ -90,6 +91,8 @@ export default function HomePage() {
             )}
           </aside>
         </div>
+
+        <PrintIssuePromo />
 
         <section className="mt-16 grid md:grid-cols-2 gap-10 bg-[#14110f] text-white rounded-lg p-6 md:p-10" id="hero">
           <div>
