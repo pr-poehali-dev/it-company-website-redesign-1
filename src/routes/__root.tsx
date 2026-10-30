@@ -31,6 +31,7 @@ export const Route = createRootRoute({
             {name: "viewport", content: "width=device-width, initial-scale=1.0"},
             {name: "author", content: "***"},
             {name: "yandex-verification", content: "ddb1647ee89a5bd5"},
+            {name: "zen-verification", content: "0xQ5WQeFiKC5CbKnoM7Oui368eYccdWtuGJgH4mKwq4TxUGg8ekiHB0zL3G2hKLp"},
             {name: "google-site-verification", content: "7Yjed4o2NAvRCAdWxZNl-MsL-npnkApI0aFr_E48xfU"},
             {name: "theme-color", content: "#06b6d4"},
             {property: "og:locale", content: "ru_RU"},
