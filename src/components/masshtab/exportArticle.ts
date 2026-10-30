@@ -126,23 +126,48 @@ export function toText(p: FullPost) {
   ].filter(Boolean).join("\n\n") + "\n";
 }
 
-async function fetchImage(url: string): Promise<{ data: ArrayBuffer; w: number; h: number; type: "png" | "jpg" | "gif" | "bmp" } | null> {
-  try {
-    const r = await fetch(url.startsWith(SITE) ? url.slice(SITE.length) : url);
-    if (!r.ok) return null;
-    const blob = await r.blob();
-    const type = blob.type.includes("png") ? "png" : blob.type.includes("gif") ? "gif" : blob.type.includes("jpeg") || blob.type.includes("jpg") ? "jpg" : null;
-    if (!type) return null;
-    const bmp = await createImageBitmap(blob);
-    const out = { data: await blob.arrayBuffer(), w: bmp.width, h: bmp.height, type: type as "png" | "jpg" | "gif" };
-    bmp.close();
-    return out;
-  } catch {
-    return null;
+type Img = { data: Uint8Array; w: number; h: number; type: "png" | "jpg" | "gif" };
+
+function imageInfo(buf: ArrayBuffer): Img | null {
+  const b = new Uint8Array(buf);
+  const dv = new DataView(buf);
+  if (b.length > 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return { data: b, type: "png", w: dv.getUint32(16), h: dv.getUint32(20) };
+  if (b.length > 10 && b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return { data: b, type: "gif", w: dv.getUint16(6, true), h: dv.getUint16(8, true) };
+  if (b.length > 4 && b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) { i++; continue; }
+      const m = b[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return { data: b, type: "jpg", h: dv.getUint16(i + 5), w: dv.getUint16(i + 7) };
+      i += 2 + dv.getUint16(i + 2);
+    }
   }
+  return null;
 }
 
-export async function toDocx(p: FullPost): Promise<Blob> {
+const localPath = (url: string) => {
+  const m = url.match(/^https?:\/\/[^/]+(\/img\/masshtab\/[^?#]+)$/);
+  if (m) return m[1];
+  return url.startsWith("/") ? url : null;
+};
+
+async function fetchImage(url: string, origin: string): Promise<Img | null> {
+  const local = localPath(url);
+  const tries = local ? [`${origin}${local}`, url] : [url];
+  for (const u of tries) {
+    try {
+      const r = await fetch(u, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) continue;
+      const info = imageInfo(await r.arrayBuffer());
+      if (info && info.w > 0 && info.h > 0) return info;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+export async function toDocx(p: FullPost, origin: string): Promise<Uint8Array> {
   const d = await import("docx");
   const { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, Table, TableRow, TableCell, WidthType, ExternalHyperlink, BorderStyle, AlignmentType } = d;
   const FONT = "Georgia";
@@ -164,7 +189,7 @@ export async function toDocx(p: FullPost): Promise<Blob> {
     new Paragraph({ children: runs(s, { size: o.size ?? 24, color: o.color, italics: o.italics, bold: o.bold }), spacing: { after: o.after ?? 160, line: 320 } });
   const MAXW = 600;
   const image = async (src: string, alt: string) => {
-    const img = await fetchImage(src);
+    const img = await fetchImage(src, origin);
     if (!img) return [para(`[Иллюстрация: ${alt}] ${src}`, { italics: true, color: "888888", size: 20 })];
     const w = Math.min(MAXW, img.w), h = Math.round((img.h * w) / img.w);
     return [
@@ -231,16 +256,6 @@ export async function toDocx(p: FullPost): Promise<Blob> {
     styles: { default: { document: { run: { font: FONT, size: 24 } } } },
     sections: [{ properties: { page: { margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } }, children }],
   });
-  return Packer.toBlob(doc);
-}
-
-export function saveBlob(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const buf = await Packer.toBuffer(doc);
+  return new Uint8Array(buf);
 }

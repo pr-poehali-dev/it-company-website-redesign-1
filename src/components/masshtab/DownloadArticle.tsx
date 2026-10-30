@@ -11,10 +11,11 @@ const OPTIONS: { fmt: Fmt; label: string; hint: string }[] = [
   { fmt: "txt", label: "Текст", hint: "без оформления — для соцсетей и рассылок" },
 ];
 
+export const exportUrl = (slug: string, fmt: Fmt) => `/masshtab/export/${slug}/${fmt}`;
+
 export default function DownloadArticle({ post }: { post: FullPost }) {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState<Fmt | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"" | "ok" | "fail">("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,39 +27,27 @@ export default function DownloadArticle({ post }: { post: FullPost }) {
     return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
   }, [open]);
 
-  const download = async (fmt: Fmt) => {
-    setBusy(fmt);
-    try {
-      const x = await import("./exportArticle");
-      const name = `masshtab-${post.slug.slice(0, 60)}`;
-      if (fmt === "docx") x.saveBlob(await x.toDocx(post), `${name}.docx`);
-      if (fmt === "html") x.saveBlob(new Blob([x.toHtml(post)], { type: "text/html;charset=utf-8" }), `${name}.html`);
-      if (fmt === "md") x.saveBlob(new Blob([x.toMarkdown(post)], { type: "text/markdown;charset=utf-8" }), `${name}.md`);
-      if (fmt === "txt") x.saveBlob(new Blob([x.toText(post)], { type: "text/plain;charset=utf-8" }), `${name}.txt`);
-      setOpen(false);
-    } finally {
-      setBusy(null);
-    }
-  };
-
   const copy = async () => {
     const x = await import("./exportArticle");
     const text = x.toText(post);
+    let ok = false;
     try {
       await navigator.clipboard.writeText(text);
+      ok = true;
     } catch {
       const ta = document.createElement("textarea");
       ta.value = text;
+      ta.setAttribute("readonly", "");
       ta.style.position = "fixed";
+      ta.style.top = "0";
       ta.style.opacity = "0";
       document.body.appendChild(ta);
       ta.select();
-      const ok = document.execCommand("copy");
+      try { ok = document.execCommand("copy"); } catch { ok = false; }
       ta.remove();
-      if (!ok) { x.saveBlob(new Blob([text], { type: "text/plain;charset=utf-8" }), `masshtab-${post.slug.slice(0, 60)}.txt`); return; }
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopied(ok ? "ok" : "fail");
+    setTimeout(() => setCopied(""), 3000);
   };
 
   return (
@@ -73,25 +62,29 @@ export default function DownloadArticle({ post }: { post: FullPost }) {
         Скачать статью
       </button>
       {open && (
-        <div className="absolute left-0 z-30 mt-2 w-[320px] bg-white border border-[#e2d9cb] rounded-lg shadow-xl p-2">
+        <div className="absolute left-0 z-30 mt-2 w-[320px] max-w-[calc(100vw-32px)] bg-white border border-[#e2d9cb] rounded-lg shadow-xl p-2">
           {OPTIONS.map((o) => (
-            <button
+            <a
               key={o.fmt}
-              type="button"
-              disabled={busy !== null}
-              onClick={() => download(o.fmt)}
-              className="w-full text-left rounded px-3 py-2.5 hover:bg-[#f6f2ea] disabled:opacity-50 flex items-start gap-3"
+              href={exportUrl(post.slug, o.fmt)}
+              download
+              target="_blank"
+              rel="noopener"
+              onClick={() => setTimeout(() => setOpen(false), 300)}
+              className="w-full text-left rounded px-3 py-2.5 hover:bg-[#f6f2ea] flex items-start gap-3"
             >
-              <Icon name={busy === o.fmt ? "Loader2" : "FileText"} size={18} className={`mt-0.5 shrink-0 text-[#d6402b] ${busy === o.fmt ? "animate-spin" : ""}`} />
+              <Icon name="FileText" size={18} className="mt-0.5 shrink-0 text-[#d6402b]" />
               <span>
                 <span className="block text-sm font-bold text-[#14110f]">{o.label}</span>
                 <span className="block text-xs text-[#8a8278]">{o.hint}</span>
               </span>
-            </button>
+            </a>
           ))}
           <button type="button" onClick={copy} className="w-full text-left rounded px-3 py-2.5 hover:bg-[#f6f2ea] flex items-center gap-3 border-t border-[#e2d9cb] mt-1">
-            <Icon name={copied ? "Check" : "Copy"} size={18} className="shrink-0 text-[#d6402b]" />
-            <span className="text-sm font-bold text-[#14110f]">{copied ? "Текст скопирован" : "Скопировать текст"}</span>
+            <Icon name={copied === "ok" ? "Check" : "Copy"} size={18} className="shrink-0 text-[#d6402b]" />
+            <span className="text-sm font-bold text-[#14110f]">
+              {copied === "ok" ? "Текст скопирован" : copied === "fail" ? "Браузер запретил копирование — скачайте «Текст»" : "Скопировать текст"}
+            </span>
           </button>
           <p className="text-[11px] leading-snug text-[#8a8278] px-3 pt-2 pb-1">
             При перепубликации укажите активную ссылку на «Масштаб» — она уже есть в конце файла.

@@ -58,6 +58,7 @@ import { Route as UslugiServiceSlugCitySlugRouteImport } from './routes/uslugi.$
 import { Route as AnalyticsBiSIdRouteImport } from './routes/analytics.bi.s.$id'
 import { Route as AnalyticsMarketOkvedIndexRouteImport } from './routes/analytics.market.$okved.index'
 import { Route as AnalyticsMarketOkvedRegionRouteImport } from './routes/analytics.market.$okved.$region'
+import { Route as MasshtabExportSlugFmtRouteImport } from './routes/masshtab.export.$slug.$fmt'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -311,6 +312,11 @@ const AnalyticsMarketOkvedRegionRoute =
     path: '/analytics/market/$okved/$region',
     getParentRoute: () => rootRouteImport,
   } as any)
+const MasshtabExportSlugFmtRoute = MasshtabExportSlugFmtRouteImport.update({
+  id: '/export/$slug/$fmt',
+  path: '/export/$slug/$fmt',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -361,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/analytics/services/': typeof AnalyticsServicesIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
+  '/masshtab/export/$slug/$fmt': typeof MasshtabExportSlugFmtRoute
   '/analytics/market/$okved/': typeof AnalyticsMarketOkvedIndexRoute
 }
 export interface FileRoutesByTo {
@@ -411,6 +418,7 @@ export interface FileRoutesByTo {
   '/analytics/services': typeof AnalyticsServicesIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
+  '/masshtab/export/$slug/$fmt': typeof MasshtabExportSlugFmtRoute
   '/analytics/market/$okved': typeof AnalyticsMarketOkvedIndexRoute
 }
 export interface FileRoutesById {
@@ -463,6 +471,7 @@ export interface FileRoutesById {
   '/analytics/services/': typeof AnalyticsServicesIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
+  '/masshtab/export/$slug/$fmt': typeof MasshtabExportSlugFmtRoute
   '/analytics/market/$okved/': typeof AnalyticsMarketOkvedIndexRoute
 }
 export interface FileRouteTypes {
@@ -516,6 +525,7 @@ export interface FileRouteTypes {
     | '/analytics/services/'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
+    | '/masshtab/export/$slug/$fmt'
     | '/analytics/market/$okved/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -566,6 +576,7 @@ export interface FileRouteTypes {
     | '/analytics/services'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
+    | '/masshtab/export/$slug/$fmt'
     | '/analytics/market/$okved'
   id:
     | '__root__'
@@ -617,6 +628,7 @@ export interface FileRouteTypes {
     | '/analytics/services/'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
+    | '/masshtab/export/$slug/$fmt'
     | '/analytics/market/$okved/'
   fileRoutesById: FileRoutesById
 }
@@ -1008,6 +1020,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsMarketOkvedRegionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/masshtab/export/$slug/$fmt': {
+      id: '/masshtab/export/$slug/$fmt'
+      path: '/export/$slug/$fmt'
+      fullPath: '/masshtab/export/$slug/$fmt'
+      preLoaderRoute: typeof MasshtabExportSlugFmtRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
   }
 }
 
@@ -1021,6 +1040,7 @@ interface MasshtabRouteChildren {
   MasshtabRssDotxmlRoute: typeof MasshtabRssDotxmlRoute
   MasshtabIndexRoute: typeof MasshtabIndexRoute
   MasshtabRubrikaRubricRoute: typeof MasshtabRubrikaRubricRoute
+  MasshtabExportSlugFmtRoute: typeof MasshtabExportSlugFmtRoute
 }
 
 const MasshtabRouteChildren: MasshtabRouteChildren = {
@@ -1033,6 +1053,7 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabRssDotxmlRoute: MasshtabRssDotxmlRoute,
   MasshtabIndexRoute: MasshtabIndexRoute,
   MasshtabRubrikaRubricRoute: MasshtabRubrikaRubricRoute,
+  MasshtabExportSlugFmtRoute: MasshtabExportSlugFmtRoute,
 }
 
 const MasshtabRouteWithChildren = MasshtabRoute._addFileChildren(
