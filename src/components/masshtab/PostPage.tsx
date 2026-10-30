@@ -5,6 +5,7 @@ import AdSlot, { pickAd } from "./AdSlot";
 import Markdown from "./Markdown";
 import Crumbs from "./Crumbs";
 import DownloadArticle from "./DownloadArticle";
+import DzenSubscribe from "./DzenSubscribe";
 import { rubricByName } from "./rubrics";
 import { LEARN_PATH, LEARN_RUBRIC } from "./learn";
 import { companyName, fmtDate, growthLabel, mGet, mln, type Ad } from "./api";
@@ -69,6 +70,7 @@ export default function PostPage() {
               <DownloadArticle post={post} />
               <span>Word, HTML, Markdown или текст — для публикации на других площадках</span>
             </div>
+            <DzenSubscribe />
             {sources.length > 0 && (
               <div className="mt-8 pt-4 border-t border-[#e2d9cb] font-['Golos_Text',sans-serif] text-sm text-[#5b5550]">
                 <div className="font-bold text-[#14110f] mb-1">Источники</div>
@@ -107,6 +109,7 @@ export default function PostPage() {
                 <a href={`/analytics/company/${c.inn}`} className="block text-sm font-bold text-[#d6402b] mt-3">Полный отчёт о компании →</a>
               </div>
             )}
+            <DzenSubscribe variant="side" />
             <AdSlot ad={pickAd(ads, "side")} />
           </aside>
         </div>

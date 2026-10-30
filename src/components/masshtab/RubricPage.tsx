@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getRouteApi } from "@tanstack/react-router";
 import MShell, { Kicker, serif } from "./MShell";
 import AdSlot, { pickAd } from "./AdSlot";
+import DzenSubscribe from "./DzenSubscribe";
 import NewsFeed from "./NewsFeed";
 import PostCard from "./PostCard";
 import LeadForm from "./LeadForm";
@@ -45,6 +46,7 @@ export default function RubricPage() {
           </div>
           <aside className="space-y-8">
             {market && <NewsFeed items={market.news} limit={8} title="По теме · ТАСС" />}
+            <DzenSubscribe variant="side" />
             <AdSlot ad={pickAd(ads, "side")} />
           </aside>
         </div>

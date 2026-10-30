@@ -7,6 +7,7 @@ import MarketBar from "./MarketBar";
 import NewsFeed from "./NewsFeed";
 import PostCard from "./PostCard";
 import PrintIssuePromo from "./PrintIssuePromo";
+import DzenSubscribe from "./DzenSubscribe";
 import QuoteCard from "./QuoteCard";
 import Crumbs from "./Crumbs";
 import { RUBRICS } from "./rubrics";
@@ -81,6 +82,7 @@ export default function HomePage() {
               </div>
               <Link to="/masshtab/500" className="block mt-3 text-sm font-bold text-[#d6402b]">Весь рейтинг и фильтры →</Link>
             </div>
+            <DzenSubscribe variant="side" />
             <AdSlot ad={pickAd(ads, "side")} />
             {rating && (
               <div className="bg-[#efe7da] rounded p-5">
@@ -94,6 +96,8 @@ export default function HomePage() {
         </div>
 
         {quote && <div className="mt-16"><QuoteCard q={quote} /></div>}
+
+        <DzenSubscribe />
 
         <PrintIssuePromo />
 

@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import MShell, { Kicker, serif } from "./MShell";
 import Crumbs from "./Crumbs";
 import LeadForm from "./LeadForm";
+import DzenSubscribe from "./DzenSubscribe";
 import { L_URL, fmtDate, type LearnPost, type Track } from "./api";
 
 const route = getRouteApi("/masshtab/obuchenie");
@@ -124,6 +125,7 @@ export default function LearnPage() {
                 </div>
               </div>
             )}
+            <DzenSubscribe variant="side" />
             <div className="bg-[#efe7da] rounded-lg p-5 text-sm leading-relaxed">
               <Kicker>Как устроены кейсы</Kicker>
               <p className="mt-2 text-[#3b3631]">Ситуация с цифрами → что не сработало → решение по шагам → результат → чек-лист «Как применить у себя».</p>
