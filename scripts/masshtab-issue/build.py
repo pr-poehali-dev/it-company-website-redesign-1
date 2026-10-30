@@ -39,7 +39,8 @@ PUBLISHER = 'ООО «МАТ-Лабс»'
 COPY = f'© {PUBLISHER}, {ISSUE["year"]}'
 SITE = 'mat-labs.ru'
 OUT = f'{ROOT}/public/masshtab-print/{ISSUE["dir"]}'
-ORDER = [2, 3, 'AD:partner', 14, 'M500', 'AD:office', 13, 11, 9, 'AD:auto', 12, 7, 5, 6, 4, 10]
+ORDER = [2, 3, 'AD:partner', 14, 'M500', 13, 11, 'AD:auto', 12, 5, 6, 4, 10, 23, 'LIFE', 31, 32, 33, 34, 35, 36]
+LIFE_POSTS = [31, 32, 33, 34, 35, 36]
 MAX_PAGES = 52
 PROMO = f'{ROOT}/public/img/masshtab/promo'
 ADS = {
@@ -226,6 +227,27 @@ def ad_half(key):
 <div class="adslot">Рекламный модуль ½ полосы · {SITE}/masshtab/reklama</div></div></div>'''
 
 
+def life_opener():
+    items = ''.join(f'<li><b>{html.escape(r)}</b><span>{txt(t, False)}</span></li>' for r, t in [
+        ('Недвижимость', 'аренда или покупка офиса при дорогих деньгах'),
+        ('Автомобили', 'купить, взять в лизинг или платить за личный'),
+        ('Инвестиции', 'куда положить свободные деньги собственнику'),
+        ('Отдых', 'отпуск, после которого бизнес не просел'),
+        ('Путешествия', 'как окупить поездку на выставку'),
+        ('Хобби', 'когда увлечение можно превратить в дело'),
+    ])
+    return f'''
+<section class="lifeop">
+  <img src="file://{PROMO}/../life-opener.jpg">
+  <div class="lifebox">
+    <div class="adk">Раздел</div>
+    <div class="lifeh">Стиль жизни</div>
+    <p>{txt("Деньги, время и силы собственника — за пределами операционки. Шесть практических материалов о том, как предпринимателю тратить, вкладывать и отдыхать с расчётом.", False)}</p>
+    <ul>{items}</ul>
+  </div>
+</section>'''
+
+
 def article(p, marker):
     url = f'https://{SITE}/masshtab/{p["slug"]}'
     tk = [re.sub(r'^[-—•\d.)\s]+', '', x) for x in lines_of(p.get('takeaways'))]
@@ -316,7 +338,7 @@ def cover(posts, pages):
     lines = [(14, '«Масштаб-500»', 'кто вырос в 15 раз за три года и почему темп падает'),
              (2, 'Индикаторы рынка', 'ставка 14% надолго, что это значит для кредитов'),
              (3, 'Налоги 2027–2029', 'что поменяется для малого и среднего бизнеса'),
-             (9, 'Агробизнес', '120 млрд ₽ субсидий и почему среднему фермеру достаётся меньше')]
+             (31, 'Стиль жизни', 'офис, машина, инвестиции и отпуск собственника — с расчётом')]
     cl = ''.join(f'<div class="cl"><div class="clr">{html.escape(r)} <b>с.{NB}{pg(k)}</b></div><div class="clt">{txt(t, False)}</div></div>' for k, r, t in lines)
     return f'''
 <section class="cover">
@@ -341,7 +363,7 @@ def cover(posts, pages):
 def contents(posts, pages):
     items = []
     for k in ORDER:
-        if isinstance(k, str) and k.startswith('AD:'):
+        if isinstance(k, str) and (k.startswith('AD:') or k == 'LIFE'):
             continue
         if k == 'M500':
             items.append(('Рейтинг', '«Масштаб-500»: первые 50 компаний', pages.get('M500', '00')))
@@ -517,10 +539,11 @@ i {{ font-style: italic; }}
 .front h1 {{ font-family: 'Playfair Display', serif; font-weight: 800; font-size: 34pt; line-height: 1.05; margin: 9mm 0 7mm; }}
 .front h2 {{ font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15pt; margin: 8mm 0 3mm; }}
 .tlist {{ border-top: 1pt solid #14110f; }}
-.ti {{ display: grid; grid-template-columns: 16mm 1fr; gap: 4mm; padding: 2.6mm 0; border-bottom: .5pt solid #e2d9cb; break-inside: avoid; }}
-.tn {{ font-family: 'Playfair Display', serif; font-weight: 800; font-size: 17pt; color: #d6402b; line-height: 1; }}
+.ti {{ display: grid; grid-template-columns: 13mm 1fr; gap: 3.5mm; padding: 1.7mm 0; border-bottom: .5pt solid #e2d9cb; break-inside: avoid; }}
+.tn {{ font-family: 'Playfair Display', serif; font-weight: 800; font-size: 14pt; color: #d6402b; line-height: 1; }}
 .tr {{ font-size: 6.6pt; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #8a8278; }}
-.tt {{ font-family: 'Playfair Display', serif; font-weight: 700; font-size: 10.6pt; line-height: 1.2; margin-top: .6mm; }}
+.tt {{ font-family: 'Playfair Display', serif; font-weight: 700; font-size: 9.6pt; line-height: 1.18; margin-top: .4mm; }}
+.toc h1 {{ margin: 6mm 0 4mm; }}
 .edl {{ font-family: 'PT Serif', serif; font-size: 11pt; line-height: 1.5; margin: 0 0 3.5mm; color: #2b2724; }}
 .prs {{ display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 7mm; }}
 .pr b {{ font-size: 9pt; }}
@@ -590,6 +613,14 @@ figcaption {{ font-family: 'Golos Text', sans-serif; font-size: 6.6pt; color: #8
 .rt .n {{ font-weight: 800; color: #d6402b; width: 6mm; }}
 .rt .g {{ font-weight: 800; color: #16803c; }}
 .disc {{ font-family: 'Golos Text', sans-serif; font-size: 6.6pt; color: #8a8278; margin-top: 3mm; }}
+.lifeop {{ page: full; width: 100vw; height: 100vh; overflow: hidden; position: relative; break-before: page; break-after: page; background: #14110f; }}
+.lifeop img {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }}
+.lifebox {{ position: absolute; left: {BLEED + 14}mm; right: {BLEED + 14}mm; bottom: {BLEED + 16}mm; background: rgba(20,17,15,.88); color: #f6f2ea; padding: 9mm 10mm; font-family: 'Golos Text', sans-serif; }}
+.lifeh {{ font-family: 'Playfair Display', serif; font-weight: 800; font-size: 46pt; line-height: 1; margin: 2mm 0 4mm; }}
+.lifebox p {{ font-size: 10.5pt; line-height: 1.45; color: rgba(246,242,234,.85); margin: 0 0 5mm; }}
+.lifebox ul {{ list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 7mm; border-top: .6pt solid rgba(246,242,234,.3); padding-top: 4mm; }}
+.lifebox li b {{ display: block; font-size: 7pt; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #e8836f; }}
+.lifebox li span {{ font-size: 9pt; line-height: 1.3; }}
 .adfull {{ page: full; width: 100vw; height: 100vh; overflow: hidden; position: relative; break-before: page; break-after: page; background: #14110f; }}
 .adfull img {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
 .adfull .adbox {{ position: absolute; left: {BLEED + 14}mm; right: {BLEED + 14}mm; bottom: {BLEED + 16}mm; background: rgba(246,242,234,.94); padding: 7mm 8mm; font-family: 'Golos Text', sans-serif; }}
@@ -615,11 +646,13 @@ def build_html(posts, rating, pages, fill):
     for k in ORDER:
         if isinstance(k, str) and k.startswith('AD:'):
             parts.append(ad_full(k[3:]))
+        elif k == 'LIFE':
+            parts.append(life_opener())
         else:
             parts.append(m500(rating, '§M500§') if k == 'M500' else article(posts[k], f'§A{k}§'))
-    extra = ['production', 'finance', 'travel']
+    extra = ['office', 'production', 'finance', 'travel']
     for i in range(fill):
-        parts.append(house() if i == 0 else ad_full(extra[(i - 1) % len(extra)]) if i <= len(extra) else notes())
+        parts.append(house() if i == 0 else ad_full(extra[i - 1]) if i <= len(extra) else notes())
     parts += [imprint(), back()]
     return f'<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Масштаб № {ISSUE["number"]}</title><style>{css()}</style></head><body>{"".join(parts)}</body></html>'
 
@@ -738,7 +771,7 @@ def main():
     pages, n = find_pages(first)
     fill = MAX_PAGES - n
     if fill < 0:
-        sys.exit(f'Номер не помещается в {MAX_PAGES} полос: материалы занимают {n}. Уберите статью из ORDER.')
+        sys.exit(f'Номер не помещается в {MAX_PAGES} полос: материалы занимают {n}. Уберите статью из ORDER. Полосы: {sorted(pages.items(), key=lambda x: x[1])}')
     fill -= fill % 4 if (n + fill) % 4 else 0
     final = f'{WORK}/pass2.pdf'
     render(build_html(posts, rating, pages, fill), final)
