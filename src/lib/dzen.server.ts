@@ -5,11 +5,16 @@ const SITE = "https://mat-labs.ru";
 export interface FeedPost {
   slug: string; rubric: string; title: string; lead: string; hero_name: string; hero_role: string; cover_url: string | null;
   author: string; published_at: string | null; created_at: string; data_date: string | null; content: string;
-  takeaways: string; sources: string; question: string; kind: string;
+  takeaways: string; sources: string; question: string; kind: string; origin?: string; rubric_slug?: string;
 }
 
 export const esc = (s: string) => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const abs = (u: string) => (u.startsWith("http") ? u : `${SITE}${u}`);
+const LOCAL_IMG = /^https?:\/\/(?:учисьпро\.рф|xn--h1amcedk2a6b\.xn--p1ai)(\/img\/masshtab\/[^\s?#]+)$/i;
+const abs = (u: string) => {
+  const m = u.match(LOCAL_IMG);
+  if (m) return `${SITE}${m[1]}`;
+  return u.startsWith("http") ? u : `${SITE}${u}`;
+};
 const cdata = (s: string) => s.replace(/]]>/g, "]]]]><![CDATA[>");
 
 function inline(s: string) {
@@ -74,4 +79,30 @@ export function dzenItem(p: FeedPost) {
       <description>${esc(p.lead)}</description>
       <content:encoded><![CDATA[${cdata(body)}]]></content:encoded>
     </item>`;
+}
+
+const keep = (p: FeedPost) => p.origin !== "uchispro" && !/учисьпро\.рф\/feed\//i.test((p.content || "").slice(0, 400));
+
+export async function dzenFeedResponse(feedUrl: string) {
+  const { M_URL } = await import("@/components/masshtab/api");
+  let posts: FeedPost[] = [];
+  try {
+    const r = await fetch(`${M_URL}/?action=feed&limit=30`, { signal: AbortSignal.timeout(8000) });
+    if (r.ok) posts = (await r.json()).posts || [];
+  } catch {
+    posts = [];
+  }
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:georss="http://www.georss.org/georss">
+  <channel>
+    <title>Журнал «Масштаб»</title>
+    <link>${SITE}/masshtab</link>
+    <description>Бизнес, деньги и люди — проверено цифрами. Деловой журнал для предпринимателей и руководителей.</description>
+    <language>ru</language>
+    <atom:link href="${feedUrl}" rel="self" type="application/rss+xml"/>
+${posts.filter(keep).slice(0, 20).map(dzenItem).join("\n")}
+  </channel>
+</rss>
+`;
+  return new Response(body, { headers: { "Content-Type": "application/rss+xml; charset=utf-8", "Cache-Control": "public, max-age=900" } });
 }

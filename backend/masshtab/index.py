@@ -331,7 +331,7 @@ def handler(event: dict, context) -> dict:
             return resp({'news': (tass or {}).get('items', []), 'news_at': t1, 'cbr': cbr or {}, 'cbr_at': t2}, cache=300)
         if action == 'feed':
             cur = conn.cursor()
-            cur.execute(f"""SELECT {POST_COLS}, content, takeaways, sources, question, updated_at FROM {S}.mag_posts
+            cur.execute(f"""SELECT {POST_COLS}, content, takeaways, sources, question, updated_at, origin FROM {S}.mag_posts
                             WHERE published AND kind <> 'partner' ORDER BY published_at DESC LIMIT %s""",
                         (max(1, min(50, int(p.get('limit') or 30))),))
             return resp({'posts': [dict(r) for r in cur.fetchall()]}, cache=600)

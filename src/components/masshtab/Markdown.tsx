@@ -23,7 +23,7 @@ export default function Markdown({ text }: { text: string }) {
         const img = b.match(/^!\[([^\]]*)\]\((\S+?)\)$/);
         if (img) return (
           <figure key={i} className="my-8 font-['Golos_Text',sans-serif]">
-            <img src={img[2]} alt={img[1]} loading="lazy" className="w-full rounded border border-[#e2d9cb]" />
+            <img src={img[2].replace(/^https?:\/\/(?:учисьпро\.рф|xn--h1amcedk2a6b\.xn--p1ai)(?=\/img\/masshtab\/)/i, "")} alt={img[1]} loading="lazy" className="w-full rounded border border-[#e2d9cb]" />
             {img[1] && <figcaption className="text-xs text-[#8a8278] mt-2">{img[1]}</figcaption>}
           </figure>
         );

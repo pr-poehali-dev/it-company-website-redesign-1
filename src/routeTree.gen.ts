@@ -35,6 +35,7 @@ import { Route as MasshtabIndexRouteImport } from './routes/masshtab.index'
 import { Route as MasshtabSlugRouteImport } from './routes/masshtab.$slug'
 import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
 import { Route as MasshtabCitataDnyaRouteImport } from './routes/masshtab.citata-dnya'
+import { Route as MasshtabDzenRssRouteImport } from './routes/masshtab.dzen-rss'
 import { Route as MasshtabDzenDotxmlRouteImport } from './routes/masshtab.dzen[.]xml'
 import { Route as MasshtabOZhurnaleRouteImport } from './routes/masshtab.o-zhurnale'
 import { Route as MasshtabObuchenieRouteImport } from './routes/masshtab.obuchenie'
@@ -196,6 +197,11 @@ const MasshtabCitataDnyaRoute = MasshtabCitataDnyaRouteImport.update({
   path: '/citata-dnya',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabDzenRssRoute = MasshtabDzenRssRouteImport.update({
+  id: '/dzen-rss',
+  path: '/dzen-rss',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const MasshtabDzenDotxmlRoute = MasshtabDzenDotxmlRouteImport.update({
   id: '/dzen.xml',
   path: '/dzen.xml',
@@ -353,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
+  '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
@@ -406,6 +413,7 @@ export interface FileRoutesByTo {
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
+  '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
@@ -461,6 +469,7 @@ export interface FileRoutesById {
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
+  '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
@@ -517,6 +526,7 @@ export interface FileRouteTypes {
     | '/masshtab/$slug'
     | '/masshtab/500'
     | '/masshtab/citata-dnya'
+    | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
@@ -570,6 +580,7 @@ export interface FileRouteTypes {
     | '/masshtab/$slug'
     | '/masshtab/500'
     | '/masshtab/citata-dnya'
+    | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
@@ -624,6 +635,7 @@ export interface FileRouteTypes {
     | '/masshtab/$slug'
     | '/masshtab/500'
     | '/masshtab/citata-dnya'
+    | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
@@ -883,6 +895,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabCitataDnyaRouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/dzen-rss': {
+      id: '/masshtab/dzen-rss'
+      path: '/dzen-rss'
+      fullPath: '/masshtab/dzen-rss'
+      preLoaderRoute: typeof MasshtabDzenRssRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/dzen.xml': {
       id: '/masshtab/dzen.xml'
       path: '/dzen.xml'
@@ -1072,6 +1091,7 @@ interface MasshtabRouteChildren {
   MasshtabSlugRoute: typeof MasshtabSlugRoute
   Masshtab500Route: typeof Masshtab500Route
   MasshtabCitataDnyaRoute: typeof MasshtabCitataDnyaRoute
+  MasshtabDzenRssRoute: typeof MasshtabDzenRssRoute
   MasshtabDzenDotxmlRoute: typeof MasshtabDzenDotxmlRoute
   MasshtabOZhurnaleRoute: typeof MasshtabOZhurnaleRoute
   MasshtabObuchenieRoute: typeof MasshtabObuchenieRoute
@@ -1087,6 +1107,7 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabSlugRoute: MasshtabSlugRoute,
   Masshtab500Route: Masshtab500Route,
   MasshtabCitataDnyaRoute: MasshtabCitataDnyaRoute,
+  MasshtabDzenRssRoute: MasshtabDzenRssRoute,
   MasshtabDzenDotxmlRoute: MasshtabDzenDotxmlRoute,
   MasshtabOZhurnaleRoute: MasshtabOZhurnaleRoute,
   MasshtabObuchenieRoute: MasshtabObuchenieRoute,
