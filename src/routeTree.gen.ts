@@ -36,6 +36,7 @@ import { Route as MasshtabSlugRouteImport } from './routes/masshtab.$slug'
 import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
 import { Route as MasshtabDzenDotxmlRouteImport } from './routes/masshtab.dzen[.]xml'
 import { Route as MasshtabOZhurnaleRouteImport } from './routes/masshtab.o-zhurnale'
+import { Route as MasshtabPechatnyyNomerRouteImport } from './routes/masshtab.pechatnyy-nomer'
 import { Route as MasshtabReklamaRouteImport } from './routes/masshtab.reklama'
 import { Route as MasshtabRssDotxmlRouteImport } from './routes/masshtab.rss[.]xml'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
@@ -197,6 +198,11 @@ const MasshtabOZhurnaleRoute = MasshtabOZhurnaleRouteImport.update({
   path: '/o-zhurnale',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabPechatnyyNomerRoute = MasshtabPechatnyyNomerRouteImport.update({
+  id: '/pechatnyy-nomer',
+  path: '/pechatnyy-nomer',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const MasshtabReklamaRoute = MasshtabReklamaRouteImport.update({
   id: '/reklama',
   path: '/reklama',
@@ -330,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/masshtab/500': typeof Masshtab500Route
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
+  '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
   '/radar/$inn': typeof RadarInnRoute
@@ -379,6 +386,7 @@ export interface FileRoutesByTo {
   '/masshtab/500': typeof Masshtab500Route
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
+  '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
   '/radar/$inn': typeof RadarInnRoute
@@ -430,6 +438,7 @@ export interface FileRoutesById {
   '/masshtab/500': typeof Masshtab500Route
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
+  '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
   '/radar/$inn': typeof RadarInnRoute
@@ -482,6 +491,7 @@ export interface FileRouteTypes {
     | '/masshtab/500'
     | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
+    | '/masshtab/pechatnyy-nomer'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
     | '/radar/$inn'
@@ -531,6 +541,7 @@ export interface FileRouteTypes {
     | '/masshtab/500'
     | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
+    | '/masshtab/pechatnyy-nomer'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
     | '/radar/$inn'
@@ -581,6 +592,7 @@ export interface FileRouteTypes {
     | '/masshtab/500'
     | '/masshtab/dzen.xml'
     | '/masshtab/o-zhurnale'
+    | '/masshtab/pechatnyy-nomer'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
     | '/radar/$inn'
@@ -842,6 +854,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabOZhurnaleRouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/pechatnyy-nomer': {
+      id: '/masshtab/pechatnyy-nomer'
+      path: '/pechatnyy-nomer'
+      fullPath: '/masshtab/pechatnyy-nomer'
+      preLoaderRoute: typeof MasshtabPechatnyyNomerRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/reklama': {
       id: '/masshtab/reklama'
       path: '/reklama'
@@ -997,6 +1016,7 @@ interface MasshtabRouteChildren {
   Masshtab500Route: typeof Masshtab500Route
   MasshtabDzenDotxmlRoute: typeof MasshtabDzenDotxmlRoute
   MasshtabOZhurnaleRoute: typeof MasshtabOZhurnaleRoute
+  MasshtabPechatnyyNomerRoute: typeof MasshtabPechatnyyNomerRoute
   MasshtabReklamaRoute: typeof MasshtabReklamaRoute
   MasshtabRssDotxmlRoute: typeof MasshtabRssDotxmlRoute
   MasshtabIndexRoute: typeof MasshtabIndexRoute
@@ -1008,6 +1028,7 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   Masshtab500Route: Masshtab500Route,
   MasshtabDzenDotxmlRoute: MasshtabDzenDotxmlRoute,
   MasshtabOZhurnaleRoute: MasshtabOZhurnaleRoute,
+  MasshtabPechatnyyNomerRoute: MasshtabPechatnyyNomerRoute,
   MasshtabReklamaRoute: MasshtabReklamaRoute,
   MasshtabRssDotxmlRoute: MasshtabRssDotxmlRoute,
   MasshtabIndexRoute: MasshtabIndexRoute,

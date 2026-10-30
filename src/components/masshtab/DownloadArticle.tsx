@@ -43,7 +43,20 @@ export default function DownloadArticle({ post }: { post: FullPost }) {
 
   const copy = async () => {
     const x = await import("./exportArticle");
-    await navigator.clipboard.writeText(x.toText(post));
+    const text = x.toText(post);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      if (!ok) { x.saveBlob(new Blob([text], { type: "text/plain;charset=utf-8" }), `masshtab-${post.slug.slice(0, 60)}.txt`); return; }
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
