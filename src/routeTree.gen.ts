@@ -46,6 +46,7 @@ import { Route as MasshtabPechatnyyNomerRouteImport } from './routes/masshtab.pe
 import { Route as MasshtabPodpiskaRouteImport } from './routes/masshtab.podpiska'
 import { Route as MasshtabReklamaRouteImport } from './routes/masshtab.reklama'
 import { Route as MasshtabRssDotxmlRouteImport } from './routes/masshtab.rss[.]xml'
+import { Route as MasshtabTenchatRouteImport } from './routes/masshtab.tenchat'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
 import { Route as RadarInnRouteImport } from './routes/radar.$inn'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
@@ -256,6 +257,11 @@ const MasshtabRssDotxmlRoute = MasshtabRssDotxmlRouteImport.update({
   path: '/rss.xml',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabTenchatRoute = MasshtabTenchatRouteImport.update({
+  id: '/tenchat',
+  path: '/tenchat',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const RadarIndexRoute = RadarIndexRouteImport.update({
   id: '/radar/',
   path: '/radar/',
@@ -394,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
+  '/masshtab/tenchat': typeof MasshtabTenchatRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/analytics/': typeof AnalyticsIndexRoute
@@ -452,6 +459,7 @@ export interface FileRoutesByTo {
   '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
+  '/masshtab/tenchat': typeof MasshtabTenchatRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/analytics': typeof AnalyticsIndexRoute
@@ -512,6 +520,7 @@ export interface FileRoutesById {
   '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
   '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
+  '/masshtab/tenchat': typeof MasshtabTenchatRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/analytics/': typeof AnalyticsIndexRoute
@@ -573,6 +582,7 @@ export interface FileRouteTypes {
     | '/masshtab/podpiska'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
+    | '/masshtab/tenchat'
     | '/radar/$inn'
     | '/services/$slug'
     | '/analytics/'
@@ -631,6 +641,7 @@ export interface FileRouteTypes {
     | '/masshtab/podpiska'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
+    | '/masshtab/tenchat'
     | '/radar/$inn'
     | '/services/$slug'
     | '/analytics'
@@ -690,6 +701,7 @@ export interface FileRouteTypes {
     | '/masshtab/podpiska'
     | '/masshtab/reklama'
     | '/masshtab/rss.xml'
+    | '/masshtab/tenchat'
     | '/radar/$inn'
     | '/services/$slug'
     | '/analytics/'
@@ -1020,6 +1032,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabRssDotxmlRouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/tenchat': {
+      id: '/masshtab/tenchat'
+      path: '/tenchat'
+      fullPath: '/masshtab/tenchat'
+      preLoaderRoute: typeof MasshtabTenchatRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/radar/': {
       id: '/radar/'
       path: '/radar'
@@ -1178,6 +1197,7 @@ interface MasshtabRouteChildren {
   MasshtabPodpiskaRoute: typeof MasshtabPodpiskaRoute
   MasshtabReklamaRoute: typeof MasshtabReklamaRoute
   MasshtabRssDotxmlRoute: typeof MasshtabRssDotxmlRoute
+  MasshtabTenchatRoute: typeof MasshtabTenchatRoute
   MasshtabIndexRoute: typeof MasshtabIndexRoute
   MasshtabRubrikaRubricRoute: typeof MasshtabRubrikaRubricRoute
   MasshtabExportSlugFmtRoute: typeof MasshtabExportSlugFmtRoute
@@ -1198,6 +1218,7 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabPodpiskaRoute: MasshtabPodpiskaRoute,
   MasshtabReklamaRoute: MasshtabReklamaRoute,
   MasshtabRssDotxmlRoute: MasshtabRssDotxmlRoute,
+  MasshtabTenchatRoute: MasshtabTenchatRoute,
   MasshtabIndexRoute: MasshtabIndexRoute,
   MasshtabRubrikaRubricRoute: MasshtabRubrikaRubricRoute,
   MasshtabExportSlugFmtRoute: MasshtabExportSlugFmtRoute,

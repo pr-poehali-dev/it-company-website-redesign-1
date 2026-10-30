@@ -10,5 +10,6 @@ Disallow: /analytics/account
 Disallow: /docs/kp-
 Disallow: /chatgpt
 Disallow: /files/
+Disallow: /masshtab/tenchat
 
 Sitemap: https://mat-labs.ru/sitemap.xml
