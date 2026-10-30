@@ -12,7 +12,9 @@ export interface AdvTemplate {
   followup_subject: string; followup_body: string;
 }
 export interface AdvSettings { sender_name?: string; sender_phone?: string; reply_to?: string; ads_daily_limit?: string | number }
-export interface Overview { segments: Segment[]; templates: AdvTemplate[]; sent_today: number; settings: AdvSettings; daily_limit: number }
+export interface NightStats { date: string; runs: number; processed: number; email: number; phone: number; site: number; queue?: number }
+export interface NightState { last_run: string | null; night: NightStats | null }
+export interface Overview { segments: Segment[]; templates: AdvTemplate[]; sent_today: number; settings: AdvSettings; daily_limit: number; night?: NightState; cron_ready?: boolean }
 export interface Advertiser {
   id: number; company_name: string; inn: string; region: string; subsegment: string;
   revenue: number | null; employee_count: number | null; email: string; phone: string; website: string;

@@ -94,6 +94,14 @@ def err(msg, status=400):
     return resp({'error': msg}, status)
 
 
+def is_cron(event):
+    h = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
+    q = event.get('queryStringParameters') or {}
+    secret = os.environ.get('CRON_SECRET', '')
+    got = h.get('x-cron-secret') or q.get('key') or ''
+    return bool(secret) and hmac.compare_digest(got, secret)
+
+
 def authorized(event):
     h = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
     token = h.get('x-session-token', '')
@@ -153,10 +161,12 @@ def action_overview():
                     WHERE p.campaign = %s AND a.activity_type = 'email' AND a.created_at >= date_trunc('day', NOW())""", (CAMPAIGN,))
     sent_today = cur.fetchone()['n']
     settings = get_settings(cur)
+    night = night_state(cur)
     conn.close()
     segs = [{'code': k, 'name': v['name'], 'template': SEG_TEMPLATE[k], **(stats.get(k) or {})} for k, v in SEGMENTS.items()]
     return resp({'segments': segs, 'templates': templates, 'sent_today': sent_today, 'settings': settings,
-                 'daily_limit': int(settings.get('ads_daily_limit') or 40)})
+                 'daily_limit': int(settings.get('ads_daily_limit') or 40), 'night': night,
+                 'cron_ready': bool(os.environ.get('CRON_SECRET'))})
 
 
 # ── Сбор базы из реестра МСП ────────────────────────────────────────────────
@@ -251,6 +261,56 @@ def action_enrich(body, context):
     conn.close()
     enrich._DEADLINE['t'] = 0.0
     return resp({'ok': True, 'processed': len(rows), 'queue': queue, **found, 'ms': int((time.time() - started) * 1000)})
+
+
+# ── Ночной поиск ─────────────────────────────────────────────────────────────
+
+NIGHT_KEY = 'adv_enrich_night'
+NIGHT_HOURS = range(0, 7)
+
+
+def msk_now():
+    return datetime.now(timezone.utc) + timedelta(hours=3)
+
+
+def night_state(cur):
+    cur.execute(f"SELECT last_run, last_result FROM {S}.cron_state WHERE key = %s", (NIGHT_KEY,))
+    r = cur.fetchone()
+    if not r:
+        return {'last_run': None, 'night': None}
+    res = r['last_result']
+    if isinstance(res, str):
+        try:
+            res = json.loads(res)
+        except Exception:
+            res = None
+    return {'last_run': r['last_run'], 'night': res}
+
+
+def action_night(body, context):
+    """Шаг ночного поиска контактов: работает с 00:00 до 07:00 МСК, копит итоги ночи."""
+    now = msk_now()
+    if now.hour not in NIGHT_HOURS and not body.get('force'):
+        return resp({'ok': True, 'skipped': 'не ночь', 'msk_hour': now.hour})
+    r = json.loads(action_enrich({'size': body.get('size') or 8}, context)['body'])
+    if r.get('error'):
+        return resp(r, 500)
+    night = (now - timedelta(hours=7)).date().isoformat()
+    conn = db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    st = night_state(cur)['night'] or {}
+    if st.get('date') != night:
+        st = {'date': night, 'runs': 0, 'processed': 0, 'email': 0, 'phone': 0, 'site': 0}
+    st['runs'] += 1
+    for k in ('processed', 'email', 'phone', 'site'):
+        st[k] += int(r.get(k) or 0)
+    st['queue'] = r.get('queue', 0)
+    cur.execute(f"""INSERT INTO {S}.cron_state (key, last_run, last_result, updated_at) VALUES (%s, NOW(), %s, NOW())
+                    ON CONFLICT (key) DO UPDATE SET last_run = NOW(), last_result = EXCLUDED.last_result, updated_at = NOW()""",
+                (NIGHT_KEY, json.dumps(st, ensure_ascii=False)))
+    conn.commit()
+    conn.close()
+    return resp({'ok': True, **r, 'night': st})
 
 
 # ── Список ───────────────────────────────────────────────────────────────────
@@ -545,10 +605,12 @@ def handler(event: dict, context) -> dict:
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
         return {'statusCode': 200, 'headers': {**CORS, 'Access-Control-Max-Age': '86400'}, 'body': ''}
-    if not authorized(event):
-        return err('Не авторизован', 401)
     params = event.get('queryStringParameters') or {}
     body = json.loads(event.get('body') or '{}') if method == 'POST' else {}
+    if (body.get('action') or params.get('action')) == 'night' and is_cron(event):
+        return action_night({**params, **body, 'force': False}, context)
+    if not authorized(event):
+        return err('Не авторизован', 401)
     action = body.get('action') or params.get('action') or 'overview'
     if method == 'GET':
         fn = {'overview': lambda: action_overview(), 'list': lambda: action_list(params),
@@ -556,6 +618,8 @@ def handler(event: dict, context) -> dict:
         return fn() if fn else err('Неизвестное действие')
     if action == 'enrich':
         return action_enrich(body, context)
+    if action == 'night':
+        return action_night(body, context)
     if action == 'send':
         return action_send(body, context)
     fn = {'build': action_build, 'update': action_update, 'preview': action_preview, 'save_template': action_save_template,

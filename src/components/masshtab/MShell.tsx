@@ -17,7 +17,7 @@ export default function MShell({ children, active, top }: { children: ReactNode;
     <div className="min-h-screen bg-[#f6f2ea] text-[#14110f] font-['Golos_Text',sans-serif]">
       <header className="bg-[#f6f2ea]/95 backdrop-blur border-b-2 border-[#14110f] sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
-          <Link to="/masshtab"><Logo className="text-3xl" /></Link>
+          <Link to="/masshtab" className="flex items-center gap-2.5"><img src="/img/masshtab/logo-96.jpg" alt="" width={40} height={40} className="w-10 h-10 rounded-full" /><Logo className="text-3xl" /></Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
             {NAV.map(([to, label]) => (
               <Link key={to} to={to} className={active === to ? "text-[#d6402b]" : "hover:text-[#d6402b] transition-colors"}>{label}</Link>

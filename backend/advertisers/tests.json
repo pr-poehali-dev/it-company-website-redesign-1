@@ -1,5 +1,36 @@
-{"tests": [
- {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
- {"name": "Обзор без авторизации", "method": "GET", "path": "/", "expectedStatus": 401, "expectedBody": {"error": "Не авторизован"}, "bodyMatcher": "partial"},
- {"name": "Отправка без авторизации", "method": "POST", "path": "/", "body": {"action": "send", "count": 1}, "expectedStatus": 401}
-]}
+{
+ "tests": [
+  {
+   "name": "OPTIONS",
+   "method": "OPTIONS",
+   "path": "/",
+   "expectedStatus": 200
+  },
+  {
+   "name": "Обзор без авторизации",
+   "method": "GET",
+   "path": "/",
+   "expectedStatus": 401,
+   "expectedBody": {
+    "error": "Не авторизован"
+   },
+   "bodyMatcher": "partial"
+  },
+  {
+   "name": "Отправка без авторизации",
+   "method": "POST",
+   "path": "/",
+   "body": {
+    "action": "send",
+    "count": 1
+   },
+   "expectedStatus": 401
+  },
+  {
+   "name": "Ночной запуск с неверным ключом",
+   "method": "GET",
+   "path": "/?action=night&key=wrong",
+   "expectedStatus": 401
+  }
+ ]
+}

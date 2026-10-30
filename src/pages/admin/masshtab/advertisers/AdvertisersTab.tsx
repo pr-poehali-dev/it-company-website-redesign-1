@@ -5,6 +5,7 @@ import SegmentsPanel from "./SegmentsPanel";
 import TemplatesPanel from "./TemplatesPanel";
 import SettingsPanel from "./SettingsPanel";
 import AdvertisersTable from "./AdvertisersTable";
+import NightPanel from "./NightPanel";
 
 interface EnrichResp { processed: number; queue: number; email: number; phone: number; site: number }
 type Msg = { ok: boolean; text: string } | null;
@@ -75,7 +76,7 @@ export default function AdvertisersTab({ token }: { token: string }) {
     setLoadErr("");
     setData({
       segments: d.segments || [], templates: d.templates || [], sent_today: n(d.sent_today),
-      settings: d.settings || {}, daily_limit: n(d.daily_limit),
+      settings: d.settings || {}, daily_limit: n(d.daily_limit), night: d.night, cron_ready: d.cron_ready,
     });
   }, [token]);
 
@@ -245,6 +246,8 @@ export default function AdvertisersTab({ token }: { token: string }) {
           <button onClick={() => setMsg(null)} className="opacity-60 hover:opacity-100"><Icon name="X" size={14} /></button>
         </div>
       )}
+
+      <NightPanel night={data.night} cronReady={!!data.cron_ready} queue={data.segments.reduce((a, s) => a + n(s.to_enrich), 0)} />
 
       <Portrait names={data.segments.map(s => s.name)} />
 

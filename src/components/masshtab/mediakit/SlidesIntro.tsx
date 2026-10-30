@@ -16,10 +16,13 @@ export function SlideCover() {
         </div>
         <div className={`${serif} italic text-[24px]`}>Бизнес, деньги и люди — проверено цифрами</div>
       </div>
-      <div className="w-[300px] bg-[#14110f] flex flex-col justify-end p-10">
-        <div className="w-16 h-2 bg-[#d6402b] mb-6" />
+      <div className="w-[360px] bg-[#0b1a33] flex flex-col justify-between p-10">
+        <img src="/img/masshtab/logo.jpg" alt="Логотип журнала «Масштаб»" className="w-full aspect-square rounded-full object-cover ring-1 ring-[#c9a24a]/40 shadow-[0_20px_60px_-15px_rgba(201,162,74,.5)]" />
+        <div>
+        <div className="w-16 h-2 bg-[#c9a24a] mb-6" />
         <div className="text-white/70 text-lg leading-relaxed">Реклама, партнёрские материалы и спецпроекты</div>
         <div className="text-white font-bold text-lg mt-6">{SITE_LABEL}</div>
+        </div>
       </div>
     </div>
   );

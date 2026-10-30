@@ -3,7 +3,7 @@ export const PUBLISHER = {
   "@type": "Organization",
   name: "Журнал «Масштаб» (ООО «МАТ-Лабс»)",
   url: `${SITE}/masshtab`,
-  logo: { "@type": "ImageObject", url: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/bucket/445e832b-e1ed-413e-a842-7a510d6d41f1.jpg" },
+  logo: { "@type": "ImageObject", url: "https://cdn.poehali.dev/projects/290a2a79-ab7e-4f13-b5bc-e165f1d30061/bucket/07ec190d-cb1c-4740-9420-330877ac946b.jpg" },
 };
 
 export const abs = (u: string | null | undefined) => (!u ? undefined : u.startsWith("http") ? u : `${SITE}${u}`);
