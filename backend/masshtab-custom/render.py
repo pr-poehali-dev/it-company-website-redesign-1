@@ -38,11 +38,21 @@ def _font(name, path):
     local = f'{FONT_DIR}/{name}.ttf'
     if not os.path.exists(local) or os.path.getsize(local) < 10000:
         os.makedirs(FONT_DIR, exist_ok=True)
-        r = requests.get(GF + path, timeout=15)
-        r.raise_for_status()
-        with open(local + '.part', 'wb') as f:
-            f.write(r.content)
-        os.replace(local + '.part', local)
+        last = None
+        for url in (f'{SITE}/fonts/masshtab/{name}.ttf', GF + path):
+            try:
+                r = requests.get(url, timeout=8)
+                r.raise_for_status()
+                if len(r.content) < 10000:
+                    raise ValueError('короткий файл шрифта')
+                with open(local + '.part', 'wb') as f:
+                    f.write(r.content)
+                os.replace(local + '.part', local)
+                break
+            except Exception as e:
+                last = e
+        else:
+            raise RuntimeError(f'не удалось загрузить шрифт {name}: {last}')
     return name, local
 
 
@@ -78,7 +88,7 @@ S = {
     'toc_n': st('toc_n', fontName='Display', fontSize=16, leading=19, textColor=RED),
     'toc_r': st('toc_r', fontName='Golos-Bold', fontSize=7, leading=9, textColor=MUTED),
     'toc_t': st('toc_t', fontName='Serif-Bold', fontSize=11, leading=14),
-    'big': st('big', fontName='Display', fontSize=24, leading=28),
+    'big': st('big', fontName='Display', fontSize=21, leading=25),
     'small': st('small', fontName='Golos', fontSize=8, leading=11, textColor=MUTED),
 }
 
@@ -91,14 +101,18 @@ def esc(s):
     return escape(str(s or ''))
 
 
+EMOJI = re.compile('[\U0001F000-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]')
+
+
 def inline(s):
+    s = EMOJI.sub('', s or '')
     out, last = [], 0
     for m in re.finditer(r'\*\*([^*]+)\*\*|\*([^*\s][^*]*)\*|\[([^\]]+)\]\((https?://[^)\s]+)\)', s):
         out.append(esc(s[last:m.start()]))
         if m.group(1):
-            out.append(f'<b>{esc(m.group(1))}</b>')
+            out.append(f'<b>{inline(m.group(1))}</b>')
         elif m.group(2):
-            out.append(f'<i>{esc(m.group(2))}</i>')
+            out.append(f'<i>{inline(m.group(2))}</i>')
         else:
             out.append(f'<link href="{esc(m.group(4))}" color="#d6402b">{esc(m.group(3))}</link>')
         last = m.end()
@@ -181,6 +195,8 @@ def md_flow(md, images):
                                    ('VALIGN', (0, 0), (-1, -1), 'TOP'), ('TOPPADDING', (0, 0), (-1, -1), 2.5),
                                    ('BOTTOMPADDING', (0, 0), (-1, -1), 2.5), ('LEFTPADDING', (0, 0), (-1, -1), 2), ('RIGHTPADDING', (0, 0), (-1, -1), 4)]))
             out += [t, Spacer(1, 8)]
+        elif re.fullmatch(r'[-*_]{3,}', b):
+            out.append(Spacer(1, 6))
         elif b.startswith('### '):
             out.append(Paragraph(inline(b[4:]), S['h3']))
         elif b.startswith('## '):
@@ -232,7 +248,7 @@ def article_flow(p, images):
     src = [x.strip() for x in (p.get('sources') or '').split('\n') if x.strip()]
     if src:
         fl += [Spacer(1, 8), Paragraph('<b>Источники</b>', S['src'])] + [Paragraph(inline(x), S['src']) for x in src]
-    fl.append(Paragraph(f'Онлайн-версия: mat-labs.ru/masshtab/{esc(p.get("slug") or "")}', S['src']))
+    fl.append(Paragraph(f'Онлайн-версия: {esc(p.get("online") or "mat-labs.ru/masshtab/" + (p.get("slug") or ""))}', S['src']))
     return fl
 
 
@@ -249,6 +265,10 @@ def short_name(n):
 
 def money(v):
     v = float(v or 0)
+    if v >= 1e12:
+        return f'{v / 1e12:.1f} трлн'.replace('.', ',')
+    if v >= 1e11:
+        return f'{v / 1e9:.0f} млрд'
     if v >= 1e9:
         return f'{v / 1e9:.1f} млрд'.replace('.', ',')
     return f'{v / 1e6:.0f} млн'
@@ -302,6 +322,76 @@ def indicators_flow(ind, built):
                 pass
             fl.append(Paragraph(f'<font name="Golos" size="7.5" color="#8a8278">{esc(d)}</font><b>{esc(n.get("title"))}</b>', S['body']))
         fl.append(Paragraph('Источник новостей: ТАСС, раздел «Экономика и бизнес».', S['cap']))
+    return fl
+
+
+MSP = {1: 'Микропредприятия', 2: 'Малые', 3: 'Средние'}
+
+
+def market_flow(d):
+    rows = d['rows']
+    total = sum(r['n'] for r in rows)
+    loss = sum(r['loss'] for r in rows)
+    rev = sum(float(r['rev'] or 0) for r in rows)
+    fl = [Paragraph('ПОРТРЕТ РЫНКА', S['kick']), Paragraph(esc(d['label']), S['h1']),
+          Paragraph('Сколько компаний работает на вашем рынке, сколько они зарабатывают и какая доля в минусе — по открытой отчётности ФНС '
+                    'и реестру МСП. Учтены микро-, малые и средние компании с ненулевой выручкой.', S['lead'])]
+    if not total:
+        return fl + [Paragraph('По этой выборке в открытых данных нет компаний. Попробуйте расширить регион или отрасль.', S['body'])]
+    cells = [('Компаний', f'{total:,}'.replace(',', ' ')), ('Их выручка, ₽', money(rev)),
+             ('В убытке', f'{loss / total * 100:.0f}%'), ('Работают людей', f'{int(sum(r["staff"] or 0 for r in rows)):,}'.replace(',', ' '))]
+    t = Table([[[Paragraph(esc(a.upper()), S['toc_r']), Paragraph(esc(b), S['big'])] for a, b in cells]], colWidths=[CW / 4] * 4)
+    t.setStyle(TableStyle([('LINEABOVE', (0, 0), (-1, 0), 1.5, INK), ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                           ('TOPPADDING', (0, 0), (-1, -1), 6), ('LEFTPADDING', (0, 0), (-1, -1), 0)]))
+    fl += [t, Spacer(1, 10), Paragraph('Типичная компания по размеру', S['h2'])]
+    head = ['Размер', 'Компаний', 'Медианная выручка, ₽', 'Медианная маржа', 'Выручка на сотрудника, ₽', 'Доля убыточных']
+    data = [[Paragraph(h, S['cellb']) for h in head]]
+    for r in rows:
+        data.append([Paragraph(MSP.get(r['msp_cat'], '—'), S['cellb']), Paragraph(f"{r['n']:,}".replace(',', ' '), S['cell']),
+                     Paragraph(money(r['med_rev']), S['cell']), Paragraph(f"{float(r['med_margin'] or 0) * 100:.1f}%".replace('.', ','), S['cell']),
+                     Paragraph(money(r['med_out']) if r['med_out'] else '—', S['cell']), Paragraph(f"{r['loss'] / r['n'] * 100:.0f}%", S['cell'])])
+    t = Table(data, colWidths=[30 * mm, 22 * mm, 32 * mm, 26 * mm, 34 * mm, CW - 144 * mm])
+    t.setStyle(TableStyle([('LINEBELOW', (0, 0), (-1, 0), 0.8, INK), ('LINEBELOW', (0, 1), (-1, -1), 0.3, LINE), ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                           ('TOPPADDING', (0, 0), (-1, -1), 3), ('BOTTOMPADDING', (0, 0), (-1, -1), 3), ('LEFTPADDING', (0, 0), (-1, -1), 2)]))
+    fl.append(t)
+    modes = [x for x in d['modes'] if x['mode']]
+    if modes:
+        mt = sum(x['n'] for x in modes)
+        fl += [Paragraph('Системы налогообложения', S['h2']),
+               Paragraph(' · '.join(f"<b>{esc(x['mode'])}</b> — {x['n'] / mt * 100:.0f}%" for x in modes[:5]), S['body'])]
+    fl += [Spacer(1, 6), dark_box('КАК ЧИТАТЬ', [
+        'Медиана — значение посередине: половина компаний зарабатывает больше, половина меньше. Это честнее среднего, которое тянут вверх крупные игроки.',
+        'Маржа — (доходы − расходы) ÷ выручка, до налога на прибыль. Сравните свою маржу и выручку на сотрудника со строкой своего размера.']),
+           Spacer(1, 6), Paragraph('Источник: ФНС, открытые данные о доходах и расходах и среднесписочной численности организаций; Единый реестр субъектов МСП. '
+                                   'Расчёт «Масштаба». Данные — за последний опубликованный год.', S['src'])]
+    return fl
+
+
+def quotes_flow(d):
+    fl = [Paragraph('МЫСЛИ ДЛЯ РУКОВОДИТЕЛЯ', S['kick']), Paragraph('Восемь цитат об управлении, деньгах и людях', S['h1']), Spacer(1, 4)]
+    for q in d['items']:
+        who = ', '.join(x for x in (q.get('author'), q.get('author_role')) if x)
+        fl.append(KeepTogether([Paragraph(f'«{esc(q["text"])}»', st('q', fontName='Serif-Italic', fontSize=13, leading=18, spaceBefore=6)),
+                                Paragraph(f'<b>{esc(who)}</b>' + (f' · {esc(q["source"])}' if q.get('source') else ''), S['meta'])]))
+    return fl
+
+
+def notes_flow(d):
+    def lines(n, h=8.5 * mm):
+        t = Table([['']] * n, colWidths=[CW], rowHeights=[h] * n)
+        t.setStyle(TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.4, LINE)]))
+        return t
+    fl = [Paragraph('РАБОЧИЕ СТРАНИЦЫ', S['kick']), Paragraph('План на месяц', S['h1']),
+          Paragraph('Три главные задачи месяца — не больше. Всё остальное подождёт.', S['lead'])]
+    for i in range(1, 4):
+        fl += [Paragraph(f'{i}. Задача', S['h3']), lines(2), Paragraph('Как пойму, что сделано:', S['small']), lines(1)]
+    fl += [PageBreak(), Paragraph('РАБОЧИЕ СТРАНИЦЫ', S['kick']), Paragraph('Ключевые цифры', S['h1'])]
+    head = ['Показатель', 'План', 'Факт', 'Отклонение']
+    names = ['Выручка', 'Валовая маржа', 'Постоянные расходы', 'Прибыль', 'Деньги на счёте', 'Дебиторка', 'Новые клиенты', 'Средний чек', 'Численность', 'Выручка на сотрудника']
+    data = [[Paragraph(h, S['cellb']) for h in head]] + [[Paragraph(n, S['cell']), '', '', ''] for n in names]
+    t = Table(data, colWidths=[CW * 0.4] + [CW * 0.2] * 3, rowHeights=[8 * mm] + [11 * mm] * len(names))
+    t.setStyle(TableStyle([('LINEBELOW', (0, 0), (-1, 0), 0.8, INK), ('GRID', (0, 1), (-1, -1), 0.3, LINE), ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')]))
+    fl += [t, Spacer(1, 10), Paragraph('Заметки', S['h2']), lines(9)]
     return fl
 
 
@@ -407,7 +497,8 @@ def toc_flow(toc, issue):
                                ('TOPPADDING', (0, 0), (-1, -1), 4), ('BOTTOMPADDING', (0, 0), (-1, -1), 4), ('LEFTPADDING', (0, 0), (-1, -1), 0)]))
         fl.append(t)
     fl += [Spacer(1, 10), Paragraph('Выпуск собран по вашему выбору из материалов журнала «Масштаб»: статей онлайн-версии, полос вышедших номеров, '
-                                    'рейтинга «Масштаб-500» и рыночных индикаторов на дату сборки. Данные в каждом материале — на дату, указанную в нём.', S['small'])]
+                                    'рейтинга «Масштаб-500», портретов рынка, рыночных индикаторов на дату сборки и обучающих материалов образовательной платформы '
+                                    'учисьпро.рф — проекта нашей команды. Данные в каждом материале — на дату, указанную в нём.', S['small'])]
     return fl
 
 
@@ -461,6 +552,10 @@ def build(issue, modules, archive_pdfs):
     images.prefetch(urls)
     archive_readers = {k: PdfReader(io.BytesIO(v)) for k, v in archive_pdfs.items()}
 
+    for m in modules:
+        if m['kind'] == 'uch':
+            m['kind'] = 'post'
+
     def toc_draft(n):
         return [(n, m['rub'], m['title']) for m in modules]
 
@@ -479,6 +574,12 @@ def build(issue, modules, archive_pdfs):
                 fl = article_flow(m['data'], images)
             elif m['kind'] == 'rating':
                 fl = rating_flow(m['data'])
+            elif m['kind'] == 'market':
+                fl = market_flow(m['data'])
+            elif m['kind'] == 'quotes':
+                fl = quotes_flow(m['data'])
+            elif m['kind'] == 'notes':
+                fl = notes_flow(m['data'])
             else:
                 fl = indicators_flow(m['data'], built)
             pdf = render_flow(fl, offset, issue['title'])

@@ -20,6 +20,7 @@ import psycopg2.extras
 import requests
 
 import notify
+import uch
 from archive import ARCHIVE
 from data import REGIONS, SECTIONS
 
@@ -83,7 +84,13 @@ def catalog(conn):
     archive = [{'issue': k, 'issue_title': v['title'], 'articles': [{'id': f'{k}:{a[0]}', 'from': a[0], 'to': a[1], 'rubric': a[2], 'title': a[3],
                                                                      'pages': a[1] - a[0] + 1} for a in v['articles']]}
                for k, v in sorted(ARCHIVE.items(), reverse=True)]
+    try:
+        uch_items = uch.catalog(conn, S)
+    except Exception as e:
+        print(f'[custom] uch catalog: {e}')
+        uch_items = []
     return {'price': PRICE, 'max_modules': MAX_MODULES, 'posts': posts, 'archive': archive,
+            'uch': uch_items, 'uch_topics': [{'slug': k, 'name': v} for k, v in uch.TOPICS],
             'regions': [{'code': k, 'name': v} for k, v in sorted(REGIONS.items(), key=lambda x: x[1])], 'sections': list(SECTIONS)}
 
 
@@ -113,9 +120,26 @@ def clean_modules(raw):
             top = max(10, min(100, int(m.get('top') or 50)))
             key = ('rating', region, section)
             item = {'kind': 'rating', 'region': region, 'section': section, 'top': top}
+        elif kind == 'uch':
+            slug = str(m.get('id') or '')[:200]
+            if not re.fullmatch(r'[a-z0-9%_-]+', slug):
+                continue
+            key = ('uch', slug)
+            item = {'kind': 'uch', 'id': slug}
         elif kind == 'indicators':
             key = ('indicators',)
             item = {'kind': 'indicators'}
+        elif kind == 'market':
+            region = re.sub(r'\D', '', str(m.get('region') or ''))[:2]
+            region = region if region in REGIONS else ''
+            section = m.get('section') if m.get('section') in SECTIONS else ''
+            if not region and not section:
+                continue
+            key = ('market', region, section)
+            item = {'kind': 'market', 'region': region, 'section': section}
+        elif kind in ('quotes', 'notes'):
+            key = (kind,)
+            item = {'kind': kind}
         else:
             continue
         if key in seen:
@@ -269,12 +293,17 @@ def module_data(conn, mods):
         cur.execute(f"""SELECT id, slug, rubric, title, lead, author, read_min, data_date, cover_url, content, takeaways, sources, question
                         FROM {S}.mag_posts WHERE id = ANY(%s) AND published""", (ids,))
         posts = {r['id']: dict(r) for r in cur.fetchall()}
+    uch_slugs = [m['id'] for m in mods if m['kind'] == 'uch']
+    uch_full = uch.fetch_many(uch_slugs) if uch_slugs else {}
     out, need_archive = [], set()
     sec_by_code = {c: s2 for s2, codes in SECTIONS.items() for c in codes}
     for m in mods:
         if m['kind'] == 'post' and m['id'] in posts:
             p = posts[m['id']]
             out.append({'kind': 'post', 'rub': p['rubric'] or 'Материал', 'title': p['title'], 'data': p})
+        elif m['kind'] == 'uch' and m['id'] in uch_full:
+            p = uch_full[m['id']]
+            out.append({'kind': 'uch', 'rub': 'Обучение · учисьпро.рф', 'title': p['title'], 'data': p})
         elif m['kind'] == 'archive':
             issue, _, frm = m['id'].partition(':')
             a = next(x for x in ARCHIVE[issue]['articles'] if str(x[0]) == frm)
@@ -300,6 +329,33 @@ def module_data(conn, mods):
             out.append({'kind': 'rating', 'rub': 'Рейтинг', 'title': f'«Масштаб-500»{": " + label if label else ""} — топ-{len(items)}',
                         'data': {'items': items, 'total': stt['n'] or 0, 'median_x': f"{float(stt['med'] or 0) / 100 + 1:.1f}".replace('.', ','),
                                  'region_name': reg, 'section': m['section']}})
+        elif m['kind'] == 'market':
+            w, a = ['revenue > 0'], []
+            if m['region']:
+                w.append('region = %s')
+                a.append(m['region'])
+            if m['section']:
+                w.append('okved2 = ANY(%s)')
+                a.append(SECTIONS[m['section']])
+            cur.execute(f"""SELECT msp_cat, COUNT(*) n, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY revenue) med_rev,
+                               PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (revenue - expenses)::float / revenue) med_margin,
+                               COUNT(*) FILTER (WHERE expenses > revenue) loss, SUM(revenue) rev, SUM(staff) staff,
+                               PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY revenue::float / NULLIF(staff, 0)) med_out
+                               FROM {S}.biz_companies WHERE {' AND '.join(w)} AND msp_cat IN (1, 2, 3) GROUP BY msp_cat ORDER BY msp_cat""", a)
+            rows = [dict(r) for r in cur.fetchall()]
+            cur.execute(f"""SELECT COALESCE(tax_mode, '') mode, COUNT(*) n FROM {S}.biz_companies WHERE {' AND '.join(w)} AND msp_cat IN (1, 2, 3)
+                            GROUP BY 1 ORDER BY 2 DESC""", a)
+            modes = [dict(r) for r in cur.fetchall()]
+            reg = REGIONS.get(m['region'], '')
+            label = ' · '.join(x for x in (reg or 'Россия', m['section'] or 'все отрасли') if x)
+            out.append({'kind': 'market', 'rub': 'Портрет рынка', 'title': f'Портрет рынка: {label}',
+                        'data': {'label': label, 'rows': rows, 'modes': modes}})
+        elif m['kind'] == 'quotes':
+            cur.execute(f"SELECT text, author, author_role, source FROM {S}.mag_quotes WHERE active ORDER BY random() LIMIT 8")
+            out.append({'kind': 'quotes', 'rub': 'Мысли для руководителя', 'title': 'Восемь цитат об управлении, деньгах и людях',
+                        'data': {'items': [dict(r) for r in cur.fetchall()]}})
+        elif m['kind'] == 'notes':
+            out.append({'kind': 'notes', 'rub': 'Рабочие страницы', 'title': 'План на месяц, ключевые цифры и заметки', 'data': {}})
         elif m['kind'] == 'indicators':
             cur.execute(f"SELECT key, data FROM {S}.mag_cache WHERE key IN ('cbr', 'tass')")
             c = {r['key']: r['data'] for r in cur.fetchall()}

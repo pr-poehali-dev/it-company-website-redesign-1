@@ -11,13 +11,21 @@ export type ModuleSel =
   | { kind: "post"; id: number }
   | { kind: "archive"; id: string }
   | { kind: "rating"; region: string; section: string; top: number }
-  | { kind: "indicators" };
+  | { kind: "indicators" }
+  | { kind: "uch"; id: string }
+  | { kind: "market"; region: string; section: string }
+  | { kind: "quotes" }
+  | { kind: "notes" };
+
+export interface UchItem { slug: string; title: string; lead: string; topic: string; read_min: number | null; published_at: string }
 
 export interface CatPost { id: number; rubric: string; title: string; lead: string; read_min: number | null; published_at: string }
 export interface CatArchiveItem { id: string; from: number; to: number; rubric: string; title: string; pages: number }
 export interface Catalog {
   price: number;
   max_modules: number;
+  uch: UchItem[];
+  uch_topics: { slug: string; name: string }[];
   posts: CatPost[];
   archive: { issue: string; issue_title: string; articles: CatArchiveItem[] }[];
   regions: { code: string; name: string }[];

@@ -3,23 +3,43 @@ import Icon from "@/components/ui/icon";
 import { serif } from "../MShell";
 import { type Catalog, type CustomIssue, type ModuleSel, customPost, rub } from "./customApi";
 
-type Tab = "posts" | "archive" | "rating" | "indicators";
+type Tab = "uch" | "posts" | "archive" | "rating" | "market" | "extra";
 const TABS: [Tab, string, string][] = [
-  ["posts", "Статьи онлайн-журнала", "Newspaper"],
-  ["archive", "Статьи вышедших номеров", "BookOpen"],
+  ["uch", "Обучение · учисьпро.рф", "GraduationCap"],
+  ["posts", "Статьи журнала", "Newspaper"],
+  ["archive", "Вышедшие номера", "BookOpen"],
   ["rating", "Рейтинг «Масштаб-500»", "Trophy"],
-  ["indicators", "Индикаторы рынка", "LineChart"],
+  ["market", "Портрет рынка", "PieChart"],
+  ["extra", "Индикаторы и рабочие страницы", "LayoutGrid"],
+];
+const EXTRA: { kind: "indicators" | "quotes" | "notes"; icon: string; title: string; text: string }[] = [
+  { kind: "indicators", icon: "LineChart", title: "Индикаторы рынка", text: "Ключевая ставка ЦБ, курсы доллара, евро и юаня и дюжина главных новостей экономики — на день сборки PDF." },
+  { kind: "quotes", icon: "Quote", title: "Мысли для руководителя", text: "Восемь цитат об управлении, деньгах и людях — от Друкера, Баффетта и других — с источниками." },
+  { kind: "notes", icon: "NotebookPen", title: "Рабочие страницы", text: "План на месяц из трёх главных задач, таблица ключевых цифр «план — факт» и страница для заметок." },
 ];
 const input = "w-full bg-white border border-[#cfc3b2] rounded px-3 py-2.5 text-sm text-[#14110f] placeholder:text-[#8a8278] outline-none focus:border-[#d6402b]";
 
-const keyOf = (m: ModuleSel) => (m.kind === "post" ? `p${m.id}` : m.kind === "archive" ? `a${m.id}` : m.kind === "rating" ? `r${m.region}-${m.section}` : "ind");
+const keyOf = (m: ModuleSel): string => {
+  switch (m.kind) {
+    case "post": return `p${m.id}`;
+    case "archive": return `a${m.id}`;
+    case "uch": return `u${m.id}`;
+    case "rating": return `r${m.region}-${m.section}`;
+    case "market": return `m${m.region}-${m.section}`;
+    default: return m.kind;
+  }
+};
 
 export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog: Catalog; issue: CustomIssue | null; onSaved: (i: CustomIssue, pay: boolean) => void; onCancel: () => void }) {
   const [title, setTitle] = useState(issue?.title || "Мой «Масштаб»");
   const [coverName, setCoverName] = useState(issue?.cover_name || "");
   const [coverCompany, setCoverCompany] = useState(issue?.cover_company || "");
   const [mods, setMods] = useState<ModuleSel[]>(issue?.modules || []);
-  const [tab, setTab] = useState<Tab>("posts");
+  const [tab, setTab] = useState<Tab>("uch");
+  const [uchTopic, setUchTopic] = useState("");
+  const [uq, setUq] = useState("");
+  const [mRegion, setMRegion] = useState("");
+  const [mSection, setMSection] = useState("");
   const [q, setQ] = useState("");
   const [rubric, setRubric] = useState("");
   const [region, setRegion] = useState("");
@@ -33,6 +53,8 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
   const rubrics = useMemo(() => Array.from(new Set(catalog.posts.map((p) => p.rubric).filter(Boolean))), [catalog.posts]);
   const regionName = (c: string) => catalog.regions.find((r) => r.code === c)?.name || "";
 
+  const uchItems = catalog.uch.filter((u) => (!uchTopic || u.topic === uchTopic) && (!uq || u.title.toLowerCase().includes(uq.toLowerCase())));
+  const uchCount = (t: string) => catalog.uch.filter((u) => u.topic === t).length;
   const posts = catalog.posts.filter((p) => (!rubric || p.rubric === rubric) && (!q || p.title.toLowerCase().includes(q.toLowerCase())));
 
   const toggle = (m: ModuleSel) => {
@@ -62,6 +84,16 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
       }
       return ["Архив", "Материал недоступен"];
     }
+    if (m.kind === "uch") {
+      const u = catalog.uch.find((x) => x.slug === m.id);
+      const t = catalog.uch_topics.find((x) => x.slug === u?.topic)?.name;
+      return [`Обучение · учисьпро.рф${t ? ` · ${t}` : ""}`, u?.title || "Материал учисьпро.рф"];
+    }
+    if (m.kind === "market") {
+      return ["Портрет рынка", [regionName(m.region) || "Россия", m.section || "все отрасли"].join(" · ")];
+    }
+    if (m.kind === "quotes") return ["Мысли для руководителя", "Восемь цитат об управлении, деньгах и людях"];
+    if (m.kind === "notes") return ["Рабочие страницы", "План на месяц, ключевые цифры и заметки"];
     if (m.kind === "rating") {
       const f = [regionName(m.region), m.section].filter(Boolean).join(" · ") || "вся Россия, все отрасли";
       return ["Рейтинг «Масштаб-500»", `Топ-${m.top}: ${f}`];
@@ -94,6 +126,45 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
         </div>
 
         <div className="mt-5 bg-white border border-[#e2d9cb] rounded-lg p-4 md:p-5">
+          {tab === "uch" && (
+            <>
+              <div className="rounded-lg bg-gradient-to-r from-fuchsia-600 to-amber-400 text-white p-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-extrabold tracking-[0.14em] uppercase text-white/85">Проект нашей команды</div>
+                  <div className="font-bold text-lg leading-snug">Обучающие материалы образовательной платформы учисьпро.рф</div>
+                  <div className="text-sm text-white/85">Нейросети, профессии, управление, школа и ЕГЭ, советы родителям — полные статьи с таблицами и примерами.</div>
+                </div>
+                <a href="https://xn--h1amcedk2a6b.xn--p1ai/?utm_source=masshtab&utm_medium=builder" target="_blank" rel="noopener" className="shrink-0 bg-white/20 hover:bg-white/30 rounded px-3 py-2 text-sm font-bold">учисьпро.рф ↗</a>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <button type="button" onClick={() => setUchTopic("")} className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${!uchTopic ? "bg-[#14110f] text-white border-[#14110f]" : "border-[#cfc3b2] hover:border-[#14110f]"}`}>Все темы · {catalog.uch.length}</button>
+                {catalog.uch_topics.filter((t) => uchCount(t.slug)).map((t) => (
+                  <button key={t.slug} type="button" onClick={() => setUchTopic(t.slug)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${uchTopic === t.slug ? "bg-[#14110f] text-white border-[#14110f]" : "border-[#cfc3b2] hover:border-[#14110f]"}`}>
+                    {t.name} · {uchCount(t.slug)}
+                  </button>
+                ))}
+              </div>
+              <input value={uq} onChange={(e) => setUq(e.target.value)} placeholder="Поиск по заголовку" className={`${input} mt-3`} />
+              <div className="mt-2 divide-y divide-[#e2d9cb] max-h-[560px] overflow-y-auto">
+                {uchItems.map((u) => {
+                  const on = keys.has(`u${u.slug}`);
+                  return (
+                    <button key={u.slug} type="button" onClick={() => toggle({ kind: "uch", id: u.slug })} className="group w-full text-left flex gap-3 py-3 items-start">
+                      <span className={pick(on)}><Icon name="Check" size={15} /></span>
+                      <span className="min-w-0">
+                        <span className="block text-[11px] font-extrabold tracking-[0.12em] uppercase text-fuchsia-700">{catalog.uch_topics.find((t) => t.slug === u.topic)?.name}{u.read_min ? ` · ${u.read_min} мин` : ""}</span>
+                        <span className={`block ${serif} font-bold leading-snug group-hover:text-[#d6402b]`}>{u.title}</span>
+                        {u.lead && <span className="block text-sm text-[#5b5550] mt-1 line-clamp-2">{u.lead}</span>}
+                      </span>
+                    </button>
+                  );
+                })}
+                {!uchItems.length && <div className="py-8 text-center text-sm text-[#8a8278]">{catalog.uch.length ? "Ничего не нашлось" : "Материалы учисьпро.рф загружаются — обновите страницу через минуту"}</div>}
+              </div>
+            </>
+          )}
+
           {tab === "posts" && (
             <>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -173,13 +244,43 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
             </div>
           )}
 
-          {tab === "indicators" && (
+          {tab === "market" && (
             <div>
-              <p className="text-sm text-[#5b5550]">Ключевая ставка Банка России, курсы доллара, евро и юаня и дюжина главных экономических новостей — на день, когда собирается ваш PDF.</p>
-              <button type="button" onClick={() => toggle({ kind: "indicators" })}
-                className={`mt-4 inline-flex items-center gap-2 font-bold px-4 py-2.5 rounded ${keys.has("ind") ? "border-2 border-[#14110f]" : "bg-[#d6402b] text-white hover:bg-[#b93522]"}`}>
-                <Icon name={keys.has("ind") ? "Minus" : "Plus"} size={16} />{keys.has("ind") ? "Убрать из выпуска" : "Добавить в выпуск"}
+              <p className="text-sm text-[#5b5550]">Сколько компаний на вашем рынке, их общая выручка, доля убыточных, медианная выручка и маржа для микро-, малых и средних компаний, популярные системы налогообложения — по открытым данным ФНС. Удобно сравнить свою компанию с типичной.</p>
+              <div className="grid sm:grid-cols-2 gap-3 mt-4">
+                <label className="text-xs font-bold text-[#8a8278]">Регион
+                  <select value={mRegion} onChange={(e) => setMRegion(e.target.value)} className={`${input} mt-1`}>
+                    <option value="">Вся Россия</option>
+                    {catalog.regions.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
+                  </select>
+                </label>
+                <label className="text-xs font-bold text-[#8a8278]">Отрасль
+                  <select value={mSection} onChange={(e) => setMSection(e.target.value)} className={`${input} mt-1`}>
+                    <option value="">Все отрасли</option>
+                    {catalog.sections.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </label>
+              </div>
+              <button type="button" onClick={() => toggle({ kind: "market", region: mRegion, section: mSection })} disabled={(!mRegion && !mSection) || keys.has(`m${mRegion}-${mSection}`)}
+                className="mt-4 inline-flex items-center gap-2 bg-[#d6402b] text-white font-bold px-4 py-2.5 rounded hover:bg-[#b93522] disabled:opacity-50">
+                <Icon name="Plus" size={16} />{!mRegion && !mSection ? "Выберите регион или отрасль" : keys.has(`m${mRegion}-${mSection}`) ? "Такой портрет уже в выпуске" : "Добавить портрет рынка"}
               </button>
+            </div>
+          )}
+
+          {tab === "extra" && (
+            <div className="grid sm:grid-cols-3 gap-3">
+              {EXTRA.map((x) => {
+                const on = keys.has(x.kind);
+                return (
+                  <button key={x.kind} type="button" onClick={() => toggle({ kind: x.kind })}
+                    className={`text-left rounded-lg border-2 p-4 flex flex-col ${on ? "border-[#d6402b] bg-[#fdf1ee]" : "border-[#e2d9cb] hover:border-[#14110f]"}`}>
+                    <span className="flex items-center justify-between"><Icon name={x.icon} size={22} className="text-[#d6402b]" /><span className={pick(on)}><Icon name="Check" size={15} /></span></span>
+                    <span className="font-bold mt-3">{x.title}</span>
+                    <span className="text-sm text-[#5b5550] mt-1">{x.text}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
