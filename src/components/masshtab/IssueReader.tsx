@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 import Icon from "@/components/ui/icon";
 import MShell, { Kicker, serif } from "./MShell";
 import Crumbs from "./Crumbs";
-import { issuePage, issuePdf, issueThumb, type PrintIssue } from "./issues";
+import IssueDeadline from "./IssueDeadline";
+import { PRINT_NOTE, issuePage, issuePdf, issueThumb, type PrintIssue } from "./issues";
 
 function spreadsOf(total: number): number[][] {
   const out: number[][] = [[1]];
@@ -122,7 +123,7 @@ export default function IssueReader({ issue, archive = false }: { issue: PrintIs
             <Kicker>{archive ? "Архив номеров" : "Печатная версия · выходит ежемесячно"}</Kicker>
             <h1 className={`${serif} font-bold text-4xl md:text-5xl mt-2 leading-[1.05]`}>{issue.title}</h1>
             <p className="text-lg text-[#5b5550] mt-3">
-              {issue.pages} полос, формат 210×280 мм. Листайте номер так, как он выглядит на бумаге, скачайте PDF для чтения или файл для типографии.
+              {issue.pages} полос, формат 210×280 мм. Листайте номер так, как он выглядит на бумаге, или скачайте PDF.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -166,8 +167,10 @@ export default function IssueReader({ issue, archive = false }: { issue: PrintIs
             </div>
           </section>
           <aside className="space-y-5">
+            <IssueDeadline compact />
             <div className="bg-white border border-[#e2d9cb] rounded-lg p-5">
               <Kicker>Для типографии</Kicker>
+              <p className="mt-2 text-sm text-[#5b5550]">{PRINT_NOTE} Файл уже подготовлен по требованиям типографий:</p>
               <ul className="mt-3 space-y-1.5 text-sm text-[#3b3631]">
                 <li>Обрезной формат 210×280 мм</li>
                 <li>Вылеты 3 мм со всех сторон, размеченные в PDF (TrimBox/BleedBox)</li>

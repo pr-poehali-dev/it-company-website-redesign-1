@@ -4,6 +4,12 @@
 Результат: PDF для типографии (210×280 мм + вылеты 3 мм, TrimBox/BleedBox), PDF для чтения
 и картинки страниц для листалки на сайте. Запуск: PYTHONPATH=/tmp/pylibs python3 scripts/masshtab-issue/build.py
 Нужны пакеты: pyphen, qrcode, pypdfium2 (pip install --target=/tmp/pylibs ...), pypdf, Pillow, chromium.
+
+Правила выпуска:
+- журнал выходит ежемесячно; материалы, реклама и правки в номер принимаются до 25 числа предыдущего месяца;
+- вышедший номер — архив, он не пересобирается и не исправляется. Для нового номера меняйте ISSUE (id, dir, file, number, month)
+  и ORDER: старая папка public/masshtab-print/<dir> скрипт перезаписать откажется;
+- печать тиража — не раньше февраля 2027 года, решение не принято. PDF для типографии собирается заранее.
 """
 import html
 import json
@@ -848,6 +854,8 @@ def previews(read_pdf, out_dir):
 
 
 def main():
+    if os.path.isdir(OUT):
+        sys.exit(f'Номер {ISSUE["dir"]} ({ISSUE["month"]}) уже вышел и хранится в архиве — его не исправляем. Задайте в ISSUE новый номер.')
     os.makedirs(WORK, exist_ok=True)
     ensure_fonts()
     feed = get(f'{API}/?action=feed&limit=50')['posts']

@@ -4,6 +4,7 @@ import MShell, { Kicker, serif } from "./MShell";
 import LeadForm from "./LeadForm";
 import Crumbs from "./Crumbs";
 import { growthLabel, mln } from "./api";
+import IssueDeadline from "./IssueDeadline";
 
 const route = getRouteApi("/masshtab/reklama");
 
@@ -51,6 +52,7 @@ export default function AdsPage() {
             ))}
           </div>
           <p className="text-xs text-[#8a8278] mt-3">Все рекламные материалы помечаются как реклама. Стоимость — ориентир на период запуска листка.</p>
+          <div className="mt-6 max-w-3xl"><IssueDeadline /></div>
           <Link to="/masshtab/mediakit" className="mt-5 inline-flex items-center gap-2 border-2 border-[#14110f] text-[#14110f] font-bold text-sm px-4 py-2.5 rounded hover:bg-[#14110f] hover:text-white transition-colors">
             <Icon name="FileText" size={16} />Открыть медиакит (PDF)
           </Link>

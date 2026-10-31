@@ -3,21 +3,11 @@ import Icon from "@/components/ui/icon";
 import MShell, { Kicker, serif } from "./MShell";
 import Crumbs from "./Crumbs";
 import AdSlot from "./AdSlot";
+import IssueDeadline from "./IssueDeadline";
 import { ISSUES, issueCover, issuePdf } from "./issues";
-
-const MONTHS = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
-
-function nextIssueMonth() {
-  const last = ISSUES[0];
-  if (!last) return null;
-  const [y, m] = last.id.split("-").map(Number);
-  const nm = m === 12 ? 1 : m + 1;
-  return `${MONTHS[nm - 1]} ${m === 12 ? y + 1 : y}`;
-}
 
 export default function IssueArchive() {
   const years = Array.from(new Set(ISSUES.map((i) => i.id.slice(0, 4))));
-  const next = nextIssueMonth();
 
   return (
     <MShell active="/masshtab/arhiv">
@@ -27,9 +17,10 @@ export default function IssueArchive() {
           <Kicker>Печатная версия · выходит ежемесячно</Kicker>
           <h1 className={`${serif} font-bold text-4xl md:text-5xl mt-2 leading-[1.05]`}>Архив номеров</h1>
           <p className="text-lg text-[#5b5550] mt-3">
-            «Масштаб» выходит раз в месяц. Здесь хранятся все номера: листайте онлайн так, как они выглядят на бумаге, или скачайте PDF.
+            «Масштаб» выходит раз в месяц. Здесь хранятся все номера: листайте онлайн так, как они выглядят на бумаге, или скачайте PDF. Вышедшие номера не меняются — это история журнала.
           </p>
         </div>
+        <div className="mt-6 max-w-3xl"><IssueDeadline /></div>
 
         {years.map((y) => (
           <section key={y} className="mt-12">
@@ -54,14 +45,6 @@ export default function IssueArchive() {
                   </div>
                 </article>
               ))}
-              {y === years[0] && next && (
-                <div className="flex flex-col items-center justify-center text-center aspect-[210/280] border-2 border-dashed border-[#cfc3b2] rounded p-4">
-                  <Icon name="CalendarClock" size={28} className="text-[#d6402b]" />
-                  <div className={`${serif} font-bold text-lg mt-3`}>Следующий номер</div>
-                  <div className="text-sm text-[#5b5550] mt-1">{next}</div>
-                  <Link to="/masshtab/podpiska" className="text-sm font-bold text-[#d6402b] mt-3">Оформить подписку →</Link>
-                </div>
-              )}
             </div>
           </section>
         ))}
