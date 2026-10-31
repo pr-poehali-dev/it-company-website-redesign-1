@@ -12,4 +12,7 @@ Disallow: /chatgpt
 Disallow: /files/
 Disallow: /masshtab/tenchat
 
-Sitemap: https://mat-labs.ru/sitemap.xml
+Sitemap: https://mat-labs.ru/sitemap-index
+Sitemap: https://mat-labs.ru/sitemap-masshtab
+Sitemap: https://mat-labs.ru/sitemap-blog
+Sitemap: https://mat-labs.ru/sitemap-pages.xml

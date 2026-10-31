@@ -4,7 +4,7 @@ import { RUBRICS } from "@/components/masshtab/rubrics";
 
 const SITE = "https://mat-labs.ru";
 
-export const Route = createFileRoute("/sitemap-masshtab.xml")({
+export const Route = createFileRoute("/sitemap-masshtab")({
   server: {
     handlers: {
       GET: async () => {

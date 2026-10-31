@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 const SITE = "https://mat-labs.ru";
 const RADAR_URL = "https://functions.poehali.dev/87e21a71-588b-4c12-bcd1-82fa1c7a202e";
 
-export const Route = createFileRoute("/sitemap-radar-{$part}.xml")({
+export const Route = createFileRoute("/sitemap-radar-{$part}")({
   server: {
     handlers: {
       GET: async ({ params }) => {

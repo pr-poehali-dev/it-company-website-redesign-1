@@ -4,7 +4,7 @@ import { M_URL, type Post } from "@/components/masshtab/api";
 const SITE = "https://mat-labs.ru";
 const esc = (s: string) => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export const Route = createFileRoute("/masshtab/rss.xml")({
+export const Route = createFileRoute("/masshtab/rss")({
   server: {
     handlers: {
       GET: async () => {
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/masshtab/rss.xml")({
     <link>${SITE}/masshtab</link>
     <description>Бизнес, деньги и люди — проверено цифрами</description>
     <language>ru</language>
-    <atom:link href="${SITE}/masshtab/rss.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${SITE}/masshtab/rss" rel="self" type="application/rss+xml"/>
     <lastBuildDate>${date(posts[0]?.published_at)}</lastBuildDate>
 ${items}
   </channel>

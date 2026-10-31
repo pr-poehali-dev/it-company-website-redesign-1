@@ -17,10 +17,10 @@ import { Route as GotovyyBiznesRouteImport } from './routes/gotovyy-biznes'
 import { Route as InvestorsRouteImport } from './routes/investors'
 import { Route as MasshtabRouteImport } from './routes/masshtab'
 import { Route as PresentationRouteImport } from './routes/presentation'
-import { Route as SitemapBlogDotxmlRouteImport } from './routes/sitemap-blog[.]xml'
-import { Route as SitemapMasshtabDotxmlRouteImport } from './routes/sitemap-masshtab[.]xml'
-import { Route as SitemapRadarChar123partChar125DotxmlRouteImport } from './routes/sitemap-radar-{$part}[.]xml'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SitemapBlogRouteImport } from './routes/sitemap-blog'
+import { Route as SitemapIndexRouteImport } from './routes/sitemap-index'
+import { Route as SitemapMasshtabRouteImport } from './routes/sitemap-masshtab'
+import { Route as SitemapRadarChar123partChar125RouteImport } from './routes/sitemap-radar-{$part}'
 import { Route as SkolkoStoitAvtomatizaciyaRouteImport } from './routes/skolko-stoit-avtomatizaciya'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics.index'
 import { Route as AnalyticsAccountRouteImport } from './routes/analytics.account'
@@ -37,7 +37,6 @@ import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
 import { Route as MasshtabBenchmarkiDirektRouteImport } from './routes/masshtab.benchmarki-direkt'
 import { Route as MasshtabCitataDnyaRouteImport } from './routes/masshtab.citata-dnya'
 import { Route as MasshtabDzenRssRouteImport } from './routes/masshtab.dzen-rss'
-import { Route as MasshtabDzenDotxmlRouteImport } from './routes/masshtab.dzen[.]xml'
 import { Route as MasshtabGrantyFsiSkolkovoRouteImport } from './routes/masshtab.granty-fsi-skolkovo'
 import { Route as MasshtabKalkulyatorRouteImport } from './routes/masshtab.kalkulyator'
 import { Route as MasshtabKalkulyatorAnalitikiRouteImport } from './routes/masshtab.kalkulyator-analitiki'
@@ -48,7 +47,7 @@ import { Route as MasshtabOtchetyRouteImport } from './routes/masshtab.otchety'
 import { Route as MasshtabPechatnyyNomerRouteImport } from './routes/masshtab.pechatnyy-nomer'
 import { Route as MasshtabPodpiskaRouteImport } from './routes/masshtab.podpiska'
 import { Route as MasshtabReklamaRouteImport } from './routes/masshtab.reklama'
-import { Route as MasshtabRssDotxmlRouteImport } from './routes/masshtab.rss[.]xml'
+import { Route as MasshtabRssRouteImport } from './routes/masshtab.rss'
 import { Route as MasshtabTenchatRouteImport } from './routes/masshtab.tenchat'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
 import { Route as RadarInnRouteImport } from './routes/radar.$inn'
@@ -111,27 +110,27 @@ const PresentationRoute = PresentationRouteImport.update({
   path: '/presentation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapBlogDotxmlRoute = SitemapBlogDotxmlRouteImport.update({
-  id: '/sitemap-blog.xml',
-  path: '/sitemap-blog.xml',
+const SitemapBlogRoute = SitemapBlogRouteImport.update({
+  id: '/sitemap-blog',
+  path: '/sitemap-blog',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapMasshtabDotxmlRoute = SitemapMasshtabDotxmlRouteImport.update({
-  id: '/sitemap-masshtab.xml',
-  path: '/sitemap-masshtab.xml',
+const SitemapIndexRoute = SitemapIndexRouteImport.update({
+  id: '/sitemap-index',
+  path: '/sitemap-index',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapRadarChar123partChar125DotxmlRoute =
-  SitemapRadarChar123partChar125DotxmlRouteImport.update({
-    id: '/sitemap-radar-{$part}.xml',
-    path: '/sitemap-radar-{$part}.xml',
+const SitemapMasshtabRoute = SitemapMasshtabRouteImport.update({
+  id: '/sitemap-masshtab',
+  path: '/sitemap-masshtab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapRadarChar123partChar125Route =
+  SitemapRadarChar123partChar125RouteImport.update({
+    id: '/sitemap-radar-{$part}',
+    path: '/sitemap-radar-{$part}',
     getParentRoute: () => rootRouteImport,
   } as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SkolkoStoitAvtomatizaciyaRoute =
   SkolkoStoitAvtomatizaciyaRouteImport.update({
     id: '/skolko-stoit-avtomatizaciya',
@@ -216,11 +215,6 @@ const MasshtabDzenRssRoute = MasshtabDzenRssRouteImport.update({
   path: '/dzen-rss',
   getParentRoute: () => MasshtabRoute,
 } as any)
-const MasshtabDzenDotxmlRoute = MasshtabDzenDotxmlRouteImport.update({
-  id: '/dzen.xml',
-  path: '/dzen.xml',
-  getParentRoute: () => MasshtabRoute,
-} as any)
 const MasshtabGrantyFsiSkolkovoRoute =
   MasshtabGrantyFsiSkolkovoRouteImport.update({
     id: '/granty-fsi-skolkovo',
@@ -273,9 +267,9 @@ const MasshtabReklamaRoute = MasshtabReklamaRouteImport.update({
   path: '/reklama',
   getParentRoute: () => MasshtabRoute,
 } as any)
-const MasshtabRssDotxmlRoute = MasshtabRssDotxmlRouteImport.update({
-  id: '/rss.xml',
-  path: '/rss.xml',
+const MasshtabRssRoute = MasshtabRssRouteImport.update({
+  id: '/rss',
+  path: '/rss',
   getParentRoute: () => MasshtabRoute,
 } as any)
 const MasshtabTenchatRoute = MasshtabTenchatRouteImport.update({
@@ -396,10 +390,10 @@ export interface FileRoutesByFullPath {
   '/investors': typeof InvestorsRoute
   '/masshtab': typeof MasshtabRouteWithChildren
   '/presentation': typeof PresentationRoute
-  '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
-  '/sitemap-masshtab.xml': typeof SitemapMasshtabDotxmlRoute
-  '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sitemap-blog': typeof SitemapBlogRoute
+  '/sitemap-index': typeof SitemapIndexRoute
+  '/sitemap-masshtab': typeof SitemapMasshtabRoute
+  '/sitemap-radar-{$part}': typeof SitemapRadarChar123partChar125Route
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
   '/analytics/account': typeof AnalyticsAccountRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
@@ -412,7 +406,6 @@ export interface FileRoutesByFullPath {
   '/masshtab/benchmarki-direkt': typeof MasshtabBenchmarkiDirektRoute
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
-  '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/granty-fsi-skolkovo': typeof MasshtabGrantyFsiSkolkovoRoute
   '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
   '/masshtab/kalkulyator-analitiki': typeof MasshtabKalkulyatorAnalitikiRoute
@@ -423,7 +416,7 @@ export interface FileRoutesByFullPath {
   '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
   '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
-  '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
+  '/masshtab/rss': typeof MasshtabRssRoute
   '/masshtab/tenchat': typeof MasshtabTenchatRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -458,10 +451,10 @@ export interface FileRoutesByTo {
   '/gotovyy-biznes': typeof GotovyyBiznesRoute
   '/investors': typeof InvestorsRoute
   '/presentation': typeof PresentationRoute
-  '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
-  '/sitemap-masshtab.xml': typeof SitemapMasshtabDotxmlRoute
-  '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sitemap-blog': typeof SitemapBlogRoute
+  '/sitemap-index': typeof SitemapIndexRoute
+  '/sitemap-masshtab': typeof SitemapMasshtabRoute
+  '/sitemap-radar-{$part}': typeof SitemapRadarChar123partChar125Route
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
   '/analytics/account': typeof AnalyticsAccountRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
@@ -474,7 +467,6 @@ export interface FileRoutesByTo {
   '/masshtab/benchmarki-direkt': typeof MasshtabBenchmarkiDirektRoute
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
-  '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/granty-fsi-skolkovo': typeof MasshtabGrantyFsiSkolkovoRoute
   '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
   '/masshtab/kalkulyator-analitiki': typeof MasshtabKalkulyatorAnalitikiRoute
@@ -485,7 +477,7 @@ export interface FileRoutesByTo {
   '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
   '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
-  '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
+  '/masshtab/rss': typeof MasshtabRssRoute
   '/masshtab/tenchat': typeof MasshtabTenchatRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -522,10 +514,10 @@ export interface FileRoutesById {
   '/investors': typeof InvestorsRoute
   '/masshtab': typeof MasshtabRouteWithChildren
   '/presentation': typeof PresentationRoute
-  '/sitemap-blog.xml': typeof SitemapBlogDotxmlRoute
-  '/sitemap-masshtab.xml': typeof SitemapMasshtabDotxmlRoute
-  '/sitemap-radar-{$part}.xml': typeof SitemapRadarChar123partChar125DotxmlRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sitemap-blog': typeof SitemapBlogRoute
+  '/sitemap-index': typeof SitemapIndexRoute
+  '/sitemap-masshtab': typeof SitemapMasshtabRoute
+  '/sitemap-radar-{$part}': typeof SitemapRadarChar123partChar125Route
   '/skolko-stoit-avtomatizaciya': typeof SkolkoStoitAvtomatizaciyaRoute
   '/analytics/account': typeof AnalyticsAccountRoute
   '/analytics/prices': typeof AnalyticsPricesRoute
@@ -538,7 +530,6 @@ export interface FileRoutesById {
   '/masshtab/benchmarki-direkt': typeof MasshtabBenchmarkiDirektRoute
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
-  '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
   '/masshtab/granty-fsi-skolkovo': typeof MasshtabGrantyFsiSkolkovoRoute
   '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
   '/masshtab/kalkulyator-analitiki': typeof MasshtabKalkulyatorAnalitikiRoute
@@ -549,7 +540,7 @@ export interface FileRoutesById {
   '/masshtab/pechatnyy-nomer': typeof MasshtabPechatnyyNomerRoute
   '/masshtab/podpiska': typeof MasshtabPodpiskaRoute
   '/masshtab/reklama': typeof MasshtabReklamaRoute
-  '/masshtab/rss.xml': typeof MasshtabRssDotxmlRoute
+  '/masshtab/rss': typeof MasshtabRssRoute
   '/masshtab/tenchat': typeof MasshtabTenchatRoute
   '/radar/$inn': typeof RadarInnRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -587,10 +578,10 @@ export interface FileRouteTypes {
     | '/investors'
     | '/masshtab'
     | '/presentation'
-    | '/sitemap-blog.xml'
-    | '/sitemap-masshtab.xml'
-    | '/sitemap-radar-{$part}.xml'
-    | '/sitemap.xml'
+    | '/sitemap-blog'
+    | '/sitemap-index'
+    | '/sitemap-masshtab'
+    | '/sitemap-radar-{$part}'
     | '/skolko-stoit-avtomatizaciya'
     | '/analytics/account'
     | '/analytics/prices'
@@ -603,7 +594,6 @@ export interface FileRouteTypes {
     | '/masshtab/benchmarki-direkt'
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
-    | '/masshtab/dzen.xml'
     | '/masshtab/granty-fsi-skolkovo'
     | '/masshtab/kalkulyator'
     | '/masshtab/kalkulyator-analitiki'
@@ -614,7 +604,7 @@ export interface FileRouteTypes {
     | '/masshtab/pechatnyy-nomer'
     | '/masshtab/podpiska'
     | '/masshtab/reklama'
-    | '/masshtab/rss.xml'
+    | '/masshtab/rss'
     | '/masshtab/tenchat'
     | '/radar/$inn'
     | '/services/$slug'
@@ -649,10 +639,10 @@ export interface FileRouteTypes {
     | '/gotovyy-biznes'
     | '/investors'
     | '/presentation'
-    | '/sitemap-blog.xml'
-    | '/sitemap-masshtab.xml'
-    | '/sitemap-radar-{$part}.xml'
-    | '/sitemap.xml'
+    | '/sitemap-blog'
+    | '/sitemap-index'
+    | '/sitemap-masshtab'
+    | '/sitemap-radar-{$part}'
     | '/skolko-stoit-avtomatizaciya'
     | '/analytics/account'
     | '/analytics/prices'
@@ -665,7 +655,6 @@ export interface FileRouteTypes {
     | '/masshtab/benchmarki-direkt'
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
-    | '/masshtab/dzen.xml'
     | '/masshtab/granty-fsi-skolkovo'
     | '/masshtab/kalkulyator'
     | '/masshtab/kalkulyator-analitiki'
@@ -676,7 +665,7 @@ export interface FileRouteTypes {
     | '/masshtab/pechatnyy-nomer'
     | '/masshtab/podpiska'
     | '/masshtab/reklama'
-    | '/masshtab/rss.xml'
+    | '/masshtab/rss'
     | '/masshtab/tenchat'
     | '/radar/$inn'
     | '/services/$slug'
@@ -712,10 +701,10 @@ export interface FileRouteTypes {
     | '/investors'
     | '/masshtab'
     | '/presentation'
-    | '/sitemap-blog.xml'
-    | '/sitemap-masshtab.xml'
-    | '/sitemap-radar-{$part}.xml'
-    | '/sitemap.xml'
+    | '/sitemap-blog'
+    | '/sitemap-index'
+    | '/sitemap-masshtab'
+    | '/sitemap-radar-{$part}'
     | '/skolko-stoit-avtomatizaciya'
     | '/analytics/account'
     | '/analytics/prices'
@@ -728,7 +717,6 @@ export interface FileRouteTypes {
     | '/masshtab/benchmarki-direkt'
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
-    | '/masshtab/dzen.xml'
     | '/masshtab/granty-fsi-skolkovo'
     | '/masshtab/kalkulyator'
     | '/masshtab/kalkulyator-analitiki'
@@ -739,7 +727,7 @@ export interface FileRouteTypes {
     | '/masshtab/pechatnyy-nomer'
     | '/masshtab/podpiska'
     | '/masshtab/reklama'
-    | '/masshtab/rss.xml'
+    | '/masshtab/rss'
     | '/masshtab/tenchat'
     | '/radar/$inn'
     | '/services/$slug'
@@ -776,10 +764,10 @@ export interface RootRouteChildren {
   InvestorsRoute: typeof InvestorsRoute
   MasshtabRoute: typeof MasshtabRouteWithChildren
   PresentationRoute: typeof PresentationRoute
-  SitemapBlogDotxmlRoute: typeof SitemapBlogDotxmlRoute
-  SitemapMasshtabDotxmlRoute: typeof SitemapMasshtabDotxmlRoute
-  SitemapRadarChar123partChar125DotxmlRoute: typeof SitemapRadarChar123partChar125DotxmlRoute
-  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SitemapBlogRoute: typeof SitemapBlogRoute
+  SitemapIndexRoute: typeof SitemapIndexRoute
+  SitemapMasshtabRoute: typeof SitemapMasshtabRoute
+  SitemapRadarChar123partChar125Route: typeof SitemapRadarChar123partChar125Route
   SkolkoStoitAvtomatizaciyaRoute: typeof SkolkoStoitAvtomatizaciyaRoute
   AnalyticsAccountRoute: typeof AnalyticsAccountRoute
   AnalyticsPricesRoute: typeof AnalyticsPricesRoute
@@ -868,32 +856,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PresentationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sitemap-blog.xml': {
-      id: '/sitemap-blog.xml'
-      path: '/sitemap-blog.xml'
-      fullPath: '/sitemap-blog.xml'
-      preLoaderRoute: typeof SitemapBlogDotxmlRouteImport
+    '/sitemap-blog': {
+      id: '/sitemap-blog'
+      path: '/sitemap-blog'
+      fullPath: '/sitemap-blog'
+      preLoaderRoute: typeof SitemapBlogRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sitemap-masshtab.xml': {
-      id: '/sitemap-masshtab.xml'
-      path: '/sitemap-masshtab.xml'
-      fullPath: '/sitemap-masshtab.xml'
-      preLoaderRoute: typeof SitemapMasshtabDotxmlRouteImport
+    '/sitemap-index': {
+      id: '/sitemap-index'
+      path: '/sitemap-index'
+      fullPath: '/sitemap-index'
+      preLoaderRoute: typeof SitemapIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sitemap-radar-{$part}.xml': {
-      id: '/sitemap-radar-{$part}.xml'
-      path: '/sitemap-radar-{$part}.xml'
-      fullPath: '/sitemap-radar-{$part}.xml'
-      preLoaderRoute: typeof SitemapRadarChar123partChar125DotxmlRouteImport
+    '/sitemap-masshtab': {
+      id: '/sitemap-masshtab'
+      path: '/sitemap-masshtab'
+      fullPath: '/sitemap-masshtab'
+      preLoaderRoute: typeof SitemapMasshtabRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
+    '/sitemap-radar-{$part}': {
+      id: '/sitemap-radar-{$part}'
+      path: '/sitemap-radar-{$part}'
+      fullPath: '/sitemap-radar-{$part}'
+      preLoaderRoute: typeof SitemapRadarChar123partChar125RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/skolko-stoit-avtomatizaciya': {
@@ -1008,13 +996,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabDzenRssRouteImport
       parentRoute: typeof MasshtabRoute
     }
-    '/masshtab/dzen.xml': {
-      id: '/masshtab/dzen.xml'
-      path: '/dzen.xml'
-      fullPath: '/masshtab/dzen.xml'
-      preLoaderRoute: typeof MasshtabDzenDotxmlRouteImport
-      parentRoute: typeof MasshtabRoute
-    }
     '/masshtab/granty-fsi-skolkovo': {
       id: '/masshtab/granty-fsi-skolkovo'
       path: '/granty-fsi-skolkovo'
@@ -1085,11 +1066,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabReklamaRouteImport
       parentRoute: typeof MasshtabRoute
     }
-    '/masshtab/rss.xml': {
-      id: '/masshtab/rss.xml'
-      path: '/rss.xml'
-      fullPath: '/masshtab/rss.xml'
-      preLoaderRoute: typeof MasshtabRssDotxmlRouteImport
+    '/masshtab/rss': {
+      id: '/masshtab/rss'
+      path: '/rss'
+      fullPath: '/masshtab/rss'
+      preLoaderRoute: typeof MasshtabRssRouteImport
       parentRoute: typeof MasshtabRoute
     }
     '/masshtab/tenchat': {
@@ -1248,7 +1229,6 @@ interface MasshtabRouteChildren {
   MasshtabBenchmarkiDirektRoute: typeof MasshtabBenchmarkiDirektRoute
   MasshtabCitataDnyaRoute: typeof MasshtabCitataDnyaRoute
   MasshtabDzenRssRoute: typeof MasshtabDzenRssRoute
-  MasshtabDzenDotxmlRoute: typeof MasshtabDzenDotxmlRoute
   MasshtabGrantyFsiSkolkovoRoute: typeof MasshtabGrantyFsiSkolkovoRoute
   MasshtabKalkulyatorRoute: typeof MasshtabKalkulyatorRoute
   MasshtabKalkulyatorAnalitikiRoute: typeof MasshtabKalkulyatorAnalitikiRoute
@@ -1259,7 +1239,7 @@ interface MasshtabRouteChildren {
   MasshtabPechatnyyNomerRoute: typeof MasshtabPechatnyyNomerRoute
   MasshtabPodpiskaRoute: typeof MasshtabPodpiskaRoute
   MasshtabReklamaRoute: typeof MasshtabReklamaRoute
-  MasshtabRssDotxmlRoute: typeof MasshtabRssDotxmlRoute
+  MasshtabRssRoute: typeof MasshtabRssRoute
   MasshtabTenchatRoute: typeof MasshtabTenchatRoute
   MasshtabIndexRoute: typeof MasshtabIndexRoute
   MasshtabRubrikaRubricRoute: typeof MasshtabRubrikaRubricRoute
@@ -1272,7 +1252,6 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabBenchmarkiDirektRoute: MasshtabBenchmarkiDirektRoute,
   MasshtabCitataDnyaRoute: MasshtabCitataDnyaRoute,
   MasshtabDzenRssRoute: MasshtabDzenRssRoute,
-  MasshtabDzenDotxmlRoute: MasshtabDzenDotxmlRoute,
   MasshtabGrantyFsiSkolkovoRoute: MasshtabGrantyFsiSkolkovoRoute,
   MasshtabKalkulyatorRoute: MasshtabKalkulyatorRoute,
   MasshtabKalkulyatorAnalitikiRoute: MasshtabKalkulyatorAnalitikiRoute,
@@ -1283,7 +1262,7 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabPechatnyyNomerRoute: MasshtabPechatnyyNomerRoute,
   MasshtabPodpiskaRoute: MasshtabPodpiskaRoute,
   MasshtabReklamaRoute: MasshtabReklamaRoute,
-  MasshtabRssDotxmlRoute: MasshtabRssDotxmlRoute,
+  MasshtabRssRoute: MasshtabRssRoute,
   MasshtabTenchatRoute: MasshtabTenchatRoute,
   MasshtabIndexRoute: MasshtabIndexRoute,
   MasshtabRubrikaRubricRoute: MasshtabRubrikaRubricRoute,
@@ -1303,11 +1282,10 @@ const rootRouteChildren: RootRouteChildren = {
   InvestorsRoute: InvestorsRoute,
   MasshtabRoute: MasshtabRouteWithChildren,
   PresentationRoute: PresentationRoute,
-  SitemapBlogDotxmlRoute: SitemapBlogDotxmlRoute,
-  SitemapMasshtabDotxmlRoute: SitemapMasshtabDotxmlRoute,
-  SitemapRadarChar123partChar125DotxmlRoute:
-    SitemapRadarChar123partChar125DotxmlRoute,
-  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SitemapBlogRoute: SitemapBlogRoute,
+  SitemapIndexRoute: SitemapIndexRoute,
+  SitemapMasshtabRoute: SitemapMasshtabRoute,
+  SitemapRadarChar123partChar125Route: SitemapRadarChar123partChar125Route,
   SkolkoStoitAvtomatizaciyaRoute: SkolkoStoitAvtomatizaciyaRoute,
   AnalyticsAccountRoute: AnalyticsAccountRoute,
   AnalyticsPricesRoute: AnalyticsPricesRoute,

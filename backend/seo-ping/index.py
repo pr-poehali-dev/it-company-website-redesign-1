@@ -44,10 +44,10 @@ def fetch(url, timeout=8):
 
 
 def collect(sections):
-    index = fetch(f'{SITE}/sitemap.xml')
+    index = fetch(f'{SITE}/sitemap-index')
     maps = re.findall(r'<loc>([^<]+)</loc>', index)
     if '<sitemapindex' not in index:
-        maps = [f'{SITE}/sitemap.xml']
+        maps = [f'{SITE}/sitemap-index']
     out, stats = [], {}
     for m in maps:
         name = m.rsplit('/', 1)[-1]

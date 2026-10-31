@@ -5,7 +5,7 @@ import type { BlogPost } from "@/components/BlogModal";
 
 const SITE = "https://mat-labs.ru";
 
-export const Route = createFileRoute("/sitemap-blog.xml")({
+export const Route = createFileRoute("/sitemap-blog")({
   server: {
     handlers: {
       GET: async () => {

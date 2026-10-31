@@ -37,7 +37,7 @@ export function pageMeta({ title, description, path, image, type = "website" }: 
       { name: "twitter:card", content: "summary_large_image" }, { name: "twitter:title", content: title },
       { name: "twitter:description", content: description }, { name: "twitter:image", content: img },
     ],
-    links: [{ rel: "canonical", href: url }, { rel: "alternate", type: "application/rss+xml", title: "Журнал «Масштаб»", href: `${SITE}/masshtab/rss.xml` }],
+    links: [{ rel: "canonical", href: url }, { rel: "alternate", type: "application/rss+xml", title: "Журнал «Масштаб»", href: `${SITE}/masshtab/rss` }],
   };
 }
 

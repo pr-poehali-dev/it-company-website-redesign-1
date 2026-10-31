@@ -54,7 +54,7 @@ export const Route = createRootRoute({
             },
             {rel: "icon", type: "image/jpeg", href: OG_IMAGE},
             {rel: "manifest", href: "/manifest.json"},
-            {rel: "sitemap", type: "application/xml", href: "/sitemap.xml"},
+            {rel: "sitemap", type: "application/xml", href: "/sitemap-index"},
         ],
         styles: [{children: "html, body { background: #080812; color: #fff; margin: 0; }"}],
         // IMPORTANT: DO NOT REMOVE PLATFORM SCRIPTS AND THE DEV HMR CLIENT!
