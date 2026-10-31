@@ -34,10 +34,13 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as MasshtabIndexRouteImport } from './routes/masshtab.index'
 import { Route as MasshtabSlugRouteImport } from './routes/masshtab.$slug'
 import { Route as Masshtab500RouteImport } from './routes/masshtab.500'
+import { Route as MasshtabBenchmarkiDirektRouteImport } from './routes/masshtab.benchmarki-direkt'
 import { Route as MasshtabCitataDnyaRouteImport } from './routes/masshtab.citata-dnya'
 import { Route as MasshtabDzenRssRouteImport } from './routes/masshtab.dzen-rss'
 import { Route as MasshtabDzenDotxmlRouteImport } from './routes/masshtab.dzen[.]xml'
+import { Route as MasshtabGrantyFsiSkolkovoRouteImport } from './routes/masshtab.granty-fsi-skolkovo'
 import { Route as MasshtabKalkulyatorRouteImport } from './routes/masshtab.kalkulyator'
+import { Route as MasshtabKalkulyatorAnalitikiRouteImport } from './routes/masshtab.kalkulyator-analitiki'
 import { Route as MasshtabMediakitRouteImport } from './routes/masshtab.mediakit'
 import { Route as MasshtabOZhurnaleRouteImport } from './routes/masshtab.o-zhurnale'
 import { Route as MasshtabObuchenieRouteImport } from './routes/masshtab.obuchenie'
@@ -197,6 +200,12 @@ const Masshtab500Route = Masshtab500RouteImport.update({
   path: '/500',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabBenchmarkiDirektRoute =
+  MasshtabBenchmarkiDirektRouteImport.update({
+    id: '/benchmarki-direkt',
+    path: '/benchmarki-direkt',
+    getParentRoute: () => MasshtabRoute,
+  } as any)
 const MasshtabCitataDnyaRoute = MasshtabCitataDnyaRouteImport.update({
   id: '/citata-dnya',
   path: '/citata-dnya',
@@ -212,11 +221,23 @@ const MasshtabDzenDotxmlRoute = MasshtabDzenDotxmlRouteImport.update({
   path: '/dzen.xml',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabGrantyFsiSkolkovoRoute =
+  MasshtabGrantyFsiSkolkovoRouteImport.update({
+    id: '/granty-fsi-skolkovo',
+    path: '/granty-fsi-skolkovo',
+    getParentRoute: () => MasshtabRoute,
+  } as any)
 const MasshtabKalkulyatorRoute = MasshtabKalkulyatorRouteImport.update({
   id: '/kalkulyator',
   path: '/kalkulyator',
   getParentRoute: () => MasshtabRoute,
 } as any)
+const MasshtabKalkulyatorAnalitikiRoute =
+  MasshtabKalkulyatorAnalitikiRouteImport.update({
+    id: '/kalkulyator-analitiki',
+    path: '/kalkulyator-analitiki',
+    getParentRoute: () => MasshtabRoute,
+  } as any)
 const MasshtabMediakitRoute = MasshtabMediakitRouteImport.update({
   id: '/mediakit',
   path: '/mediakit',
@@ -388,10 +409,13 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/benchmarki-direkt': typeof MasshtabBenchmarkiDirektRoute
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
+  '/masshtab/granty-fsi-skolkovo': typeof MasshtabGrantyFsiSkolkovoRoute
   '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
+  '/masshtab/kalkulyator-analitiki': typeof MasshtabKalkulyatorAnalitikiRoute
   '/masshtab/mediakit': typeof MasshtabMediakitRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
@@ -447,10 +471,13 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/benchmarki-direkt': typeof MasshtabBenchmarkiDirektRoute
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
+  '/masshtab/granty-fsi-skolkovo': typeof MasshtabGrantyFsiSkolkovoRoute
   '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
+  '/masshtab/kalkulyator-analitiki': typeof MasshtabKalkulyatorAnalitikiRoute
   '/masshtab/mediakit': typeof MasshtabMediakitRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
@@ -508,10 +535,13 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/masshtab/$slug': typeof MasshtabSlugRoute
   '/masshtab/500': typeof Masshtab500Route
+  '/masshtab/benchmarki-direkt': typeof MasshtabBenchmarkiDirektRoute
   '/masshtab/citata-dnya': typeof MasshtabCitataDnyaRoute
   '/masshtab/dzen-rss': typeof MasshtabDzenRssRoute
   '/masshtab/dzen.xml': typeof MasshtabDzenDotxmlRoute
+  '/masshtab/granty-fsi-skolkovo': typeof MasshtabGrantyFsiSkolkovoRoute
   '/masshtab/kalkulyator': typeof MasshtabKalkulyatorRoute
+  '/masshtab/kalkulyator-analitiki': typeof MasshtabKalkulyatorAnalitikiRoute
   '/masshtab/mediakit': typeof MasshtabMediakitRoute
   '/masshtab/o-zhurnale': typeof MasshtabOZhurnaleRoute
   '/masshtab/obuchenie': typeof MasshtabObuchenieRoute
@@ -570,10 +600,13 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/benchmarki-direkt'
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
+    | '/masshtab/granty-fsi-skolkovo'
     | '/masshtab/kalkulyator'
+    | '/masshtab/kalkulyator-analitiki'
     | '/masshtab/mediakit'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
@@ -629,10 +662,13 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/benchmarki-direkt'
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
+    | '/masshtab/granty-fsi-skolkovo'
     | '/masshtab/kalkulyator'
+    | '/masshtab/kalkulyator-analitiki'
     | '/masshtab/mediakit'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
@@ -689,10 +725,13 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/masshtab/$slug'
     | '/masshtab/500'
+    | '/masshtab/benchmarki-direkt'
     | '/masshtab/citata-dnya'
     | '/masshtab/dzen-rss'
     | '/masshtab/dzen.xml'
+    | '/masshtab/granty-fsi-skolkovo'
     | '/masshtab/kalkulyator'
+    | '/masshtab/kalkulyator-analitiki'
     | '/masshtab/mediakit'
     | '/masshtab/o-zhurnale'
     | '/masshtab/obuchenie'
@@ -948,6 +987,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Masshtab500RouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/benchmarki-direkt': {
+      id: '/masshtab/benchmarki-direkt'
+      path: '/benchmarki-direkt'
+      fullPath: '/masshtab/benchmarki-direkt'
+      preLoaderRoute: typeof MasshtabBenchmarkiDirektRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/citata-dnya': {
       id: '/masshtab/citata-dnya'
       path: '/citata-dnya'
@@ -969,11 +1015,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasshtabDzenDotxmlRouteImport
       parentRoute: typeof MasshtabRoute
     }
+    '/masshtab/granty-fsi-skolkovo': {
+      id: '/masshtab/granty-fsi-skolkovo'
+      path: '/granty-fsi-skolkovo'
+      fullPath: '/masshtab/granty-fsi-skolkovo'
+      preLoaderRoute: typeof MasshtabGrantyFsiSkolkovoRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/kalkulyator': {
       id: '/masshtab/kalkulyator'
       path: '/kalkulyator'
       fullPath: '/masshtab/kalkulyator'
       preLoaderRoute: typeof MasshtabKalkulyatorRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
+    '/masshtab/kalkulyator-analitiki': {
+      id: '/masshtab/kalkulyator-analitiki'
+      path: '/kalkulyator-analitiki'
+      fullPath: '/masshtab/kalkulyator-analitiki'
+      preLoaderRoute: typeof MasshtabKalkulyatorAnalitikiRouteImport
       parentRoute: typeof MasshtabRoute
     }
     '/masshtab/mediakit': {
@@ -1185,10 +1245,13 @@ declare module '@tanstack/react-router' {
 interface MasshtabRouteChildren {
   MasshtabSlugRoute: typeof MasshtabSlugRoute
   Masshtab500Route: typeof Masshtab500Route
+  MasshtabBenchmarkiDirektRoute: typeof MasshtabBenchmarkiDirektRoute
   MasshtabCitataDnyaRoute: typeof MasshtabCitataDnyaRoute
   MasshtabDzenRssRoute: typeof MasshtabDzenRssRoute
   MasshtabDzenDotxmlRoute: typeof MasshtabDzenDotxmlRoute
+  MasshtabGrantyFsiSkolkovoRoute: typeof MasshtabGrantyFsiSkolkovoRoute
   MasshtabKalkulyatorRoute: typeof MasshtabKalkulyatorRoute
+  MasshtabKalkulyatorAnalitikiRoute: typeof MasshtabKalkulyatorAnalitikiRoute
   MasshtabMediakitRoute: typeof MasshtabMediakitRoute
   MasshtabOZhurnaleRoute: typeof MasshtabOZhurnaleRoute
   MasshtabObuchenieRoute: typeof MasshtabObuchenieRoute
@@ -1206,10 +1269,13 @@ interface MasshtabRouteChildren {
 const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabSlugRoute: MasshtabSlugRoute,
   Masshtab500Route: Masshtab500Route,
+  MasshtabBenchmarkiDirektRoute: MasshtabBenchmarkiDirektRoute,
   MasshtabCitataDnyaRoute: MasshtabCitataDnyaRoute,
   MasshtabDzenRssRoute: MasshtabDzenRssRoute,
   MasshtabDzenDotxmlRoute: MasshtabDzenDotxmlRoute,
+  MasshtabGrantyFsiSkolkovoRoute: MasshtabGrantyFsiSkolkovoRoute,
   MasshtabKalkulyatorRoute: MasshtabKalkulyatorRoute,
+  MasshtabKalkulyatorAnalitikiRoute: MasshtabKalkulyatorAnalitikiRoute,
   MasshtabMediakitRoute: MasshtabMediakitRoute,
   MasshtabOZhurnaleRoute: MasshtabOZhurnaleRoute,
   MasshtabObuchenieRoute: MasshtabObuchenieRoute,

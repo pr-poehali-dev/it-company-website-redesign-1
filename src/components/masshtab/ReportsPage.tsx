@@ -47,6 +47,18 @@ export default function ReportsPage() {
             </div>
           ))}
         </section>
+        <div className="grid md:grid-cols-3 gap-4 mt-6">
+          {[
+            { to: "/masshtab/granty-fsi-skolkovo", icon: "Rocket", t: "Под заявку в ФСИ и Сколково", d: "Пакеты от 35 000 ₽: рынок, экономика, заявка под ключ" },
+            { to: "/masshtab/kalkulyator-analitiki", icon: "Calculator", t: "Калькулятор окупаемости аналитики", d: "ROI и срок окупаемости пилота на ваших цифрах — бесплатно" },
+            { to: "/masshtab/benchmarki-direkt", icon: "MousePointerClick", t: "Бенчмарки Директа и e-commerce", d: "Цена клика, CAC и LTV по нишам — предзаказ" },
+          ].map((x) => (
+            <Link key={x.to} to={x.to} className="bg-[#0b1a33] text-white rounded-lg p-5 flex gap-4 hover:bg-[#14110f] transition-colors">
+              <Icon name={x.icon} size={26} className="text-[#c9a24a] shrink-0" />
+              <div><div className="font-bold">{x.t}</div><p className="text-sm text-white/70 mt-1">{x.d}</p></div>
+            </Link>
+          ))}
+        </div>
         <p className="text-xs text-[#8a8278] mt-3">Итоговая стоимость зависит от глубины выборки и числа отраслей — назовём её после короткого созвона, до начала работы.</p>
 
         <section id="order" className="mt-14 grid md:grid-cols-2 gap-10 items-start bg-white border-2 border-[#14110f] rounded-lg p-6 md:p-10 scroll-mt-24">

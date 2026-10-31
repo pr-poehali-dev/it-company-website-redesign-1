@@ -56,7 +56,10 @@ export default function MShell({ children, active, top }: { children: ReactNode;
             <Link to="/masshtab/obuchenie" className="block hover:text-white">Обучение для руководителей</Link>
             <Link to="/masshtab/otchety" className="block hover:text-white">Аналитические отчёты на заказ</Link>
             <Link to="/masshtab/podpiska" className="block hover:text-white">Корпоративная подписка</Link>
+            <Link to="/masshtab/granty-fsi-skolkovo" className="block hover:text-white">Расчёты для заявки в ФСИ и Сколково</Link>
             <Link to="/masshtab/kalkulyator" className="block hover:text-white">Калькулятор CAC и LTV</Link>
+            <Link to="/masshtab/kalkulyator-analitiki" className="block hover:text-white">Калькулятор окупаемости аналитики</Link>
+            <Link to="/masshtab/benchmarki-direkt" className="block hover:text-white">Бенчмарки Директа и e-commerce</Link>
             <Link to="/masshtab/reklama" className="block hover:text-white">Реклама и спецпроекты</Link>
             <Link to="/masshtab/reklama" hash="hero" className="block hover:text-white">Предложить героя интервью</Link>
             <Link to="/masshtab/o-zhurnale" className="block hover:text-white">Редакционные принципы и источники</Link>
