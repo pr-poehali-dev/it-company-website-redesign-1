@@ -24,6 +24,7 @@ export const Route = createFileRoute("/sitemap-masshtab")({
           ["/masshtab/500", last, "monthly", "0.9"],
           ["/masshtab/pechatnyy-nomer", last, "monthly", "0.7"],
           ["/masshtab/arhiv", last, "monthly", "0.6"],
+          ["/masshtab/svoy-zhurnal", "", "monthly", "0.6"],
           ...ISSUES.map((i): [string, string, string, string] => [`/masshtab/arhiv/${i.id}`, "", "yearly", "0.5"]),
           ["/masshtab/obuchenie", last, "daily", "0.8"],
           ["/masshtab/citata-dnya", new Date().toISOString().slice(0, 10), "daily", "0.5"],

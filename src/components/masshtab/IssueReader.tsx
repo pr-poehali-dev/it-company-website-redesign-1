@@ -115,7 +115,7 @@ export default function IssueReader({ issue, archive = false }: { issue: PrintIs
   }
 
   return (
-    <MShell active="/masshtab/pechatnyy-nomer">
+    <MShell active="/masshtab/arhiv">
       <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6 pb-4">
         <Crumbs items={archive ? [{ label: "Архив номеров", to: "/masshtab/arhiv" }, { label: issue.title }] : [{ label: "Печатный номер" }]} />
         <div className="flex flex-wrap items-end justify-between gap-6 mt-6">

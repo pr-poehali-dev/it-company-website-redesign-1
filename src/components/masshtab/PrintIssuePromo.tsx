@@ -50,6 +50,7 @@ export default function PrintIssuePromo() {
               PDF · {String(issue.readMb).replace(".", ",")} МБ
             </a>
             <Link to="/masshtab/arhiv" className="text-sm font-bold text-[#d6402b] hover:underline">Все номера →</Link>
+            <Link to="/masshtab/svoy-zhurnal" className="text-sm font-bold text-[#d6402b] hover:underline">Собрать свой выпуск →</Link>
           </div>
         </div>
       </div>

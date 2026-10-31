@@ -1,0 +1,6 @@
+{"tests": [
+  {"name": "OPTIONS", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+  {"name": "Ping", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"ok": true, "price": 990}, "bodyMatcher": "partial"},
+  {"name": "Каталог модулей", "method": "GET", "path": "/?action=catalog", "expectedStatus": 200, "expectedBody": {"price": 990}, "bodyMatcher": "partial"},
+  {"name": "Список без входа", "method": "GET", "path": "/?action=list", "expectedStatus": 401}
+]}

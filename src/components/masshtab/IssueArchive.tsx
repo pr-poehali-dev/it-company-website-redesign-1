@@ -49,6 +49,15 @@ export default function IssueArchive() {
           </section>
         ))}
 
+        <Link to="/masshtab/svoy-zhurnal" className="mt-12 flex flex-wrap items-center justify-between gap-4 bg-[#14110f] text-white rounded-lg p-6 hover:bg-[#2b2724]">
+          <div>
+            <div className="text-[11px] font-extrabold tracking-[0.14em] uppercase text-[#ff8a73]">Новое · 990 ₽</div>
+            <div className={`${serif} font-bold text-2xl mt-1`}>Соберите свой выпуск из статей разных номеров</div>
+            <div className="text-white/70 text-sm mt-1">Статьи, рейтинг по вашему региону, индикаторы рынка и обложка с вашим именем — в одном PDF.</div>
+          </div>
+          <span className="inline-flex items-center gap-2 bg-[#d6402b] font-bold px-5 py-3 rounded">Собрать журнал <Icon name="ArrowRight" size={16} /></span>
+        </Link>
+
         <div className="mt-16"><AdSlot variant="wide" house={0} /></div>
       </div>
     </MShell>
