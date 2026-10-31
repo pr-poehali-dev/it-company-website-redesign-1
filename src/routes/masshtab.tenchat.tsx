@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import MShell, { Kicker, serif } from "@/components/masshtab/MShell";
+import Crumbs from "@/components/masshtab/Crumbs";
 import { MESSAGES, POSTS, SEGMENT_POSTS, type TcPost } from "@/pages/admin/masshtab/tenchat/texts";
 
 const IMG: Record<string, string> = {
@@ -67,8 +68,9 @@ function Card({ p, n }: { p: TcPost; n: number }) {
 function Page() {
   return (
     <MShell>
-      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-8">
-        <Kicker>Для публикации в TenChat</Kicker>
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6">
+        <Crumbs items={[{ label: "Посты для TenChat" }]} />
+        <Kicker className="mt-6">Для публикации в TenChat</Kicker>
         <h1 className={`${serif} font-bold text-4xl md:text-5xl mt-2`}>Посты журнала «Масштаб»</h1>
         <p className="text-[#5b5550] mt-3 max-w-2xl">Скопируйте текст, скачайте обложку и опубликуйте в TenChat. Ссылка на статью уже внутри текста. Ниже — <a href="#soobshcheniya" className="font-bold text-[#d6402b] hover:underline">тексты личных сообщений руководителям</a>.</p>
         <div className="flex flex-wrap gap-3 mt-5">

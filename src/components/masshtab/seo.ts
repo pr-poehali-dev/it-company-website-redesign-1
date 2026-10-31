@@ -40,3 +40,45 @@ export function pageMeta({ title, description, path, image, type = "website" }: 
     links: [{ rel: "canonical", href: url }, { rel: "alternate", type: "application/rss+xml", title: "Журнал «Масштаб»", href: `${SITE}/masshtab/rss.xml` }],
   };
 }
+
+export interface OfferItem { name: string; price: number; description?: string; unit?: string }
+
+export function serviceLd({ name, description, path, offers, serviceType }: { name: string; description: string; path: string; offers: OfferItem[]; serviceType: string }) {
+  return ld({
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name, description, serviceType,
+    url: `${SITE}${path}`,
+    provider: PUBLISHER,
+    areaServed: { "@type": "Country", name: "Россия" },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name,
+      itemListElement: offers.map((o) => ({
+        "@type": "Offer",
+        name: o.name,
+        ...(o.description ? { description: o.description } : {}),
+        url: `${SITE}${path}`,
+        priceCurrency: "RUB",
+        ...(o.unit
+          ? { priceSpecification: { "@type": "UnitPriceSpecification", price: o.price, priceCurrency: "RUB", unitText: o.unit } }
+          : { price: o.price, priceSpecification: { "@type": "PriceSpecification", minPrice: o.price, priceCurrency: "RUB" } }),
+      })),
+    },
+  });
+}
+
+export function calcLd({ name, description, path }: { name: string; description: string; path: string }) {
+  return ld({
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name, description,
+    url: `${SITE}${path}`,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Any",
+    inLanguage: "ru",
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: 0, priceCurrency: "RUB" },
+    publisher: PUBLISHER,
+  });
+}

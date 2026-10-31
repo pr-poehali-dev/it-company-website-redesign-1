@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import Icon from "@/components/ui/icon";
 import { Logo } from "../MShell";
+import Crumbs from "../Crumbs";
 import type { RatingResp } from "../api";
 import { H, W } from "./Frame";
 import { SlideAbout, SlideCover, SlideNumbers, SlideReaders, SlideSegments } from "./SlidesIntro";
@@ -90,8 +91,10 @@ export default function MediaKitPage({ rating }: { rating: RatingResp | null }) 
         </div>
       </header>
 
-      <main className="max-w-[1320px] mx-auto px-4 md:px-6 py-8">
-        <div ref={boxRef} className="flex flex-col gap-6">
+      <main className="max-w-[1320px] mx-auto px-4 md:px-6 py-6">
+        <Crumbs items={[{ label: "Реклама и сотрудничество", to: "/masshtab/reklama" }, { label: "Медиакит 2026" }]} />
+        <h1 className="sr-only">Медиакит журнала «Масштаб» 2026: аудитория, форматы и цены рекламы</h1>
+        <div ref={boxRef} className="flex flex-col gap-6 mt-5">
           <Slides rating={rating} wrap={(node, i) => (
             <div key={i} className="overflow-hidden rounded-lg shadow-[0_8px_30px_rgba(20,17,15,0.12)] mx-auto"
               style={scale === null ? { width: "100%", maxWidth: W, height: H } : { width: W * s, height: H * s }}>

@@ -26,6 +26,7 @@ export const Route = createFileRoute("/sitemap-masshtab.xml")({
           ["/masshtab/citata-dnya", new Date().toISOString().slice(0, 10), "daily", "0.5"],
           ["/masshtab/o-zhurnale", "", "monthly", "0.4"],
           ["/masshtab/reklama", "", "monthly", "0.4"],
+          ["/masshtab/mediakit", "", "monthly", "0.4"],
           ["/masshtab/otchety", "", "monthly", "0.7"],
           ["/masshtab/podpiska", "", "monthly", "0.6"],
           ["/masshtab/kalkulyator", "", "monthly", "0.7"],
