@@ -20,6 +20,7 @@ import psycopg2.extras
 import requests
 
 import notify
+import plan5
 import uch
 from archive import ARCHIVE
 from data import REGIONS, SECTIONS
@@ -137,6 +138,11 @@ def clean_modules(raw):
                 continue
             key = ('market', region, section)
             item = {'kind': 'market', 'region': region, 'section': section}
+        elif kind == 'plan5':
+            key = ('plan5',)
+            item = {'kind': 'plan5', **plan5.clean(m)}
+            if not item['goal']:
+                continue
         elif kind in ('quotes', 'notes'):
             key = (kind,)
             item = {'kind': kind}
@@ -285,7 +291,7 @@ def check_paid(conn, it):
 
 # ---------- сборка ----------
 
-def module_data(conn, mods):
+def module_data(conn, mods, deadline=None):
     cur = conn.cursor()
     ids = [m['id'] for m in mods if m['kind'] == 'post']
     posts = {}
@@ -354,6 +360,11 @@ def module_data(conn, mods):
             cur.execute(f"SELECT text, author, author_role, source FROM {S}.mag_quotes WHERE active ORDER BY random() LIMIT 8")
             out.append({'kind': 'quotes', 'rub': 'Мысли для руководителя', 'title': 'Восемь цитат об управлении, деньгах и людях',
                         'data': {'items': [dict(r) for r in cur.fetchall()]}})
+        elif m['kind'] == 'plan5':
+            plan = m.get('plan') or plan5.make(m, deadline or time.time() + 20)
+            m['plan'] = plan
+            out.append({'kind': 'plan5', 'rub': 'Личный рост · учисьпро.рф', 'title': 'Мой план на 5 лет: ' + m['goal'][:90],
+                        'data': {'form': m, 'plan': plan}})
         elif m['kind'] == 'notes':
             out.append({'kind': 'notes', 'rub': 'Рабочие страницы', 'title': 'План на месяц, ключевые цифры и заметки', 'data': {}})
         elif m['kind'] == 'indicators':
@@ -369,7 +380,7 @@ def s3():
                         aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'])
 
 
-def build(conn, it, force=False):
+def build(conn, it, force=False, deadline=None):
     import render
     cur = conn.cursor()
     if not force:
@@ -380,7 +391,10 @@ def build(conn, it, force=False):
             return
         conn.commit()
     try:
-        mods, need = module_data(conn, it['modules'])
+        mods, need = module_data(conn, it['modules'], deadline)
+        if any(m['kind'] == 'plan5' and m.get('plan') for m in it['modules']):
+            cur.execute(f"UPDATE {S}.mag_custom_issues SET modules=%s WHERE id=%s", (json.dumps(it['modules'], ensure_ascii=False), it['id']))
+            conn.commit()
         if not mods:
             raise ValueError('В выпуске не осталось доступных материалов')
         pdfs = {}
@@ -403,10 +417,10 @@ def build(conn, it, force=False):
         conn.commit()
 
 
-def preview(conn, b):
+def preview(conn, b, deadline=None):
     import render
     mods = clean_modules(b.get('modules'))
-    data, need = module_data(conn, mods)
+    data, need = module_data(conn, mods, deadline)
     pdfs = {}
     for k in need:
         r = requests.get(ARCHIVE[k]['pdf'], timeout=20, headers=render.UA)
@@ -436,6 +450,8 @@ def handler(event: dict, context) -> dict:
     action = b.get('action') or p.get('action') or ''
     if action in ('', 'ping'):
         return resp({'ok': True, 'price': PRICE})
+    left = context.get_remaining_time_in_millis() / 1000 if hasattr(context, 'get_remaining_time_in_millis') else 25
+    deadline = time.time() + left - 3
     conn = db()
     try:
         if action == 'catalog':
@@ -443,7 +459,7 @@ def handler(event: dict, context) -> dict:
         if action == 'admin_preview' and method == 'POST':
             if not is_admin(conn, event):
                 return resp({'error': 'Только для администратора'}, 401)
-            return resp(preview(conn, b))
+            return resp(preview(conn, b, deadline))
         uid = user_id(event)
         if not uid:
             return resp({'error': 'Войдите в личный кабинет'}, 401)
@@ -477,7 +493,7 @@ def handler(event: dict, context) -> dict:
                 return resp({'ok': True, 'issue': it})
             if not check_paid(conn, it):
                 return resp({'error': 'Оплата ещё не поступила. Если вы уже оплатили — подождите минуту и обновите страницу.', 'status': it['status']}, 402)
-            build(conn, get_issue(conn, uid, it['id']))
+            build(conn, get_issue(conn, uid, it['id']), deadline=deadline)
             return resp({'ok': True, 'issue': get_issue(conn, uid, it['id'])})
         return resp({'error': 'Неизвестное действие'}, 400)
     finally:

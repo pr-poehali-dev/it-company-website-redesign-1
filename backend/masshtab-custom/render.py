@@ -15,7 +15,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (BaseDocTemplate, Frame, Image, KeepTogether, PageBreak, PageTemplate, Paragraph, Spacer,
+from reportlab.platypus import (BaseDocTemplate, Flowable, Frame, Image, KeepTogether, PageBreak, PageTemplate, Paragraph, Spacer,
                                 Table, TableStyle)
 
 SITE = 'https://mat-labs.ru'
@@ -395,6 +395,73 @@ def notes_flow(d):
     return fl
 
 
+def plan5_flow(d, built):
+    f, p = d['form'], d['plan']
+    fl = [Paragraph('ЛИЧНЫЙ РОСТ · ПО МЕТОДИКЕ УЧИСЬПРО.РФ', S['kick']), Paragraph('Мой план на 5 лет', S['h1']),
+          Paragraph(esc(f['goal']), st('goal', fontName='Serif-Bold', fontSize=15, leading=20, textColor=RED, spaceAfter=8))]
+    facts = [x for x in ((f'Направление: {f["direction"]}' if f.get('direction') else ''), (f'Возраст: {f["age"]}' if f.get('age') else ''),
+                         f'Время: {f["hours"]} ч в неделю', (f'Доход сейчас: {f["income_now"]}' if f.get('income_now') else ''),
+                         (f'Цель по доходу: {f["income_goal"]}' if f.get('income_goal') else '')) if x]
+    fl.append(Paragraph(esc(' · '.join(facts)), S['meta']))
+    if f.get('strengths'):
+        fl.append(Paragraph(f'<b>Сильные стороны:</b> {esc(f["strengths"])}', S['body']))
+    if p.get('summary'):
+        fl.append(Paragraph(esc(p['summary']), S['lead']))
+    y0 = built.year
+    for i, y in enumerate(p['years'][:5]):
+        head = Table([[Paragraph(f'<font name="Display" size="22" color="#d6402b">{i + 1}</font>', S['body']),
+                       [Paragraph(f'{y0 + i}–{y0 + i + 1} · ЭТАП', S['toc_r']), Paragraph(esc(y.get('stage') or STAGE_FALLBACK[i]), S['h3'])]]],
+                     colWidths=[12 * mm, CW - 12 * mm])
+        head.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LEFTPADDING', (0, 0), (-1, -1), 0), ('TOPPADDING', (0, 0), (-1, -1), 0),
+                                  ('LINEABOVE', (0, 0), (-1, 0), 1.2, INK)]))
+        rows = [Paragraph(f'<b>Фокус:</b> {esc(y.get("focus"))}', S['body'])]
+        cps = [[CheckBox(), Paragraph(esc(c), st('cp', fontName='Golos', fontSize=9.5, leading=13))] for c in (y.get('checkpoints') or [])[:4]]
+        if cps:
+            ct = Table(cps, colWidths=[7 * mm, CW - 7 * mm])
+            ct.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LEFTPADDING', (0, 0), (-1, -1), 0), ('TOPPADDING', (0, 0), (-1, -1), 1.5),
+                                    ('BOTTOMPADDING', (0, 0), (-1, -1), 1.5)]))
+            rows.append(ct)
+        rows.append(Paragraph(f'<font color="#d6402b"><b>Метрика года:</b></font> {esc(y.get("metric"))}', S['body']))
+        fl.append(KeepTogether([Spacer(1, 6), head] + rows))
+    if p.get('first_week'):
+        fl += [Spacer(1, 8), dark_box('ПЕРВАЯ НЕДЕЛЯ', [f'{i + 1}. {esc(x)}' for i, x in enumerate(p['first_week'])])]
+    if p.get('risks'):
+        fl.append(Paragraph('Что может остановить — и что делать', S['h2']))
+        for r in p['risks']:
+            fl.append(Paragraph(f'<b>{esc(r.get("risk"))}.</b> {esc(r.get("answer"))}', S['body']))
+    fl += [Paragraph('Как сверяться с маршрутом', S['h2'])]
+    t = Table([[Paragraph(a, S['cellb']), Paragraph(b, S['cell'])] for a, b in (
+        ('Раз в неделю', 'Короткая запись: что сделано, что помешало, один шаг на следующую неделю.'),
+        ('Раз в месяц', 'Сверка с метрикой года: цифра растёт или стоит?'),
+        ('Раз в квартал', 'Честный разбор: какие контрольные точки закрыты, что поменять в плане.'))], colWidths=[30 * mm, CW - 30 * mm])
+    t.setStyle(TableStyle([('LINEBELOW', (0, 0), (-1, -1), 0.3, LINE), ('VALIGN', (0, 0), (-1, -1), 'TOP'), ('TOPPADDING', (0, 0), (-1, -1), 4),
+                           ('BOTTOMPADDING', (0, 0), (-1, -1), 4), ('LEFTPADDING', (0, 0), (-1, -1), 0)]))
+    fl.append(t)
+    log = [[Paragraph(h, S['cellb']) for h in ('Неделя', 'Что сделано', 'Что помешало', 'Шаг на неделю')]] + [['', '', '', ''] for _ in range(8)]
+    lt = Table(log, colWidths=[18 * mm, (CW - 18 * mm) / 3, (CW - 18 * mm) / 3, (CW - 18 * mm) / 3], rowHeights=[7 * mm] + [10 * mm] * 8)
+    lt.setStyle(TableStyle([('LINEBELOW', (0, 0), (-1, 0), 0.8, INK), ('GRID', (0, 1), (-1, -1), 0.3, LINE)]))
+    fl += [KeepTogether([Paragraph('Дневник первых двух месяцев', S['h2']), lt])]
+    fl += [Spacer(1, 10), dark_box('ПРОДОЛЖИТЬ С НАСТАВНИКОМ', [
+        'Этот план составлен по методике «Профориентации PRO» образовательной платформы учисьпро.рф — проекта нашей команды. '
+        'Там же можно отмечать контрольные точки онлайн и заниматься с ИИ-наставником-коучем, который помогает не бросить: '
+        '<link href="https://xn--h1amcedk2a6b.xn--p1ai/?utm_source=masshtab&amp;utm_medium=pdf&amp;utm_campaign=plan5" color="#ff8a73">учисьпро.рф</link>']),
+           Paragraph('План — ориентир для самостоятельной работы, а не гарантия результата.' + ('' if p.get('ai') else ''), S['src'])]
+    return fl
+
+
+class CheckBox(Flowable):
+    def wrap(self, *a):
+        return 4 * mm, 3.6 * mm
+
+    def draw(self):
+        self.canv.setStrokeColor(INK)
+        self.canv.setLineWidth(0.8)
+        self.canv.rect(0.3 * mm, 0.2 * mm, 3 * mm, 3 * mm)
+
+
+STAGE_FALLBACK = ['Фундамент', 'Первые результаты', 'Экспертность', 'Рост и масштаб', 'Устойчивость']
+
+
 class Doc(BaseDocTemplate):
     def __init__(self, buf, offset, label):
         super().__init__(buf, pagesize=(W, H), leftMargin=ML, rightMargin=MR, topMargin=MT, bottomMargin=MB,
@@ -580,6 +647,8 @@ def build(issue, modules, archive_pdfs):
                 fl = quotes_flow(m['data'])
             elif m['kind'] == 'notes':
                 fl = notes_flow(m['data'])
+            elif m['kind'] == 'plan5':
+                fl = plan5_flow(m['data'], built)
             else:
                 fl = indicators_flow(m['data'], built)
             pdf = render_flow(fl, offset, issue['title'])

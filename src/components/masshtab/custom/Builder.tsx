@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { serif } from "../MShell";
-import { type Catalog, type CustomIssue, type ModuleSel, customPost, rub } from "./customApi";
+import { type Catalog, type CustomIssue, type ModuleSel, type Plan5Form, EMPTY_PLAN5, customPost, rub } from "./customApi";
 
-type Tab = "uch" | "posts" | "archive" | "rating" | "market" | "extra";
+type Tab = "plan5" | "uch" | "posts" | "archive" | "rating" | "market" | "extra";
 const TABS: [Tab, string, string][] = [
+  ["plan5", "Мой план на 5 лет", "Target"],
   ["uch", "Обучение · учисьпро.рф", "GraduationCap"],
   ["posts", "Статьи журнала", "Newspaper"],
   ["archive", "Вышедшие номера", "BookOpen"],
@@ -26,6 +27,7 @@ const keyOf = (m: ModuleSel): string => {
     case "uch": return `u${m.id}`;
     case "rating": return `r${m.region}-${m.section}`;
     case "market": return `m${m.region}-${m.section}`;
+    case "plan5": return "plan5";
     default: return m.kind;
   }
 };
@@ -36,6 +38,10 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
   const [coverCompany, setCoverCompany] = useState(issue?.cover_company || "");
   const [mods, setMods] = useState<ModuleSel[]>(issue?.modules || []);
   const [tab, setTab] = useState<Tab>("uch");
+  const [plan, setPlan] = useState<Plan5Form>(() => {
+    const ex = (issue?.modules || []).find((m) => m.kind === "plan5");
+    return ex && ex.kind === "plan5" ? { ...EMPTY_PLAN5, ...ex } : EMPTY_PLAN5;
+  });
   const [uchTopic, setUchTopic] = useState("");
   const [uq, setUq] = useState("");
   const [mRegion, setMRegion] = useState("");
@@ -56,6 +62,17 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
   const uchItems = catalog.uch.filter((u) => (!uchTopic || u.topic === uchTopic) && (!uq || u.title.toLowerCase().includes(uq.toLowerCase())));
   const uchCount = (t: string) => catalog.uch.filter((u) => u.topic === t).length;
   const posts = catalog.posts.filter((p) => (!rubric || p.rubric === rubric) && (!q || p.title.toLowerCase().includes(q.toLowerCase())));
+
+  const setP = (k: keyof Plan5Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setPlan({ ...plan, [k]: k === "age" ? (e.target.value ? Number(e.target.value) : "") : k === "hours" ? Number(e.target.value) : e.target.value });
+  const savePlan = () => {
+    setErr("");
+    if (plan.goal.trim().length < 5) return setErr("Опишите цель на 5 лет хотя бы одной фразой");
+    const m: ModuleSel = { kind: "plan5", ...plan };
+    if (keys.has("plan5")) return setMods(mods.map((x) => (x.kind === "plan5" ? m : x)));
+    if (full) return setErr(`В выпуске может быть не больше ${catalog.max_modules} модулей`);
+    setMods([m, ...mods]);
+  };
 
   const toggle = (m: ModuleSel) => {
     setErr("");
@@ -92,6 +109,7 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
     if (m.kind === "market") {
       return ["Портрет рынка", [regionName(m.region) || "Россия", m.section || "все отрасли"].join(" · ")];
     }
+    if (m.kind === "plan5") return ["Личный рост · учисьпро.рф", `Мой план на 5 лет: ${m.goal}`];
     if (m.kind === "quotes") return ["Мысли для руководителя", "Восемь цитат об управлении, деньгах и людях"];
     if (m.kind === "notes") return ["Рабочие страницы", "План на месяц, ключевые цифры и заметки"];
     if (m.kind === "rating") {
@@ -126,6 +144,51 @@ export default function Builder({ catalog, issue, onSaved, onCancel }: { catalog
         </div>
 
         <div className="mt-5 bg-white border border-[#e2d9cb] rounded-lg p-4 md:p-5">
+          {tab === "plan5" && (
+            <div>
+              <div className="rounded-lg bg-[#14110f] text-white p-5">
+                <div className="text-[11px] font-extrabold tracking-[0.14em] uppercase text-[#ff8a73]">Личный рост · методика «Профориентации PRO» учисьпро.рф</div>
+                <div className={`${serif} font-bold text-2xl mt-1`}>Мой план на 5 лет</div>
+                <p className="text-sm text-white/75 mt-2">Ответьте на несколько вопросов — ИИ-наставник составит личную стратегию по годам: этап, главный фокус, контрольные точки с галочками и одна измеримая метрика на каждый год. Плюс шаги на первую неделю, разбор того, что может остановить, и дневник на первые два месяца.</p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3 mt-4">
+                <label className="sm:col-span-2 text-xs font-bold text-[#8a8278]">Чего вы хотите добиться через 5 лет? *
+                  <textarea value={plan.goal} onChange={setP("goal")} maxLength={300} rows={2} placeholder="Например: перейти из бухгалтерии в финансовую аналитику и выйти на доход 200 000 ₽" className={`${input} mt-1`} />
+                </label>
+                <label className="text-xs font-bold text-[#8a8278]">Направление или профессия
+                  <input value={plan.direction} onChange={setP("direction")} maxLength={120} placeholder="Финансовая аналитика" className={`${input} mt-1`} />
+                </label>
+                <label className="text-xs font-bold text-[#8a8278]">Возраст
+                  <input type="number" min={14} max={80} value={plan.age} onChange={setP("age")} placeholder="34" className={`${input} mt-1`} />
+                </label>
+                <label className="sm:col-span-2 text-xs font-bold text-[#8a8278]">Ваша ситуация сейчас
+                  <input value={plan.situation} onChange={setP("situation")} maxLength={200} placeholder="Бухгалтер в торговой компании, двое детей, работаю 5/2" className={`${input} mt-1`} />
+                </label>
+                <label className="sm:col-span-2 text-xs font-bold text-[#8a8278]">Сильные стороны — что даётся легко
+                  <input value={plan.strengths} onChange={setP("strengths")} maxLength={300} placeholder="Внимательность, Excel, умею объяснять цифры" className={`${input} mt-1`} />
+                </label>
+                <label className="text-xs font-bold text-[#8a8278]">Доход сейчас
+                  <input value={plan.income_now} onChange={setP("income_now")} maxLength={60} placeholder="85 000 ₽" className={`${input} mt-1`} />
+                </label>
+                <label className="text-xs font-bold text-[#8a8278]">Цель по доходу
+                  <input value={plan.income_goal} onChange={setP("income_goal")} maxLength={60} placeholder="200 000 ₽" className={`${input} mt-1`} />
+                </label>
+                <label className="text-xs font-bold text-[#8a8278]">Сколько часов в неделю готовы уделять
+                  <select value={plan.hours} onChange={setP("hours")} className={`${input} mt-1`}>
+                    {[2, 4, 6, 8, 10, 15, 20, 30].map((h) => <option key={h} value={h}>{h} ч в неделю</option>)}
+                  </select>
+                </label>
+                <label className="text-xs font-bold text-[#8a8278]">Что чаще всего мешает
+                  <input value={plan.obstacle} onChange={setP("obstacle")} maxLength={200} placeholder="Устаю после работы, бросаю через пару недель" className={`${input} mt-1`} />
+                </label>
+              </div>
+              <button type="button" onClick={savePlan} className="mt-4 inline-flex items-center gap-2 bg-[#d6402b] text-white font-bold px-4 py-2.5 rounded hover:bg-[#b93522]">
+                <Icon name={keys.has("plan5") ? "RefreshCw" : "Plus"} size={16} />{keys.has("plan5") ? "Обновить план в выпуске" : "Добавить план в выпуск"}
+              </button>
+              <p className="text-xs text-[#8a8278] mt-3">План составляется при сборке PDF после оплаты и занимает 4–6 страниц. Это ориентир для самостоятельной работы, а не гарантия результата.</p>
+            </div>
+          )}
+
           {tab === "uch" && (
             <>
               <div className="rounded-lg bg-gradient-to-r from-fuchsia-600 to-amber-400 text-white p-4 flex flex-wrap items-center justify-between gap-3">

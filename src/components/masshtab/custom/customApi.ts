@@ -15,7 +15,11 @@ export type ModuleSel =
   | { kind: "uch"; id: string }
   | { kind: "market"; region: string; section: string }
   | { kind: "quotes" }
-  | { kind: "notes" };
+  | { kind: "notes" }
+  | ({ kind: "plan5" } & Plan5Form);
+
+export interface Plan5Form { goal: string; direction: string; age: number | ""; situation: string; strengths: string; hours: number; income_now: string; income_goal: string; obstacle: string }
+export const EMPTY_PLAN5: Plan5Form = { goal: "", direction: "", age: "", situation: "", strengths: "", hours: 6, income_now: "", income_goal: "", obstacle: "" };
 
 export interface UchItem { slug: string; title: string; lead: string; topic: string; read_min: number | null; published_at: string }
 
