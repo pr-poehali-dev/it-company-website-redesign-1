@@ -31,12 +31,27 @@ export default function Markdown({ text }: { text: string }) {
           const rows = b.split("\n").filter((l) => !/^\|[\s:|-]+\|$/.test(l)).map((l) => l.replace(/^\||\|$/g, "").split("|").map((c) => c.trim()));
           const [head, ...body] = rows;
           return (
-            <div key={i} className="my-6 overflow-x-auto font-['Golos_Text',sans-serif]">
-              <table className="w-full text-sm border-collapse">
-                <thead><tr className="border-b-2 border-[#14110f]">{head.map((h, j) => <th key={j} className={`py-2 pr-4 text-left font-bold text-[#14110f] ${j ? "text-right" : ""}`}>{inline(h)}</th>)}</tr></thead>
-                <tbody>{body.map((r, k) => <tr key={k} className="border-b border-[#e2d9cb]">{r.map((c, j) => <td key={j} className={`py-2 pr-4 ${j ? "text-right whitespace-nowrap" : ""}`}>{inline(c)}</td>)}</tr>)}</tbody>
-              </table>
-            </div>
+            <Fragment key={i}>
+              <div className="hidden sm:block my-6 overflow-x-auto font-['Golos_Text',sans-serif]">
+                <table className="w-full text-sm border-collapse">
+                  <thead><tr className="border-b-2 border-[#14110f]">{head.map((h, j) => <th key={j} className={`py-2 pr-4 align-bottom font-bold text-[#14110f] ${j ? "text-right" : "text-left"}`}>{inline(h)}</th>)}</tr></thead>
+                  <tbody>{body.map((r, k) => <tr key={k} className="border-b border-[#e2d9cb]">{r.map((c, j) => <td key={j} className={`py-2 pr-4 align-top ${j ? "text-right" : ""}`}>{inline(c)}</td>)}</tr>)}</tbody>
+                </table>
+              </div>
+              <div className="sm:hidden my-6 space-y-3 font-['Golos_Text',sans-serif] text-[15px] leading-snug">
+                {body.map((r, k) => (
+                  <div key={k} className="border border-[#e2d9cb] rounded bg-white/60 p-3">
+                    <div className="font-bold text-[#14110f]">{inline(r[0] ?? "")}</div>
+                    {r.slice(1).map((c, j) => c && c !== "—" ? (
+                      <div key={j} className="flex justify-between gap-3 mt-1.5">
+                        <span className="text-[#8a8278] shrink-0 max-w-[45%]">{inline(head[j + 1] ?? "")}</span>
+                        <span className="text-right font-semibold min-w-0 [overflow-wrap:anywhere]">{inline(c)}</span>
+                      </div>
+                    ) : null)}
+                  </div>
+                ))}
+              </div>
+            </Fragment>
           );
         }
         if (b.startsWith("### ")) return <h3 key={i} className="font-['Playfair_Display',serif] font-bold text-xl md:text-2xl pt-2">{inline(b.slice(4))}</h3>;

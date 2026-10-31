@@ -145,7 +145,7 @@ export default function BlogPage() {
         </Helmet>
       )}
 
-      <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/4 w-64 h-64 md:w-96 md:h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-2/3 right-1/4 w-72 h-72 bg-cyan-600/8 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-3xl mx-auto px-6 py-12 relative">

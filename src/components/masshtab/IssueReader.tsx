@@ -149,7 +149,7 @@ export default function IssueReader({ issue }: { issue: PrintIssue }) {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_360px] gap-10 mt-12">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-10 mt-12">
           <section>
             <h2 className={`${serif} font-bold text-3xl`}>Содержание номера</h2>
             <div className="mt-5 border-t-2 border-[#14110f]">

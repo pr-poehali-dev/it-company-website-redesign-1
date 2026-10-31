@@ -55,7 +55,7 @@ export default function LearnPage() {
       <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6">
         <Crumbs items={active ? [{ label: "Обучение", to: "/masshtab/obuchenie" }, { label: active.name }] : [{ label: "Обучение" }]} />
 
-        <section className="mt-6 grid lg:grid-cols-[1fr_340px] gap-8 items-end">
+        <section className="mt-6 grid lg:grid-cols-[minmax(0,1fr)_340px] gap-8 items-end">
           <div>
             <Kicker>Обучение для руководителей · обновляется каждый день</Kicker>
             <h1 className={`${serif} font-bold text-4xl md:text-6xl mt-2 leading-[1.05]`}>{active ? active.name : "Школа руководителя"}</h1>
@@ -89,7 +89,7 @@ export default function LearnPage() {
           ))}
         </nav>
 
-        <div className="grid lg:grid-cols-[1fr_300px] gap-10 mt-8 pt-8 border-t-2 border-[#14110f]">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_300px] gap-10 mt-8 pt-8 border-t-2 border-[#14110f]">
           <div className="min-w-0">
             {main ? (
               <>

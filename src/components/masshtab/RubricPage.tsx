@@ -32,7 +32,7 @@ export default function RubricPage() {
         <p className="text-lg text-[#5b5550] mt-3 max-w-2xl">{r.desc}</p>
         <p className="text-sm text-[#8a8278] mt-2">Формат: {r.format}</p>
 
-        <div className="grid lg:grid-cols-[1fr_300px] gap-10 mt-10 pt-8 border-t-2 border-[#14110f]">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_300px] gap-10 mt-10 pt-8 border-t-2 border-[#14110f]">
           <div>
             {posts.length ? (
               <div className="grid sm:grid-cols-2 gap-8">{posts.map((p) => <PostCard key={p.id} p={p} />)}</div>

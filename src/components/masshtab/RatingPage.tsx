@@ -103,7 +103,7 @@ export default function RatingPage() {
           </form>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_280px] gap-8 mt-6">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_280px] gap-8 mt-6">
           <div>
             <div className="flex items-baseline justify-between mb-3">
               <h2 className={`${serif} font-bold text-2xl`}>{scope}</h2>

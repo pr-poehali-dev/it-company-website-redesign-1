@@ -90,7 +90,7 @@ export default function SourceWizard({ initial, plan, onClose, onSaved, onUpgrad
           )}
 
           {step === 1 && info && (
-            <div className="grid md:grid-cols-[1fr_280px] gap-6">
+            <div className="grid md:grid-cols-[minmax(0,1fr)_280px] gap-6">
               <div className="space-y-3.5">
                 <Input label="Название в кабинете" value={name} onChange={setName} placeholder="Например: Продажи из amoCRM" />
                 {info.fields.map(f => <FieldInput key={f.key} f={f} value={cfg[f.key] || ""} onChange={v => setCfg(c => ({ ...c, [f.key]: v }))} />)}

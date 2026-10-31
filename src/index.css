@@ -95,7 +95,12 @@
     @apply border-border;
   }
 
+  html, body {
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-background text-foreground;
+    overflow-wrap: break-word;
   }
 }

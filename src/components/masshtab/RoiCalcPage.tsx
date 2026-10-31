@@ -43,7 +43,7 @@ export default function RoiCalcPage() {
         <h1 className={`${serif} font-bold text-4xl md:text-5xl mt-2 leading-[1.05] max-w-3xl`}>Окупится ли аналитика: ROI и срок окупаемости пилота</h1>
         <p className="text-lg text-[#5b5550] mt-3 max-w-2xl">Введите свои запасы, выручку и стоимость проекта. Значения по умолчанию — из <Link to="/masshtab/$slug" params={{ slug: "pilot-prediktivnoy-analitiki-skolko-stoit-i-kogda-okupaetsya" }} className="text-[#d6402b] font-semibold hover:underline">условного примера дистрибьютора</Link>. Подставляйте нижнюю границу ожиданий, а не обещания из презентаций.</p>
 
-        <div className="grid lg:grid-cols-[1.2fr_1fr] gap-8 mt-8">
+        <div className="grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-8 mt-8">
           <div className="space-y-4">
             {GROUPS.map((g) => (
               <div key={g.t} className="bg-white border border-[#e2d9cb] rounded-lg p-5">

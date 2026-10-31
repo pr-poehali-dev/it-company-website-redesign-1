@@ -35,7 +35,7 @@ export default function MarketPicker({ okved, region, onChange }: { okved: strin
   }, []);
 
   return (
-    <div className="grid md:grid-cols-[1fr_260px] gap-2 mb-6">
+    <div className="grid md:grid-cols-[minmax(0,1fr)_260px] gap-2 mb-6">
       <div ref={box} className="relative">
         <Icon name="Search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
         <input value={q} onChange={e => setQ(e.target.value)} onFocus={() => setOpen(true)}

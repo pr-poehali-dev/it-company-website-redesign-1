@@ -38,7 +38,7 @@ export default function CalcPage() {
         <h1 className={`${serif} font-bold text-4xl md:text-5xl mt-2 leading-[1.05] max-w-3xl`}>Калькулятор CAC и LTV: окупается ли ваша реклама</h1>
         <p className="text-lg text-[#5b5550] mt-3 max-w-2xl">Пять цифр — и видно, зарабатываете вы на новом клиенте или доплачиваете за него. Значения по умолчанию — из нашего разбора кофейни, которая теряла 790 ₽ на каждом покупателе.</p>
 
-        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-8 mt-8">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-8 mt-8">
           <div className="bg-white border border-[#e2d9cb] rounded-lg p-6 space-y-4">
             {FIELDS.map((f) => (
               <label key={f.k} className="block">

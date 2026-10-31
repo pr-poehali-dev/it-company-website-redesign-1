@@ -47,8 +47,8 @@ export default function PostPage() {
             {post.hero_name && <figcaption className="text-sm text-[#8a8278] mt-2"><b className="text-[#14110f]">{post.hero_name}</b>{post.hero_role ? `, ${post.hero_role}` : ""}</figcaption>}
           </figure>
         )}
-        <div className="grid lg:grid-cols-[1fr_300px] gap-12 mt-10">
-          <div className="text-[17px] md:text-lg leading-[1.75] text-[#2b2724] font-['Georgia',serif] max-w-[680px]">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_300px] gap-12 mt-10">
+          <div className="min-w-0 break-words text-[17px] md:text-lg leading-[1.75] text-[#2b2724] font-['Georgia',serif] max-w-[680px]">
             {takeaways.length > 0 && (
               <div className="mb-10 border-y-2 border-[#14110f] py-5 font-['Golos_Text',sans-serif]">
                 <Kicker>Главное</Kicker>
