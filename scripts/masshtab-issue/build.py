@@ -39,7 +39,7 @@ PUBLISHER = 'ООО «МАТ-Лабс»'
 COPY = f'© {PUBLISHER}, {ISSUE["year"]}'
 SITE = 'mat-labs.ru'
 OUT = f'{ROOT}/public/masshtab-print/{ISSUE["dir"]}'
-ORDER = [2, 3, 'AD:partner', 14, 'M500', 13, 11, 'AD:auto', 12, 5, 6, 4, 10, 23, 'LIFE', 31, 32, 33, 34, 35, 36]
+ORDER = [2, 3, 'OWN:uchispro', 14, 'M500', 13, 11, 'OWN:matlabs', 12, 5, 6, 4, 10, 23, 'LIFE', 31, 32, 33, 34, 35, 36]
 LIFE_POSTS = [31, 32, 33, 34, 35, 36]
 MAX_PAGES = 52
 PROMO = f'{ROOT}/public/img/masshtab/promo'
@@ -51,9 +51,36 @@ ADS = {
     'travel': ('Деловые поездки', 'Командировки без лишних хлопот', 'Билеты, отели и отчётные документы для сотрудников — в одном окне.'),
     'production': ('Производство', 'Оборудование, которое окупается', 'Поставка, пусконаладка и сервис станков для малого производства.'),
 }
-HALF_KEYS = ['finance', 'production', 'travel']
+HALF_KEYS = ['uchispro-school', 'matlabs-auto', 'uchispro-adults']
 HALF_ADS = {}
 COVER_STORY = 13
+UCH_URL = 'https://xn--h1amcedk2a6b.xn--p1ai/?utm_source=masshtab&utm_medium=print&utm_campaign=n01'
+MAT_URL = 'https://mat-labs.ru/?utm_source=masshtab&utm_medium=print&utm_campaign=n01'
+OWN = {
+    'uchispro': dict(theme='uch', brand='УЧИСЬПРО', domain='учисьпро.рф', url=UCH_URL, img='uchispro',
+        kicker='Обучение для всей семьи', head='ИИ-репетитор, который объясняет, пока не станет понятно',
+        lead='Все предметы 1–11 класса, ОГЭ и ЕГЭ. Ребёнок занимается когда удобно — голосом или текстом, 24/7. Родитель видит, какие темы поняты, а где пробелы.',
+        chips=[('7 дней', 'бесплатно, без карты'), ('1 490 ₽', 'в месяц за все предметы'), ('24/7', 'голосом и текстом')],
+        points=['Проверяет домашку по фото и показывает, где ошибка', 'Малышам 1–6 лет — 3 месяца бесплатно', 'Взрослым — нейросети, своё дело, 40+ программ'],
+        cta='Попробовать 7 дней бесплатно'),
+    'matlabs': dict(theme='mat', brand='МАТ-Лабс', domain='mat-labs.ru', url=MAT_URL, img='matlabs',
+        kicker='Автоматизация с ИИ для малого и среднего бизнеса', head='Рутину — роботам. Рост — вам',
+        lead='Заявки, ответы клиентам, CRM, документы и отчёты — то, что сотрудники сейчас делают вручную. Встраиваем ИИ в ваши процессы и считаем, сколько это сэкономит.',
+        chips=[('0 ₽', 'первая консультация'), ('от 30 тыс. ₽', 'пробный проект'), ('12', 'своих работающих сервисов')],
+        points=['Разберём процессы за 30–45 минут онлайн', 'Скажем честно, что автоматизировать, а что нет', 'Подключаем к 1С, CRM, мессенджерам и почте'],
+        cta='Записаться на бесплатную консультацию'),
+}
+OWN_HALF = {
+    'uchispro-school': dict(theme='uch', brand='УЧИСЬПРО', domain='учисьпро.рф', url=UCH_URL, img='uchispro-school',
+        kicker='Пилот для школ · 2026/27', head='ИИ-наставник для всех учеников школы — бесплатно',
+        text='До 31 мая 2027 года: разбор домашки по фото, курсы 1–11 класса, подготовка к ОГЭ и ЕГЭ. Без договоров и нагрузки на учителей.', cta='Подключить школу'),
+    'matlabs-auto': dict(theme='mat', brand='МАТ-Лабс', domain='mat-labs.ru', url=MAT_URL, img='matlabs-auto',
+        kicker='Посчитайте свою рутину', head='Сколько часов в неделю команда тратит на ручную работу?',
+        text='Покажем на бесплатной консультации, какие заявки, отчёты и ответы клиентам можно отдать ИИ, и сколько это сэкономит в рублях.', cta='Первая консультация — 0 ₽'),
+    'uchispro-adults': dict(theme='uch', brand='УЧИСЬПРО', domain='учисьпро.рф', url=UCH_URL, img='uchispro-adults',
+        kicker='Руководителям и командам', head='Нейросети для работы — за вечер',
+        text='31 бесплатный мини-курс: нейросети, запуск своего дела, удалённые профессии и готовые шаблоны управления.', cta='Начать бесплатно'),
+}
 
 TRIM_W, TRIM_H, BLEED = 210, 280, 3
 PAGE_W, PAGE_H = TRIM_W + 2 * BLEED, TRIM_H + 2 * BLEED
@@ -227,6 +254,36 @@ def ad_half(key):
 <div class="adslot">Рекламный модуль ½ полосы · {SITE}/masshtab/reklama</div></div></div>'''
 
 
+def own_full(key):
+    a = OWN[key]
+    chips = ''.join(f'<div class="och"><b>{txt(v, False)}</b><span>{txt(l, False)}</span></div>' for v, l in a['chips'])
+    pts = ''.join(f'<li>{txt(x, False)}</li>' for x in a['points'])
+    return f'''
+<section class="ownfull {a['theme']}">
+  <img src="file://{PROMO}/{a['img']}.jpg">
+  <div class="oshade"></div>
+  <div class="adlabel">Реклама · {html.escape(a['brand'])}</div>
+  <div class="obrand"><span class="odot"></span>{html.escape(a['brand'])}</div>
+  <div class="obox">
+    <div class="ok">{txt(a['kicker'], False)}</div>
+    <div class="oh">{txt(a['head'], False)}</div>
+    <div class="ol">{txt(a['lead'], False)}</div>
+    <div class="ochips">{chips}</div>
+    <div class="obot">
+      <ul class="opts">{pts}</ul>
+      <div class="oqr">{qr_svg(a['url'])}<div class="octa">{txt(a['cta'], False)}</div><div class="odom">{html.escape(a['domain'])}</div></div>
+    </div>
+  </div>
+</section>'''
+
+
+def own_half(key):
+    a = OWN_HALF[key]
+    return f'''<div class="ownhalf {a['theme']}"><div class="ohimg"><img src="file://{PROMO}/{a['img']}.jpg"><div class="obrand s"><span class="odot"></span>{html.escape(a['brand'])}</div></div>
+<div class="ohb"><div class="adlabel s">Реклама · {html.escape(a['brand'])}</div><div class="ok">{txt(a['kicker'], False)}</div><div class="oh">{txt(a['head'], False)}</div>
+<div class="ot">{txt(a['text'], False)}</div><div class="ohf">{qr_svg(a['url'])}<div><div class="octa">{txt(a['cta'], False)}</div><div class="odom">{html.escape(a['domain'])}</div></div></div></div></div>'''
+
+
 def life_opener():
     items = ''.join(f'<li><b>{html.escape(r)}</b><span>{txt(t, False)}</span></li>' for r, t in [
         ('Недвижимость', 'аренда или покупка офиса при дорогих деньгах'),
@@ -277,7 +334,7 @@ def article(p, marker):
   </div>
   {hero}
   {flow(blocks(p["content"]), key, f'<span class="end">■</span>{task}{srcs}<div class="cr">{COPY}. Перепечатка и воспроизведение — только с письменного согласия издателя.</div>')}
-  {ad_half(HALF_ADS[p['id']]) if p['id'] in HALF_ADS else ''}
+  {own_half(HALF_ADS[p['id']]) if p['id'] in HALF_ADS else ''}
 </section>'''
 
 
@@ -363,7 +420,7 @@ def cover(posts, pages):
 def contents(posts, pages):
     items = []
     for k in ORDER:
-        if isinstance(k, str) and (k.startswith('AD:') or k == 'LIFE'):
+        if isinstance(k, str) and (k.startswith('AD:') or k.startswith('OWN:') or k == 'LIFE'):
             continue
         if k == 'M500':
             items.append(('Рейтинг', '«Масштаб-500»: первые 50 компаний', pages.get('M500', '00')))
@@ -636,6 +693,43 @@ figcaption {{ font-family: 'Golos Text', sans-serif; font-size: 6.6pt; color: #8
 .adhb .adh {{ font-size: 17pt; }}
 .adhb .adt {{ font-size: 8.8pt; }}
 .adhb .adslot {{ margin-top: auto; }}
+.ownfull {{ page: full; width: 100vw; height: 100vh; overflow: hidden; position: relative; break-before: page; break-after: page; background: #07060d; font-family: 'Golos Text', sans-serif; color: #fff; }}
+.ownfull > img {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
+.oshade {{ position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,6,13,.15) 0%, rgba(7,6,13,0) 30%, rgba(7,6,13,.72) 52%, rgba(7,6,13,.96) 70%); }}
+.ownfull .adlabel {{ background: rgba(7,6,13,.6); border: .5pt solid rgba(255,255,255,.35); }}
+.obrand {{ position: absolute; top: {BLEED + 9}mm; left: {BLEED + 14}mm; display: flex; align-items: center; gap: 2.5mm; font-weight: 900; font-size: 15pt; letter-spacing: .04em; padding: 2mm 4.5mm; border-radius: 30mm; background: rgba(7,6,13,.55); border: .8pt solid var(--a1); box-shadow: 0 0 6mm var(--a1g); }}
+.obrand.s {{ top: 4mm; left: 4mm; font-size: 9pt; padding: 1.2mm 3mm; }}
+.odot {{ width: 3mm; height: 3mm; border-radius: 50%; background: linear-gradient(135deg, var(--a1), var(--a2)); box-shadow: 0 0 3mm var(--a1); }}
+.obox {{ position: absolute; left: {BLEED + 14}mm; right: {BLEED + 14}mm; bottom: {BLEED + 14}mm; }}
+.ok {{ font-size: 8pt; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--a2); }}
+.oh {{ font-weight: 900; font-size: 34pt; line-height: 1.02; letter-spacing: -.01em; margin-top: 3mm; background: linear-gradient(90deg, #fff 0%, #fff 45%, var(--a2) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }}
+.ol {{ font-size: 10.5pt; line-height: 1.45; color: rgba(255,255,255,.85); margin-top: 4mm; max-width: 160mm; }}
+.ochips {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.5mm; margin-top: 6mm; }}
+.och {{ border-radius: 3mm; padding: 3.5mm 4mm; background: linear-gradient(135deg, var(--a1t), rgba(255,255,255,.04)); border: .7pt solid var(--a1); box-shadow: inset 0 0 6mm var(--a1g); }}
+.och b {{ display: block; font-weight: 900; font-size: 19pt; line-height: 1; color: #fff; }}
+.och span {{ display: block; font-size: 7.6pt; color: rgba(255,255,255,.75); margin-top: 1.5mm; }}
+.obot {{ display: flex; gap: 7mm; align-items: flex-end; margin-top: 6mm; padding-top: 5mm; border-top: .6pt solid rgba(255,255,255,.22); }}
+.opts {{ flex: 1; list-style: none; padding: 0; margin: 0; }}
+.opts li {{ position: relative; padding-left: 6mm; font-size: 9.5pt; line-height: 1.35; margin-bottom: 2.2mm; color: rgba(255,255,255,.9); }}
+.opts li::before {{ content: ''; position: absolute; left: 0; top: 1.3mm; width: 2.6mm; height: 2.6mm; border-radius: 50%; background: linear-gradient(135deg, var(--a1), var(--a2)); box-shadow: 0 0 2mm var(--a1); }}
+.oqr {{ width: 52mm; text-align: center; }}
+.oqr .qr {{ width: 30mm; height: 30mm; background: #fff; padding: 2.5mm; border-radius: 2mm; color: #07060d; box-shadow: 0 0 7mm var(--a1g); }}
+.octa {{ margin-top: 2.5mm; font-weight: 800; font-size: 8.4pt; line-height: 1.2; padding: 2mm 3mm; border-radius: 10mm; background: linear-gradient(90deg, var(--a1), var(--a2)); color: #fff; }}
+.odom {{ margin-top: 1.8mm; font-weight: 900; font-size: 13pt; letter-spacing: .02em; color: #fff; }}
+.uch {{ --a1: #c026d3; --a2: #fbbf24; --a1g: rgba(192,38,211,.55); --a1t: rgba(192,38,211,.28); }}
+.mat {{ --a1: #7c3aed; --a2: #22d3ee; --a1g: rgba(34,211,238,.45); --a1t: rgba(124,58,237,.3); }}
+.ownhalf {{ break-inside: avoid; margin-top: 6mm; display: grid; grid-template-columns: 1fr 1.1fr; height: 100mm; background: #0b0a14; color: #fff; border-radius: 3mm; overflow: hidden; border: .8pt solid var(--a1); box-shadow: 0 0 6mm var(--a1g); font-family: 'Golos Text', sans-serif; }}
+.ohimg {{ position: relative; }}
+.ohimg img {{ width: 100%; height: 100mm; object-fit: cover; display: block; }}
+.ohb {{ padding: 5mm 5.5mm; display: flex; flex-direction: column; background: radial-gradient(circle at 100% 0%, var(--a1t), transparent 60%); }}
+.ohb .adlabel.s {{ background: rgba(255,255,255,.1); border: .5pt solid rgba(255,255,255,.3); margin-bottom: 2.5mm; align-self: flex-start; }}
+.ohb .ok {{ font-size: 6.6pt; }}
+.ohb .oh {{ font-size: 15.5pt; margin-top: 1.8mm; }}
+.ot {{ font-size: 8.2pt; line-height: 1.4; color: rgba(255,255,255,.82); margin-top: 2.5mm; }}
+.ohf {{ margin-top: auto; display: flex; gap: 3.5mm; align-items: center; }}
+.ohf .qr {{ width: 19mm; height: 19mm; background: #fff; padding: 1.5mm; border-radius: 1.5mm; color: #07060d; flex: none; }}
+.ohf .octa {{ margin-top: 0; font-size: 7.4pt; display: inline-block; }}
+.ohf .odom {{ font-size: 10pt; }}
 .qr {{ color: #14110f; }}
 .qr path {{ fill: currentColor; }}
 '''
@@ -644,15 +738,17 @@ figcaption {{ font-family: 'Golos Text', sans-serif; font-size: 6.6pt; color: #8
 def build_html(posts, rating, pages, fill):
     parts = [cover(posts, pages), contents(posts, pages), editorial()]
     for k in ORDER:
-        if isinstance(k, str) and k.startswith('AD:'):
+        if isinstance(k, str) and k.startswith('OWN:'):
+            parts.append(own_full(k[4:]))
+        elif isinstance(k, str) and k.startswith('AD:'):
             parts.append(ad_full(k[3:]))
         elif k == 'LIFE':
             parts.append(life_opener())
         else:
             parts.append(m500(rating, '§M500§') if k == 'M500' else article(posts[k], f'§A{k}§'))
-    extra = ['office', 'production', 'finance', 'travel']
+    extra = ['matlabs', 'uchispro']
     for i in range(fill):
-        parts.append(house() if i == 0 else ad_full(extra[i - 1]) if i <= len(extra) else notes())
+        parts.append(house() if i == 0 else own_full(extra[i - 1]) if i <= len(extra) else notes())
     parts += [imprint(), back()]
     return f'<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Масштаб № {ISSUE["number"]}</title><style>{css()}</style></head><body>{"".join(parts)}</body></html>'
 
