@@ -47,7 +47,7 @@ export default function RubricPage() {
           <aside className="space-y-8">
             {market && <NewsFeed items={market.news} limit={8} title="По теме · ТАСС" />}
             <DzenSubscribe variant="side" />
-            <AdSlot ad={pickAd(ads, "side")} />
+            <AdSlot ad={pickAd(ads, "side")} house={1} />
           </aside>
         </div>
       </div>

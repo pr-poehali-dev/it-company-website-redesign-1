@@ -20,7 +20,7 @@ export default function PrintIssuePromo() {
           />
         </Link>
         <div className="min-w-0">
-          <Kicker>Печатная версия · {issue.pages} полос</Kicker>
+          <Kicker>Печатная версия · выходит ежемесячно</Kicker>
           <h2 className={`${serif} font-bold text-3xl md:text-4xl mt-2 leading-tight`}>{issue.title}</h2>
           <p className="text-[#5b5550] mt-3 text-lg">
             Все главные материалы месяца в формате журнала 210×280 мм: листайте онлайн как бумажный номер или скачайте PDF.
@@ -49,6 +49,7 @@ export default function PrintIssuePromo() {
               <Icon name="Download" size={18} />
               PDF · {String(issue.readMb).replace(".", ",")} МБ
             </a>
+            <Link to="/masshtab/arhiv" className="text-sm font-bold text-[#d6402b] hover:underline">Все номера →</Link>
           </div>
         </div>
       </div>

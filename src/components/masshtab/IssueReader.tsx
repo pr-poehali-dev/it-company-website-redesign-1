@@ -12,7 +12,7 @@ function spreadsOf(total: number): number[][] {
   return out;
 }
 
-export default function IssueReader({ issue }: { issue: PrintIssue }) {
+export default function IssueReader({ issue, archive = false }: { issue: PrintIssue; archive?: boolean }) {
   const spreads = useMemo(() => spreadsOf(issue.pages), [issue.pages]);
   const [single, setSingle] = useState(false);
   const [page, setPage] = useState(1);
@@ -116,10 +116,10 @@ export default function IssueReader({ issue }: { issue: PrintIssue }) {
   return (
     <MShell active="/masshtab/pechatnyy-nomer">
       <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6 pb-4">
-        <Crumbs items={[{ label: "Печатный номер" }]} />
+        <Crumbs items={archive ? [{ label: "Архив номеров", to: "/masshtab/arhiv" }, { label: issue.title }] : [{ label: "Печатный номер" }]} />
         <div className="flex flex-wrap items-end justify-between gap-6 mt-6">
           <div className="max-w-2xl">
-            <Kicker>Печатная версия</Kicker>
+            <Kicker>{archive ? "Архив номеров" : "Печатная версия · выходит ежемесячно"}</Kicker>
             <h1 className={`${serif} font-bold text-4xl md:text-5xl mt-2 leading-[1.05]`}>{issue.title}</h1>
             <p className="text-lg text-[#5b5550] mt-3">
               {issue.pages} полос, формат 210×280 мм. Листайте номер так, как он выглядит на бумаге, скачайте PDF для чтения или файл для типографии.
@@ -181,6 +181,7 @@ export default function IssueReader({ issue }: { issue: PrintIssue }) {
               <p className="mt-2">© ООО «МАТ-Лабс», 2026. Все материалы номера — тексты, расчёты, графики, рейтинг «Масштаб-500» и оформление — охраняются законом.</p>
               <p className="mt-2 text-white/70">Перепечатка, тиражирование и распространение, полностью или частично, — только с письменного согласия ООО «МАТ-Лабс». Цитирование — с указанием источника и активной ссылкой на mat-labs.ru/masshtab. 16+</p>
             </div>
+            <Link to="/masshtab/arhiv" className="block text-sm font-bold text-[#d6402b]">Все номера в архиве →</Link>
             <Link to="/masshtab" className="block text-sm font-bold text-[#d6402b]">← Вернуться к онлайн-журналу</Link>
           </aside>
         </div>

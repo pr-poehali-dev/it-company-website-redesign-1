@@ -58,7 +58,7 @@ export default function PostPage() {
               </div>
             )}
             <Markdown text={paras.slice(0, half).join("\n\n")} />
-            <div className="my-10 font-['Golos_Text',sans-serif]"><AdSlot ad={pickAd(ads, "inline")} variant="wide" /></div>
+            <div className="my-10 font-['Golos_Text',sans-serif]"><AdSlot ad={pickAd(ads, "inline")} variant="wide" house={2} /></div>
             <Markdown text={paras.slice(half).join("\n\n")} />
             {post.question && (
               <div className="mt-10 bg-[#efe7da] rounded-lg p-6 font-['Golos_Text',sans-serif]">
@@ -110,7 +110,7 @@ export default function PostPage() {
               </div>
             )}
             <DzenSubscribe variant="side" />
-            <AdSlot ad={pickAd(ads, "side")} />
+            <AdSlot ad={pickAd(ads, "side")} house={3} />
           </aside>
         </div>
         {post.more.length > 0 && (

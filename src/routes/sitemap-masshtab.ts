@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { M_URL, type Post } from "@/components/masshtab/api";
 import { RUBRICS } from "@/components/masshtab/rubrics";
+import { ISSUES } from "@/components/masshtab/issues";
 
 const SITE = "https://mat-labs.ru";
 
@@ -22,6 +23,8 @@ export const Route = createFileRoute("/sitemap-masshtab")({
           ["/masshtab", last, "daily", "0.9"],
           ["/masshtab/500", last, "monthly", "0.9"],
           ["/masshtab/pechatnyy-nomer", last, "monthly", "0.7"],
+          ["/masshtab/arhiv", last, "monthly", "0.6"],
+          ...ISSUES.map((i): [string, string, string, string] => [`/masshtab/arhiv/${i.id}`, "", "yearly", "0.5"]),
           ["/masshtab/obuchenie", last, "daily", "0.8"],
           ["/masshtab/citata-dnya", new Date().toISOString().slice(0, 10), "daily", "0.5"],
           ["/masshtab/o-zhurnale", "", "monthly", "0.4"],

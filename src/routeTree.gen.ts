@@ -63,6 +63,8 @@ import { Route as AnalyticsPipesIndexRouteImport } from './routes/analytics.pipe
 import { Route as AnalyticsPipesAppRouteImport } from './routes/analytics.pipes.app'
 import { Route as AnalyticsServicesIndexRouteImport } from './routes/analytics.services.index'
 import { Route as AnalyticsServicesSlugRouteImport } from './routes/analytics.services.$slug'
+import { Route as MasshtabArhivIndexRouteImport } from './routes/masshtab.arhiv.index'
+import { Route as MasshtabArhivIssueRouteImport } from './routes/masshtab.arhiv.$issue'
 import { Route as MasshtabRubrikaRubricRouteImport } from './routes/masshtab.rubrika.$rubric'
 import { Route as UslugiServiceSlugCitySlugRouteImport } from './routes/uslugi.$serviceSlug.$citySlug'
 import { Route as AnalyticsBiSIdRouteImport } from './routes/analytics.bi.s.$id'
@@ -347,6 +349,16 @@ const AnalyticsServicesSlugRoute = AnalyticsServicesSlugRouteImport.update({
   path: '/analytics/services/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MasshtabArhivIndexRoute = MasshtabArhivIndexRouteImport.update({
+  id: '/arhiv/',
+  path: '/arhiv/',
+  getParentRoute: () => MasshtabRoute,
+} as any)
+const MasshtabArhivIssueRoute = MasshtabArhivIssueRouteImport.update({
+  id: '/arhiv/$issue',
+  path: '/arhiv/$issue',
+  getParentRoute: () => MasshtabRoute,
+} as any)
 const MasshtabRubrikaRubricRoute = MasshtabRubrikaRubricRouteImport.update({
   id: '/rubrika/$rubric',
   path: '/rubrika/$rubric',
@@ -430,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
   '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
+  '/masshtab/arhiv/$issue': typeof MasshtabArhivIssueRoute
   '/masshtab/rubrika/$rubric': typeof MasshtabRubrikaRubricRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi/': typeof AnalyticsBiIndexRoute
@@ -438,6 +451,7 @@ export interface FileRoutesByFullPath {
   '/analytics/market/': typeof AnalyticsMarketIndexRoute
   '/analytics/pipes/': typeof AnalyticsPipesIndexRoute
   '/analytics/services/': typeof AnalyticsServicesIndexRoute
+  '/masshtab/arhiv/': typeof MasshtabArhivIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
   '/masshtab/export/$slug/$fmt': typeof MasshtabExportSlugFmtRoute
@@ -491,6 +505,7 @@ export interface FileRoutesByTo {
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
   '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
+  '/masshtab/arhiv/$issue': typeof MasshtabArhivIssueRoute
   '/masshtab/rubrika/$rubric': typeof MasshtabRubrikaRubricRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi': typeof AnalyticsBiIndexRoute
@@ -499,6 +514,7 @@ export interface FileRoutesByTo {
   '/analytics/market': typeof AnalyticsMarketIndexRoute
   '/analytics/pipes': typeof AnalyticsPipesIndexRoute
   '/analytics/services': typeof AnalyticsServicesIndexRoute
+  '/masshtab/arhiv': typeof MasshtabArhivIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
   '/masshtab/export/$slug/$fmt': typeof MasshtabExportSlugFmtRoute
@@ -554,6 +570,7 @@ export interface FileRoutesById {
   '/analytics/databases/$slug': typeof AnalyticsDatabasesSlugRoute
   '/analytics/pipes/app': typeof AnalyticsPipesAppRoute
   '/analytics/services/$slug': typeof AnalyticsServicesSlugRoute
+  '/masshtab/arhiv/$issue': typeof MasshtabArhivIssueRoute
   '/masshtab/rubrika/$rubric': typeof MasshtabRubrikaRubricRoute
   '/uslugi/$serviceSlug/$citySlug': typeof UslugiServiceSlugCitySlugRoute
   '/analytics/bi/': typeof AnalyticsBiIndexRoute
@@ -562,6 +579,7 @@ export interface FileRoutesById {
   '/analytics/market/': typeof AnalyticsMarketIndexRoute
   '/analytics/pipes/': typeof AnalyticsPipesIndexRoute
   '/analytics/services/': typeof AnalyticsServicesIndexRoute
+  '/masshtab/arhiv/': typeof MasshtabArhivIndexRoute
   '/analytics/bi/s/$id': typeof AnalyticsBiSIdRoute
   '/analytics/market/$okved/$region': typeof AnalyticsMarketOkvedRegionRoute
   '/masshtab/export/$slug/$fmt': typeof MasshtabExportSlugFmtRoute
@@ -618,6 +636,7 @@ export interface FileRouteTypes {
     | '/analytics/databases/$slug'
     | '/analytics/pipes/app'
     | '/analytics/services/$slug'
+    | '/masshtab/arhiv/$issue'
     | '/masshtab/rubrika/$rubric'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi/'
@@ -626,6 +645,7 @@ export interface FileRouteTypes {
     | '/analytics/market/'
     | '/analytics/pipes/'
     | '/analytics/services/'
+    | '/masshtab/arhiv/'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
     | '/masshtab/export/$slug/$fmt'
@@ -679,6 +699,7 @@ export interface FileRouteTypes {
     | '/analytics/databases/$slug'
     | '/analytics/pipes/app'
     | '/analytics/services/$slug'
+    | '/masshtab/arhiv/$issue'
     | '/masshtab/rubrika/$rubric'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi'
@@ -687,6 +708,7 @@ export interface FileRouteTypes {
     | '/analytics/market'
     | '/analytics/pipes'
     | '/analytics/services'
+    | '/masshtab/arhiv'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
     | '/masshtab/export/$slug/$fmt'
@@ -741,6 +763,7 @@ export interface FileRouteTypes {
     | '/analytics/databases/$slug'
     | '/analytics/pipes/app'
     | '/analytics/services/$slug'
+    | '/masshtab/arhiv/$issue'
     | '/masshtab/rubrika/$rubric'
     | '/uslugi/$serviceSlug/$citySlug'
     | '/analytics/bi/'
@@ -749,6 +772,7 @@ export interface FileRouteTypes {
     | '/analytics/market/'
     | '/analytics/pipes/'
     | '/analytics/services/'
+    | '/masshtab/arhiv/'
     | '/analytics/bi/s/$id'
     | '/analytics/market/$okved/$region'
     | '/masshtab/export/$slug/$fmt'
@@ -1178,6 +1202,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsServicesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/masshtab/arhiv/': {
+      id: '/masshtab/arhiv/'
+      path: '/arhiv'
+      fullPath: '/masshtab/arhiv/'
+      preLoaderRoute: typeof MasshtabArhivIndexRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
+    '/masshtab/arhiv/$issue': {
+      id: '/masshtab/arhiv/$issue'
+      path: '/arhiv/$issue'
+      fullPath: '/masshtab/arhiv/$issue'
+      preLoaderRoute: typeof MasshtabArhivIssueRouteImport
+      parentRoute: typeof MasshtabRoute
+    }
     '/masshtab/rubrika/$rubric': {
       id: '/masshtab/rubrika/$rubric'
       path: '/rubrika/$rubric'
@@ -1242,7 +1280,9 @@ interface MasshtabRouteChildren {
   MasshtabRssRoute: typeof MasshtabRssRoute
   MasshtabTenchatRoute: typeof MasshtabTenchatRoute
   MasshtabIndexRoute: typeof MasshtabIndexRoute
+  MasshtabArhivIssueRoute: typeof MasshtabArhivIssueRoute
   MasshtabRubrikaRubricRoute: typeof MasshtabRubrikaRubricRoute
+  MasshtabArhivIndexRoute: typeof MasshtabArhivIndexRoute
   MasshtabExportSlugFmtRoute: typeof MasshtabExportSlugFmtRoute
 }
 
@@ -1265,7 +1305,9 @@ const MasshtabRouteChildren: MasshtabRouteChildren = {
   MasshtabRssRoute: MasshtabRssRoute,
   MasshtabTenchatRoute: MasshtabTenchatRoute,
   MasshtabIndexRoute: MasshtabIndexRoute,
+  MasshtabArhivIssueRoute: MasshtabArhivIssueRoute,
   MasshtabRubrikaRubricRoute: MasshtabRubrikaRubricRoute,
+  MasshtabArhivIndexRoute: MasshtabArhivIndexRoute,
   MasshtabExportSlugFmtRoute: MasshtabExportSlugFmtRoute,
 }
 

@@ -163,14 +163,14 @@ export default function RatingPage() {
             </div>
           </div>
           <aside className="space-y-6">
-            <AdSlot ad={pickAd(ads, "side")} />
+            <AdSlot ad={pickAd(ads, "side")} house={0} />
             <div className="bg-[#14110f] text-white rounded-lg p-5">
               <Kicker className="text-[#ff7a66]">Для компаний из рейтинга</Kicker>
               <div className={`${serif} font-bold text-xl mt-2 leading-snug`}>Расскажите, как вы выросли</div>
               <p className="text-sm text-white/70 mt-2">Опубликуем интервью с основателем и карточкой компании. Для участников рейтинга — бесплатно.</p>
               <a href="/masshtab/reklama#hero" className="inline-block mt-4 bg-[#d6402b] text-white text-sm font-bold px-4 py-2 rounded">Оставить заявку</a>
             </div>
-            <AdSlot ad={pickAd(ads, "side", 1)} />
+            <AdSlot ad={pickAd(ads, "side", 1)} house={3} />
           </aside>
         </div>
 

@@ -86,7 +86,7 @@ export default function HomePage() {
               <Link to="/masshtab/500" className="block mt-3 text-sm font-bold text-[#d6402b]">Весь рейтинг и фильтры →</Link>
             </div>
             <DzenSubscribe variant="side" />
-            <AdSlot ad={pickAd(ads, "side")} />
+            <AdSlot ad={pickAd(ads, "side")} house={1} />
             {rating && (
               <div className="bg-[#efe7da] rounded p-5">
                 <Kicker>Цифра выпуска</Kicker>
