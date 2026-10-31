@@ -9,6 +9,7 @@ import PostCard from "./PostCard";
 import PrintIssuePromo from "./PrintIssuePromo";
 import DzenSubscribe from "./DzenSubscribe";
 import QuoteCard from "./QuoteCard";
+import PromoVideo from "./PromoVideo";
 import Crumbs from "./Crumbs";
 import { RUBRICS } from "./rubrics";
 import { companyName, growthLabel, mGet, mln, type Ad, type Market } from "./api";
@@ -34,6 +35,8 @@ export default function HomePage() {
         <div className="pt-4"><Crumbs items={[]} /></div>
         <h1 className="sr-only">«Масштаб» — деловой журнал для предпринимателей и руководителей</h1>
         <div className="mt-4"><AdSlot ad={pickAd(ads, "top")} variant="wide" /></div>
+
+        <PromoVideo />
 
         <div className="grid lg:grid-cols-[260px_1fr_300px] gap-8 mt-8">
           <aside className="order-2 lg:order-1"><NewsFeed items={news} limit={14} title="Лента · экономика" /></aside>
